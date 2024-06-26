@@ -1,0 +1,9 @@
+.env
+.pyc
+gipsobob.sql
+
+cogs/__pycache__/dl.cpython-312.pyc
+cogs/__pycache__/giveaways.cpython-312.pyc
+cogs/__pycache__/xp.cpython-312.pyc
+cogs/__pycache__/sbp.cpython-312.pyc
+cogs/__pycache__/fun.cpython-312.pyc
