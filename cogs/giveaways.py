@@ -88,7 +88,7 @@ class GA(commands.Cog):
 
     async def evday(self):
         await self.bot.wait_until_ready()
-        now = datetime.now(pytz.timezone('Europe/Moscow'))
+        now = datetime.now(pytz.timezone('Europe/Moscow')).replace(minute=0, second=0, microsecond=0)
         ends = now + timedelta(hours=12)
 
         ends = int(ends.timestamp())
