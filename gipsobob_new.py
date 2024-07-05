@@ -59,13 +59,13 @@ async def ping(inter: disnake.ApplicationCommandInteraction):
     if await bot.check(inter) == 1: return
     await inter.response.send_message("Понг!", ephemeral=True)
 
-@bot.message_command(name="Инфо о сообщении", integration_types=[0,1], contexts=[0,1,2])  # creates a global message command. use guild_ids=[] to create guild-specific commands.
-async def get_messag12e_id(inter: disnake.MessageCommandInteraction, message: disnake.Message):  # message commands return the message
+@bot.message_command(name="Инфо о сообщении", integration_types=[0,1], contexts=[0,1,2])
+async def get_messag12e_id(inter: disnake.MessageCommandInteraction, message: disnake.Message):
     if await bot.check(inter) == 1: return
     await inter.response.send_message(f"Message ID: `{message.id}`, Message author: '{message.author.mention}', Message author ID: `{message.author.id}`, Message content: `{message.content}`", ephemeral=True)
 
-@bot.message_command(name="(Раз)Забанить автора", integration_types=[0,1], contexts=[0,1,2])  # creates a global message command. use guild_ids=[] to create guild-specific commands.
-async def banauthor(inter: disnake.MessageCommandInteraction, message: disnake.Message):  # message commands return the message
+@bot.message_command(name="(Раз)Забанить автора", integration_types=[0,1], contexts=[0,1,2])
+async def banauthor(inter: disnake.MessageCommandInteraction, message: disnake.Message):
     if inter.author.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
     async with aiosqlite.connect(dbn, timeout=20) as db:
         cursor = await db.cursor()

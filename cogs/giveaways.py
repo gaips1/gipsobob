@@ -77,6 +77,16 @@ class GA(commands.Cog):
     async def runs(self):
         await self.bot.wait_until_ready()
         while True:
+            while True:
+                now = datetime.now(pytz.timezone('Europe/Moscow'))
+                if now.hour == 12 and now.minute == 00 and now.second == 00:
+                    break
+                else:
+                    await asyncio.sleep(1)
+
+            await self.evday()
+        """
+        while True:
             target_time = datetime.now(pytz.timezone('Europe/Moscow')).replace(hour=12, minute=00, second=0, microsecond=0)
             if datetime.now(pytz.timezone('Europe/Moscow')) > target_time:
                 target_time += timedelta(days=1)
@@ -85,6 +95,7 @@ class GA(commands.Cog):
                 await asyncio.sleep(1)
 
             await self.evday()
+        """
 
     async def evday(self):
         await self.bot.wait_until_ready()
@@ -95,7 +106,10 @@ class GA(commands.Cog):
         embed = disnake.Embed(title=f"Ежедневный розыгрыш 100 бебр", description=
                               f"**Чтобы участвовать, нажми кнопку ниже.\nЗаканчивается <t:{ends}:R>**",
                               color=disnake.Color.random())
+        
         channel = await self.bot.fetch_channel(843475272107163648)
+
+
         serv: disnake.Guild = self.bot.get_guild(621378615174758421)
         role = serv.get_role(968467508724138014)
         msg = await channel.send(content=role.mention, embed=embed, view=gab([0, ends, [], 100, 0]))
