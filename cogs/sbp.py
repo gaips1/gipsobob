@@ -1,5 +1,6 @@
-from disnake.ext import commands
-import disnake
+import inspect
+from discord.ext import commands
+import discord
 import aiosqlite
 import os
 import string
@@ -7,66 +8,43 @@ from PIL import Image, ImageDraw, ImageFont
 import random
 
 class Sbp(commands.Cog):
+    def __init__(self, bot: discord.Bot):
+        self.bot: discord.Bot = bot
 
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.Cog.listener("on_button_click")
-    async def btnclicks(self, inter: disnake.MessageInteraction):
-        async with aiosqlite.connect(dbn, timeout=20) as db:
-            cursor = await db.cursor()
-            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.author.id,))
-            user = await cursor.fetchone()
-
-        if inter.component.custom_id == "turnoff":
+    class turnon(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=None)
+        @discord.ui.button(label="Включить уведомления", style=discord.ButtonStyle.success, emoji="✅")
+        async def tunroff11(self, button: discord.ui.Button, inter: discord.Interaction):
             async with aiosqlite.connect(dbn, timeout=20) as db:
                 cursor = await db.cursor()
-                await cursor.execute(f"UPDATE sbp SET notif = 0 WHERE id = {inter.author.id}")
-                await db.commit()
-            await inter.response.edit_message(embed=disnake.Embed(
-                title=f"Личный кабинет: {inter.author.global_name}",
-                description=f"**Добро пожаловать в Систему Быстрых Платежей, {inter.author.global_name}!\nБаланс: {user[1]} бебр\nУведомления: выключены**"
-            ), components=[disnake.ui.Button(label="Включить уведомления", style=disnake.ButtonStyle.success, custom_id="turnon", emoji="✅"),
-                        disnake.ui.Button(label="Перевести бебры", style=disnake.ButtonStyle.blurple, custom_id="transferb", emoji="💸")])
+                await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
+                user = await cursor.fetchone()
 
-        elif inter.component.custom_id == "turnon":
             async with aiosqlite.connect(dbn, timeout=20) as db:
                 cursor = await db.cursor()
-                await cursor.execute(f"UPDATE sbp SET notif = 1 WHERE id = {inter.author.id}")
+                await cursor.execute(f"UPDATE sbp SET notif = 1 WHERE id = {inter.user.id}")
                 await db.commit()
-            await inter.response.edit_message(embed=disnake.Embed(
-                title=f"Личный кабинет: {inter.author.global_name}",
-                description=f"**Добро пожаловать в Систему Быстрых Платежей, {inter.author.global_name}!\nБаланс: {user[1]} бебр\nУведомления: включены**"
-            ), components=[disnake.ui.Button(label="Выключить уведомления", style=disnake.ButtonStyle.danger, custom_id="turnoff", emoji="✖"),
-                        disnake.ui.Button(label="Перевести бебры", style=disnake.ButtonStyle.blurple, custom_id="transferb", emoji="💸")])
 
-        elif inter.component.custom_id == "turnon1":
-            async with aiosqlite.connect(dbn, timeout=20) as db:
-                cursor = await db.cursor()
-                await cursor.execute(f"UPDATE sbp SET notif = 1 WHERE id = {inter.author.id}")
-                await db.commit()
-            await inter.response.edit_message(components=[disnake.ui.Button(label="Выключить уведомления", style=disnake.ButtonStyle.danger, custom_id="turnoff1", emoji="✖")])
+            await inter.response.edit_message(embed=discord.Embed(
+                title=f"Личный кабинет: {inter.user.global_name}",
+                description=f"**Добро пожаловать в Систему Быстрых Платежей, {inter.user.global_name}!\nБаланс: {user[1]} бебр\nУведомления: включены**"
+            ), view=Sbp.turnoff())
 
-        elif inter.component.custom_id == "turnoff1":
-            async with aiosqlite.connect(dbn, timeout=20) as db:
-                cursor = await db.cursor()
-                await cursor.execute(f"UPDATE sbp SET notif = 0 WHERE id = {inter.author.id}")
-                await db.commit()
-            await inter.response.edit_message(components=[disnake.ui.Button(label="Включить уведомления", style=disnake.ButtonStyle.success, custom_id="turnon1", emoji="✅")])
-
-        elif inter.component.custom_id == "transferb":
+        @discord.ui.button(label="Перевести бебры", style=discord.ButtonStyle.blurple, emoji="💸")
+        async def perevod1(self, button: discord.ui.Button, inter: discord.Interaction):
             await inter.response.send_message("Отправьте айди получателя мне в личные сообщения", ephemeral=True)
             def check(m):
-                return m.author == inter.author
+                return m.author == inter.user
 
-            msg: disnake.Message = await self.bot.wait_for('message', check=check)
+            msg: discord.Message = await inter.client.wait_for('message', check=check)
             try:
-                user = await self.bot.fetch_user(int(msg.content))
+                user = await inter.client.fetch_user(int(msg.content))
             except:
                 return await msg.reply("Не удалось найти пользователя")
             
             if user.bot: return await msg.reply("Нельзя перевести бебры боту")
-            if user == inter.author: return await msg.reply("Нельзя перевести бебры себе")
+            if user == inter.user: return await msg.reply("Нельзя перевести бебры себе")
 
             async with aiosqlite.connect(dbn, timeout=20) as db:
                 cursor = await db.cursor()
@@ -75,69 +53,149 @@ class Sbp(commands.Cog):
 
             if not use: return await msg.reply("Пользователь не зарегистрирован в Системе Быстрых платежей! Скажите ему чтобы он сделал это, написав **/reg**")
 
-            await msg.reply(f"Вы собираетесь перевести бебры пользователю **{user.global_name}** [{user.id}] \nПодтверждаете платёж?", components=[
-                disnake.ui.Button(label="Да", style=disnake.ButtonStyle.success, custom_id="yes-transfer", emoji="✅"),
-                disnake.ui.Button(label="Нет", style=disnake.ButtonStyle.danger, custom_id="no-transfer", emoji="✖")])
+            await msg.reply(f"Вы собираетесь перевести бебры пользователю **{user.global_name}** [{user.id}] \nПодтверждаете платёж?", view=Sbp.yesornoH())
+
+    class turnoff(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=None)
+
+        @discord.ui.button(label="Выключить уведомления", style=discord.ButtonStyle.danger, emoji="✖")
+        async def tunrofdff(self, button: discord.ui.Button, inter: discord.Interaction):
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
+                user = await cursor.fetchone()
+
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute(f"UPDATE sbp SET notif = 0 WHERE id = {inter.user.id}")
+                await db.commit()
+
+            await inter.response.edit_message(embed=discord.Embed(
+                title=f"Личный кабинет: {inter.user.global_name}",
+                description=f"**Добро пожаловать в Систему Быстрых Платежей, {inter.user.global_name}!\nБаланс: {user[1]} бебр\nУведомления: выключены**"
+            ), view=Sbp.turnon())
+
+        @discord.ui.button(label="Перевести бебры", style=discord.ButtonStyle.blurple, emoji="💸")
+        async def perevod(self, button: discord.ui.Button, inter: discord.Interaction):
+            await inter.response.send_message("Отправьте айди получателя мне в личные сообщения", ephemeral=True)
+            def check(m):
+                return m.author == inter.user
+
+            msg: discord.Message = await inter.client.wait_for('message', check=check)
+            try:
+                user = await inter.client.fetch_user(int(msg.content))
+            except:
+                return await msg.reply("Не удалось найти пользователя")
             
-        elif inter.component.custom_id == "yes-transfer":
-            user = await self.bot.getch_user(int(inter.message.content.split()[6].replace("[", "").replace("]","")))
+            if user.bot: return await msg.reply("Нельзя перевести бебры боту")
+            if user == inter.user: return await msg.reply("Нельзя перевести бебры себе")
+
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (user.id,))
+                use = await cursor.fetchone()
+
+            if not use: return await msg.reply("Пользователь не зарегистрирован в Системе Быстрых платежей! Скажите ему чтобы он сделал это, написав **/reg**")
+
+            await msg.reply(f"Вы собираетесь перевести бебры пользователю **{user.global_name}** [{user.id}] \nПодтверждаете платёж?", view=Sbp.yesornoH())
+
+    class yesornoH(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=None)
+
+        @discord.ui.button(label="Да", style=discord.ButtonStyle.success)
+        async def accept_plat(self, button: discord.ui.Button, inter: discord.Interaction):
+            user = await inter.client.get_or_fetch_user(int(inter.message.content.split()[6].replace("[", "").replace("]","")))
             await inter.response.send_modal(transferm(title="Перевод " + str(user.global_name), user=user, messag=True))
 
-        elif inter.component.custom_id == "no-transfer":
-            await inter.response.edit_message("Отменено", components=[])
+        @discord.ui.button(label="Нет", style=discord.ButtonStyle.danger)
+        async def dontaccept_plat(self, button: discord.ui.Button, inter: discord.Interaction):
+            await inter.response.edit_message(content="Отменено", view=None)
 
-    @commands.slash_command(description="Твой личный кабинет Системы Быстрых Платежей!", integration_types=[0,1], contexts=[0,1,2])
-    async def account(self, inter: disnake.ApplicationCommandInteraction):
+    class turnon1(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=None)
+
+        @discord.ui.button(label="Включить уведомления", style=discord.ButtonStyle.success)
+        async def gkrejgkerhlg(self, button: discord.ui.Button, inter: discord.Interaction):
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute(f"UPDATE sbp SET notif = 1 WHERE id = {inter.user.id}")
+                await db.commit()
+            await inter.response.edit_message(view=Sbp.turnoff1())
+
+    class turnoff1(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=None)
+
+        @discord.ui.button(label="Выключить уведомления", style=discord.ButtonStyle.danger)
+        async def gkrejgkerhlg(self, button: discord.ui.Button, inter: discord.Interaction):
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute(f"UPDATE sbp SET notif = 0 WHERE id = {inter.user.id}")
+                await db.commit()
+            await inter.response.edit_message(view=Sbp.turnon1())
+
+    @commands.slash_command(
+        description="Твой личный кабинет Системы Быстрых Платежей!", 
+        integration_types={discord.IntegrationType.user_install, discord.IntegrationType.guild_install},
+        contexts={discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm, discord.InteractionContextType.guild}
+    )
+    async def account(self, inter: discord.ApplicationContext):
         if await self.bot.check(inter) == 1: return
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.author.id,))
+            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
             user = await cursor.fetchone()
         if not user:
-            return await inter.response.send_message("Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", ephemeral=True)
-        await inter.response.send_message(embed=disnake.Embed(
-            title=f"Личный кабинет: {inter.author.global_name}",
-            description=f"**Добро пожаловать в Систему Быстрых Платежей, {inter.author.global_name}!\nБаланс: {user[1]} бебр\nУведомления: {'включены' if user[2]==1 else 'выключены'}**"
-        ), ephemeral=True,
-        components=[disnake.ui.Button(label="Выключить уведомления", style=disnake.ButtonStyle.danger, custom_id="turnoff", emoji="✖") if user[2]==1 else disnake.ui.Button(label="Включить уведомления", style=disnake.ButtonStyle.success, custom_id="turnon", emoji="✅"),
-                    disnake.ui.Button(label="Перевести бебры", style=disnake.ButtonStyle.blurple, custom_id="transferb", emoji="💸")])
+            return await inter.respond("Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", ephemeral=True)
+        await inter.response.send_message(embed=discord.Embed(
+            title=f"Личный кабинет: {inter.user.global_name}",
+            description=f"**Добро пожаловать в Систему Быстрых Платежей, {inter.user.global_name}!\nБаланс: {user[1]} бебр\nУведомления: {'включены' if user[2]==1 else 'выключены'}**"
+        ), ephemeral=True,view=Sbp.turnoff() if user[2]==1 else Sbp.turnon())
 
-    @commands.slash_command(description="Зарегистрироваться в Системе Быстрых Платежей", integration_types=[0,1], contexts=[0,1,2])
-    async def reg(self, inter: disnake.ApplicationCommandInteraction):
+    @commands.slash_command(description="Зарегистрироваться в Системе Быстрых Платежей", integration_types={discord.IntegrationType.user_install, discord.IntegrationType.guild_install},
+                   contexts={discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
+                             discord.InteractionContextType.guild})
+    async def reg(self, inter: discord.ApplicationContext):
         if await self.bot.check(inter) == 1: return
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.author.id,))
+            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
             user = await cursor.fetchone()
         if not user:
             async with aiosqlite.connect(dbn, timeout=20) as db:
                 cursor = await db.cursor()
-                await cursor.execute("INSERT INTO `sbp` (id) VALUES (?)", (inter.author.id,))
+                await cursor.execute("INSERT INTO `sbp` (id) VALUES (?)", (inter.user.id,))
                 await db.commit()
             return await inter.response.send_message("Успешно!", ephemeral=True)
         await inter.response.send_message("Вы уже зарегистрированы!", ephemeral=True)
 
-    @commands.slash_command(description="Изменить количество денег в СБП", integration_types=[0,1], contexts=[0,1,2], options=[
-        disnake.Option(name="amount", description="На сколько изменять?", required=True, type=disnake.OptionType.integer),
-        disnake.Option(name="user", description="Кому изменять?", required=False, type=disnake.OptionType.user)
-    ])
-    async def setbal(self, inter: disnake.ApplicationCommandInteraction):
-        if inter.author.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
+    @commands.slash_command(description="Изменить количество денег в СБП", integration_types={discord.IntegrationType.user_install, discord.IntegrationType.guild_install},
+                   contexts={discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
+                             discord.InteractionContextType.guild})
+    @discord.option("amount", description="На сколько изменять?", required=True, input_type=discord.SlashCommandOptionType.integer)  
+    @discord.option("user", description="Кому изменять?", required=False, input_type=discord.SlashCommandOptionType.user)   
+    async def setbal(self, inter: discord.ApplicationContext, amount:int, user:discord.User):
+        if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            await cursor.execute(f'UPDATE sbp SET balance = {inter.options["amount"]} WHERE id = {inter.author.id}') if not inter.options.get("user") else await cursor.execute(f'UPDATE sbp SET balance = {inter.options["amount"]} WHERE id = {inter.options.get("user").id}')
+            await cursor.execute(f'UPDATE sbp SET balance = {amount} WHERE id = {inter.user.id}') if not user else await cursor.execute(f'UPDATE sbp SET balance = {amount} WHERE id = {user.id}')
             await db.commit()
         await inter.response.send_message("Успешно!", ephemeral=True)
 
-    @commands.user_command(name="Перевод", integration_types=[0,1], contexts=[0,1,2])
-    async def transferu(self, inter: disnake.UserCommandInteraction, user: disnake.User):
+    @commands.user_command(name="Перевод", integration_types={discord.IntegrationType.user_install, discord.IntegrationType.guild_install},
+                   contexts={discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
+                             discord.InteractionContextType.guild})
+    async def transferu(self, inter: discord.ApplicationContext, user: discord.User):
         if await self.bot.check(inter) == 1: return
         if user.bot: return await inter.response.send_message("Нельзя перевести бебры боту", ephemeral=True)
-        if user == inter.author: return await inter.response.send_message("Нельзя перевести бебры себе", ephemeral=True)
+        if user == inter.user: return await inter.response.send_message("Нельзя перевести бебры себе", ephemeral=True)
 
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.author.id,))
+            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
             me = await cursor.fetchone()
             await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (user.id,))
             use = await cursor.fetchone()
@@ -147,24 +205,20 @@ class Sbp(commands.Cog):
 
         await inter.response.send_modal(transferm(title="Перевод " + str(user.global_name), user=user))
 
-    @commands.slash_command(description="Перевод бебр пользователю Системы Быстрых Платежей", integration_types=[0,1], contexts=[0,1,2], options=[
-        disnake.Option(name="user", description="Кому переводить?", required=True, type=disnake.OptionType.user),
-        disnake.Option(name="amount", description="Сколько переводить?", required=True, type=disnake.OptionType.string),
-        disnake.Option(name="comment", description="Комментарий к переводу?", required=False, type=disnake.OptionType.string, max_length=50)
-    ])
-    async def transfer(self, inter: disnake.ApplicationCommandInteraction):
+    @commands.slash_command(description="Перевод бебр пользователю Системы Быстрых Платежей", integration_types={discord.IntegrationType.user_install, discord.IntegrationType.guild_install},
+                   contexts={discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
+                             discord.InteractionContextType.guild})
+    @discord.option("user", description="Кому переводить?", required=True, input_type=discord.SlashCommandOptionType.user)
+    @discord.option("amount", description="Сколько переводить?", required=True, input_type=discord.SlashCommandOptionType.integer)  
+    @discord.option("comment", str, description="Комментарий к переводу", required=False, max_length=50)
+    async def transfer(self, inter: discord.ApplicationContext, user:discord.User, amount:int, comment:str):
         if await self.bot.check(inter) == 1: return
-        try:
-            amount = int(inter.options.get("amount"))
-        except:
-            return await inter.response.send_message("Пожалуйста, введите целое число, а не буковки", ephemeral=True)
         if amount <= 0: return await inter.response.send_message("Пожалуйста, введите положительное или не нулевое число", ephemeral=True)
-        user = inter.options.get("user")
         if user.bot: return await inter.response.send_message("Нельзя перевести бебры боту", ephemeral=True)
-        if user == inter.author: return await inter.response.send_message("Нельзя перевести бебры себе", ephemeral=True)
+        if user == inter.user: return await inter.response.send_message("Нельзя перевести бебры себе", ephemeral=True)
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.author.id,))
+            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
             me = await cursor.fetchone()
             await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (user.id,))
             usr = await cursor.fetchone()
@@ -176,23 +230,25 @@ class Sbp(commands.Cog):
 
         async with aiosqlite.connect(dbn) as db:
             cursor = await db.cursor()  
-            await cursor.execute(f"UPDATE sbp SET balance = balance - {amount} WHERE id = {inter.author.id}")
+            await cursor.execute(f"UPDATE sbp SET balance = balance - {amount} WHERE id = {inter.user.id}")
             await cursor.execute(f"UPDATE sbp SET balance = balance + {amount} WHERE id = {user.id}")
             await db.commit()
 
         await inter.response.send_message("Успешно!", ephemeral=True)
 
         if usr[2] == 1:
-            if inter.options.get("comment"):
-                embed = disnake.Embed(title=f"Получен перевод от {inter.author.global_name} суммой {amount} бебр.", description=
-                                        f"Комментарий от отправителя: **{inter.options.get("comment")}**", color=disnake.Color.green())
+            if comment:
+                embed = discord.Embed(title=f"Получен перевод от {inter.user.global_name} суммой {amount} бебр.", description=
+                                        f"Комментарий от отправителя: **{comment}**", color=discord.Color.green())
             else:
-                embed = disnake.Embed(title=f"Получен перевод от {inter.author.global_name} суммой {amount} бебр.", color=disnake.Color.green())
+                embed = discord.Embed(title=f"Получен перевод от {inter.user.global_name} суммой {amount} бебр.", color=discord.Color.green())
             
-            await user.send(embed=embed, components=[disnake.ui.Button(label="Выключить уведомления", style=disnake.ButtonStyle.danger, custom_id="turnoff1", emoji="✖")])
+            await user.send(embed=embed, view=Sbp.turnoff1())
 
-    @commands.slash_command(description="Пройти капчу и получить бебры", integration_types=[0,1], contexts=[0,1,2])
-    async def captcha(self, inter: disnake.UserCommandInteraction):
+    @commands.slash_command(description="Пройти капчу и получить бебры", integration_types={discord.IntegrationType.user_install, discord.IntegrationType.guild_install},
+                   contexts={discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
+                             discord.InteractionContextType.guild})
+    async def captcha(self, inter: discord.ApplicationContext):
         if await self.bot.check(inter) == 1: return
         letters = string.ascii_letters + string.digits
         kap = ''.join(random.choice(letters) for i in range(10))
@@ -210,81 +266,60 @@ class Sbp(commands.Cog):
         # Save the image to a file
         image.save('random_text.png')
         #await ctx.respond(f'Привет!\nУ тебя 5 секунд на ввод капчи!', view=kapch(), ephemeral=True, file=discord.File('random_text.png'))
-        await inter.response.send_message("Привет!\nТвоя капча:", ephemeral=True, file=disnake.File('random_text.png'), view=captchab(captcha=kap))
+        await inter.response.send_message("Привет!\nТвоя капча:", ephemeral=True, file=discord.File('random_text.png'), view=captchab(captcha=kap))
         os.remove('random_text.png')
 
-class captchab(disnake.ui.View):
+class captchab(discord.ui.View):
     def __init__(self, captcha: string):
         super().__init__(timeout=None)
         self.captcha = captcha
 
-    @disnake.ui.button(label="Ввести капчу", style=disnake.ButtonStyle.blurple)
-    async def vvdod(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
+    @discord.ui.button(label="Ввести капчу", style=discord.ButtonStyle.blurple)
+    async def vvdod(self, button: discord.ui.Button, inter: discord.ApplicationContext):
         await inter.response.send_modal(captcham(captcha=self.captcha))
 
-class captcham(disnake.ui.Modal):
-    def __init__(self, captcha: string):
-        components = [
-            disnake.ui.TextInput(
-                label="Капча",
-                custom_id="captcha",
-                style=disnake.TextInputStyle.short,
-                required=True,
-                max_length=11,
-            ),
-        ]
-        super().__init__(title="Капча", components=components)
+class captcham(discord.ui.Modal):
+    def __init__(self, captcha, *args, **kwargs) -> None:
+        super().__init__(title="Капча", *args, **kwargs)
+        self.add_item(discord.ui.InputText(label="Введите капчу:", required=True)),
         self.captcha: string  = captcha
 
-    async def callback(self, inter: disnake.ModalInteraction):
-        if inter.text_values["captcha"] == self.captcha:
+    async def callback(self, inter: discord.ApplicationContext):
+        if self.children[0].value == self.captcha:
             async with aiosqlite.connect(dbn, timeout=20) as db:
                 cursor = await db.cursor()
-                await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.author.id,))
+                await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
                 me = await cursor.fetchone()
 
-            if not me: return await inter.response.edit_message("Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", view=None)
+            if not me: return await inter.response.edit_message(content="Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", view=None)
 
             async with aiosqlite.connect(dbn) as db:
                 cursor = await db.cursor()  
-                await cursor.execute(f"UPDATE sbp SET balance = balance + 5 WHERE id = {inter.author.id}")
+                await cursor.execute(f"UPDATE sbp SET balance = balance + 5 WHERE id = {inter.user.id}")
                 await db.commit()
 
-            await inter.response.edit_message("Капча успешно введена! Вам было добавлено 5 бебр", view=None)
+            await inter.response.edit_message(content="Капча успешно введена! Вам было добавлено 5 бебр", view=None)
         else:
-            await inter.response.edit_message("Капча введена неверно! Попробуйте ещё раз", view=None)
+            await inter.response.edit_message(content="Капча введена неверно! Попробуйте ещё раз", view=None)
 
-class transferm(disnake.ui.Modal):
-    def __init__(self, title, user, messag=False):
-        components = [
-            disnake.ui.TextInput(
-                label="Сумма перевода",
-                custom_id="amount",
-                style=disnake.TextInputStyle.short,
-                required=True,
-            ),
-            disnake.ui.TextInput(
-                label="Комментарий к переводу",
-                required=False,
-                custom_id="comment",
-                style=disnake.TextInputStyle.short,
-                max_length=50
-            )
-        ]
-        super().__init__(title=title, components=components)
-        self.user: disnake.User = user
+class transferm(discord.ui.Modal):
+    def __init__(self, title, user, messag=False, *args, **kwargs):
+        super().__init__(title=title,*args, **kwargs)
+        self.add_item(discord.ui.InputText(label="Сумма перевода", required=True)),
+        self.add_item(discord.ui.InputText(label="Комментарий к переводу",required=False, max_length=50))
+        self.user: discord.User = user
         self.messag = messag
 
-    async def callback(self, inter: disnake.ModalInteraction):
+    async def callback(self, inter: discord.ApplicationContext):
         try:
-            amount = int(inter.text_values["amount"])
+            amount = int(self.children[0].value)
         except:
             return await inter.response.send_message("Пожалуйста, введите целое число, а не буковки", ephemeral=True)
         if amount <= 0: return await inter.response.send_message("Пожалуйста, введите положительное или не нулевое число", ephemeral=True)
 
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.author.id,))
+            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
             me = await cursor.fetchone()
             await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (self.user.id,))
             usr = await cursor.fetchone()
@@ -293,25 +328,25 @@ class transferm(disnake.ui.Modal):
 
         async with aiosqlite.connect(dbn) as db:
             cursor = await db.cursor()  
-            await cursor.execute(f"UPDATE sbp SET balance = balance - {amount} WHERE id = {inter.author.id}")
+            await cursor.execute(f"UPDATE sbp SET balance = balance - {amount} WHERE id = {inter.user.id}")
             await cursor.execute(f"UPDATE sbp SET balance = balance + {amount} WHERE id = {self.user.id}")
             await db.commit()
 
         if not self.messag:
-            await inter.response.send_message("Успешно!", ephemeral=True)
+            await inter.response.send_message(content="Успешно!", ephemeral=True)
         else:
-            await inter.response.edit_message("Успешно!", components=[])
+            await inter.response.edit_message(content="Успешно!", view=None)
 
         if usr[2] == 1:
-            if inter.text_values["comment"]:
-                embed = disnake.Embed(title=f"Получен перевод от {inter.author.global_name} суммой {amount} бебр.", description=
-                                    f"Комментарий от отправителя: **{inter.text_values['comment']}**", color=disnake.Color.green())
+            if self.children[1].value:
+                embed = discord.Embed(title=f"Получен перевод от {inter.user.global_name} суммой {amount} бебр.", description=
+                                    f"Комментарий от отправителя: **{self.children[1].value}**", color=discord.Color.green())
             else:
-                embed = disnake.Embed(title=f"Получен перевод от {inter.author.global_name} суммой {amount} бебр.", color=disnake.Color.green())
+                embed = discord.Embed(title=f"Получен перевод от {inter.user.global_name} суммой {amount} бебр.", color=discord.Color.green())
             
-            await self.user.send(embed=embed, components=[disnake.ui.Button(label="Выключить уведомления", style=disnake.ButtonStyle.danger, custom_id="turnoff1", emoji="✖")])
+            await self.user.send(embed=embed, view=Sbp.turnoff1())
 
-def setup(bot):
+def setup(bot: discord.Bot):
     bot.add_cog(Sbp(bot))
     global dbn
     dbn = bot.dbn
