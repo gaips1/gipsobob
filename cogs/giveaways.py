@@ -1,8 +1,10 @@
 from discord.ext import commands
+from discord import app_commands
 import discord
 import aiosqlite
 import os
 from datetime import datetime, timedelta
+from discord.ui import Button, View
 import random
 import asyncio
 import pytz
@@ -15,7 +17,7 @@ class dm(discord.ui.View):
         self.id = id
 
     @discord.ui.button(label="Не хочу участвовать", style=discord.ButtonStyle.danger)
-    async def delete_ga(self, button: discord.ui.Button, inter: discord.MessageInteraction):
+    async def delete_ga(self, inter: discord.Interaction, button: discord.ui.Button):
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM `ga` WHERE id = ?", (self.id,))
@@ -51,9 +53,9 @@ class gab(discord.ui.View):
     def __init__(self, giveaway):
         super().__init__(timeout=None)
         self.giveaway: list = giveaway
-
+        
     @discord.ui.button(label="Принять участие", style=discord.ButtonStyle.success, custom_id="fdef")
-    async def join_ga(self, button: discord.ui.Button, inter: discord.MessageInteraction):
+    async def join_ga(self, inter: discord.Interaction, button: discord.ui.Button):
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM `ga` WHERE id = ?", (inter.message.id,))
@@ -76,8 +78,8 @@ class view_giv(discord.ui.View):
         self.add_item(discord.ui.Button(label="Розыгрыш", style=discord.ButtonStyle.url, url=self.url))
 
 class GA(commands.Cog):
-    def __init__(self, bot):
-        self.bot: discord.Bot = bot
+    def __init__(self, bot: commands.Bot):
+        self.bot: commands.Bot = bot
         bot.loop.create_task(self.start_giveaway())
         bot.loop.create_task(self.runs())
 
@@ -98,6 +100,7 @@ class GA(commands.Cog):
         await self.bot.wait_until_ready()
         now = datetime.now(pytz.timezone('Europe/Moscow')).replace(minute=0, second=0, microsecond=0)
         ends = now + timedelta(hours=12)
+        #ends = now + timedelta(minutes=38)
 
         ends = int(ends.timestamp())
         embed = discord.Embed(title=f"Ежедневный розыгрыш 100 бебр", description=
@@ -140,13 +143,13 @@ class GA(commands.Cog):
 
             channel: discord.TextChannel = await self.bot.fetch_channel(giveaway[4])
             msg: discord.Message = await channel.fetch_message(giveaway[0])
-            new_gab = gab([])
-            new_gab.disable_all_items()
+            new_gab = View()
+            new_gab.add_item(Button(label="Конкурс обкончен", disabled=True, style=discord.ButtonStyle.success))
             await msg.edit(view=new_gab)
             users = ast.literal_eval(giveaway[2])
             if len(users) == 0: return await msg.reply(embed=discord.Embed(title="К сожалению, никто не поучаствовал в розыгрыше :(", colour=0xf50000))
             winner = random.choice(users)
-            winner: discord.User = await self.bot.get_or_fetch_user(winner)
+            winner: discord.User = await self.bot.fetch_user(winner)
 
             await msg.reply(embed=discord.Embed(title="Ура! У нас есть победитель",
                     description=f"Поздравим {winner.mention} с победой, приз уже на его счету!",
@@ -181,13 +184,11 @@ class GA(commands.Cog):
             ends = datetime.fromtimestamp(timestamp=int(giveaway[1]), tz=pytz.timezone('Europe/Moscow'))
             self.bot.loop.create_task(timer(ends, giveaway))
 
-    @commands.slash_command(description="Создать розыгрыш", integration_types=[discord.IntegrationType.user_install, discord.IntegrationType.guild_install],
-                   contexts=[discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
-                             discord.InteractionContextType.guild])
-    @discord.option("amount", description="На сколько бебр розыгрыш?", required=True, input_type=discord.SlashCommandOptionType.integer)  
-    @discord.option("opis", description="Описание розыгрыша", required=True, input_type=discord.SlashCommandOptionType.string)
-    @discord.option("ends", description="Когда заканчивается розыгрыш", required=True, input_type=discord.SlashCommandOptionType.string)
-    async def create_giveaway(self, inter: discord.ApplicationContext, amount: int, opis: str, ends: str):
+    @app_commands.command( description="Создать розыгрыш", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.describe(amount="На сколько бебр розыгрыш?", opis="Описание розыгрыша", ends="Когда заканчивается розыгрыш?")
+    async def create_giveaway(self, inter: discord.Interaction, amount: int, opis: str, ends: str):
         if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
 
         embed = discord.Embed(title=f"Розыгрыш {amount} бебр", description=
@@ -204,8 +205,8 @@ class GA(commands.Cog):
 
         await self.start_giveaway([msg.id, int(ends), [], int(amount), msg.channel.id])
 
-def setup(bot: discord.Bot):
-    bot.add_cog(GA(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(GA(bot))
     global dbn
     dbn = bot.dbn
     print("GA cog loaded")

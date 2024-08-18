@@ -1,5 +1,7 @@
 import discord
+from discord.ext import commands
 import asyncio
+from discord import app_commands
 from dotenv import load_dotenv
 import aiosqlite
 import inspect, os.path
@@ -30,21 +32,32 @@ async def check(inter: discord.Interaction):
         return 1
     return 0
 
-bot = discord.Bot(intents=intents)
+bot = commands.Bot(intents=intents, help=None, command_prefix="$")
 bot.dbn = dbn
 bot.check = check
 
 @bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        pass
+    else:
+        raise error
+
+@bot.event
 async def on_ready():
     print(f"{bot.user} is ready and online!")
+    await bot.load_extension("cogs.fun")
+    await bot.load_extension("cogs.sbp")
+    await bot.load_extension("cogs.dl")
+    await bot.load_extension("cogs.giveaways")
+    await bot.tree.sync()
     await bot.change_presence(status=discord.Status.dnd, activity=discord.Game("Visual Studio Code"))
 
-@bot.slash_command(description="Сказать что-то от имени бота", integration_types=[discord.IntegrationType.user_install, discord.IntegrationType.guild_install],
-                   contexts=[discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
-                             discord.InteractionContextType.guild],)
-@discord.option("what", description="Что сказать?", required=True, input_type=discord.SlashCommandOptionType.string)  
-@discord.option("inchat", description="Будет ли отправляться в чате?", required=False, input_type=discord.SlashCommandOptionType.boolean)  
-async def say(inter: discord.Interaction, what:str, inchat:bool):
+@bot.tree.command(name="say", description="Пинг?",)
+@app_commands.describe(what="Что писать?", inchat="Писать ли в чате?")
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
+async def say(inter: discord.Interaction, what:str, inchat:bool = None):
     if await bot.check(inter) == 1: return
     try:
         await inter.response.send_message(what) if not inchat else await inter.channel.send(what)
@@ -54,23 +67,23 @@ async def say(inter: discord.Interaction, what:str, inchat:bool):
     except(discord.errors.InteractionResponded):
         pass
 
-@bot.slash_command(description="Пинг?", integration_types=[discord.IntegrationType.user_install, discord.IntegrationType.guild_install],
-                   contexts=[discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
-                             discord.InteractionContextType.guild])
+@bot.tree.command(name="ping", description="Пинг?",)
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
 async def ping(inter: discord.Interaction):
     if await bot.check(inter) == 1: return
     await inter.response.send_message("Понг!", ephemeral=True)
 
-@bot.message_command(name="Инфо о сообщении", integration_types=[discord.IntegrationType.user_install, discord.IntegrationType.guild_install],
-                   contexts=[discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
-                             discord.InteractionContextType.guild])
+@bot.tree.context_menu(name="Инфо о сообщении",)
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
 async def get_messag12e_id(inter: discord.Interaction, message: discord.Message):
     if await bot.check(inter) == 1: return
     await inter.response.send_message(f"Message ID: `{message.id}`, Message author: '{message.author.mention}', Message author ID: `{message.author.id}`, Message content: `{message.content}`", ephemeral=True)
 
-@bot.message_command(name="(Раз)Забанить автора", integration_types=[discord.IntegrationType.user_install, discord.IntegrationType.guild_install],
-                   contexts=[discord.InteractionContextType.private_channel, discord.InteractionContextType.bot_dm,
-                             discord.InteractionContextType.guild])
+@bot.tree.context_menu(name="(Раз)забанить автора сообщения",)
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
 async def banauthor(inter: discord.Interaction, message: discord.Message):
     if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
     async with aiosqlite.connect(dbn, timeout=20) as db:
@@ -120,27 +133,5 @@ async def on_member_remove(member):
         channel = await bot.fetch_channel(807651258520436736)
         await channel.send(embed=embed)
 
-"""
-    @bot.listen()
-    async def on_message(message: discord.Message):
-        if message.author.bot: return
-        if not message.content.startswith("."): return
-        async with aiosqlite.connect(dbn, timeout=20) as db:
-            cursor = await db.cursor()
-            await cursor.execute("SELECT num FROM `counter`")
-            last_num = await cursor.fetchone()
-            last_num  = last_num[0]
-
-        try:
-            num = int(message.content.replace(".", ""))
-        except:
-            return
-
-        if num != (last_num+1): return 
-"""
-bot.load_extension("cogs.sbp")
-bot.load_extension("cogs.fun")
-# bot.load_extension("cogs.xp") deprecated. do not use.
-bot.load_extension("cogs.giveaways")
-bot.load_extension("cogs.dl")
+#bot.load_extension("cogs.xp") deprecated. do not use.
 bot.run(TOKEN)
