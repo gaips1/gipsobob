@@ -72,7 +72,7 @@ async def say(inter: discord.Interaction, what:str, inchat:bool = None):
 @app_commands.allowed_installs(guilds=True, users=True)
 async def ping(inter: discord.Interaction):
     if await bot.check(inter) == 1: return
-    await inter.response.send_message("Понг!", ephemeral=True)
+    await inter.response.send_message("Понг!\n" + "Задержка: **" + str(round(bot.latency * 1000)) + "** мс", ephemeral=True)
 
 @bot.tree.context_menu(name="Инфо о сообщении",)
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -112,7 +112,7 @@ async def banauthor(inter: discord.Interaction, message: discord.Message):
         return await inter.response.send_message("Забанил!", ephemeral=True)
 
 @bot.event
-async def on_member_join(member):
+async def on_member_join(member: discord.Member):
     if member.guild.id == 621378615174758421:
         gifs = ['https://media.tenor.com/ZvSSenCwxEcAAAAC/hello.gif', 'https://media.tenor.com/3o2hRDX8vw0AAAAC/hello-cute.gif', 'https://media.tenor.com/J_JT8JsNDlUAAAAC/hello-anime.gif'
                 , 'https://media.tenor.com/mIteh_Sas9QAAAAd/anime-hello.gif', 'https://media.tenor.com/Q1dW7INg5ioAAAAC/hello-anime.gif']
@@ -123,7 +123,7 @@ async def on_member_join(member):
         await channel.send(embed=embed)
 
 @bot.event
-async def on_member_remove(member):
+async def on_member_remove(member: discord.Member):
     if member.guild.id == 621378615174758421:
         gifs = ['https://media.tenor.com/m0MabzE7tLIAAAAC/bye-anime-girl.gif', 'https://media.tenor.com/lOMogKtB3E8AAAAC/goodbye-bye.gif', 'https://media.tenor.com/4NHXeITTdKcAAAAC/anime-wave.gif'
                 , 'https://media.tenor.com/KasGopE0HIsAAAAC/bye-bye-anime.gif', 'https://media.tenor.com/oiYL8iyWwmkAAAAC/anime-jujutsu-kaisen.gif']

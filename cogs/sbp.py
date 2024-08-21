@@ -151,10 +151,10 @@ class Sbp(commands.Cog):
             await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
             user = await cursor.fetchone()
         if not user:
-            return await inter.respond("Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", ephemeral=True)
+            return await inter.response.send_message("Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", ephemeral=True)
         await inter.response.send_message(embed=discord.Embed(
             title=f"Личный кабинет: {inter.user.global_name}",
-            description=f"**Добро пожаловать в Систему Быстрых Платежей, {inter.user.global_name}!\nБаланс: {user[1]} бебр\nУведомления: {'включены' if user[2]==1 else 'выключены'}**"
+            description=f"**Добро пожаловать в Систему Быстрых Платежей, {inter.user.global_name}!\nБаланс: {round(user[1], 1)} бебр\nУведомления: {'включены' if user[2]==1 else 'выключены'}**"
         ), ephemeral=True,view=Sbp.turnoff() if user[2]==1 else Sbp.turnon())
 
     @app_commands.command( description="Зарегистрироваться в Системе Быстрых Платежей", )

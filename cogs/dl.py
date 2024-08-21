@@ -14,6 +14,90 @@ path     = os.path.dirname(os.path.abspath(filename))
 images = path + "/images/"
 images = images.replace("cogs/", "")
 
+class donateBtns(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="ДО в СБП", style=discord.ButtonStyle.success, row=1)
+    async def dovsbp(self, inter: discord.Interaction, button: discord.ui.Button):
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT balance FROM `sbp` WHERE id = ?", (inter.user.id,))
+            me = await cursor.fetchone()
+
+        if not me: return await inter.response.send_message(content="Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", view=None, embed=None, ephemeral=True)
+
+        await inter.response.send_modal(dovsbpModal())
+
+    @discord.ui.button(label="СБП в ДО", style=discord.ButtonStyle.success, row=1)
+    async def sbpvdo(self, inter: discord.Interaction, button: discord.ui.Button):
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT balance FROM `sbp` WHERE id = ?", (inter.user.id,))
+            me = await cursor.fetchone()
+
+        if not me: return await inter.response.send_message(content="Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", view=None, embed=None, ephemeral=True)
+
+        await inter.response.send_modal(sbpvdoModal())
+        
+    @discord.ui.button(label="Назад", style=discord.ButtonStyle.success, row=1)
+    async def backTomenu(self, inter: discord.Interaction, button: discord.ui.Button):
+        await inter.response.edit_message(embed=None, view=DL.mn(), content="Главное меню")
+
+class dovsbpModal(discord.ui.Modal):
+    def __init__(self, *args, **kwargs):
+        super().__init__(title="ДО в СБП", *args, **kwargs)
+
+    num = discord.ui.TextInput(label="Сколько переводить монет ДО? (300 к 1)", required=True)
+    async def on_submit(self, inter: discord.Interaction):
+        try:
+            num = int(self.num.value)
+        except:
+            return await inter.response.edit_message(content="Не является числом!", view=donateBtns())
+        if num < 300:
+            return await inter.response.edit_message(content="Минимальный перевод 300 монет", view=donateBtns())
+
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT balance FROM `dl` WHERE id = ?", (inter.user.id,))
+            me = await cursor.fetchone()
+
+            if me[0] < num:
+                return await inter.response.edit_message(content="Недостаточно средств!", view=donateBtns())
+
+            await cursor.execute("UPDATE `dl` SET balance = balance -? WHERE id =?", (num, inter.user.id,))
+            await cursor.execute("UPDATE `sbp` SET balance = balance +? WHERE id =?", (round(num/300, 1), inter.user.id,))
+            await db.commit()
+
+        await inter.response.edit_message(content=f"Успешно перевёл {round(num/300, 1)} бебр!", view=DL.mn(), embed=None)
+
+class sbpvdoModal(discord.ui.Modal):
+    def __init__(self, *args, **kwargs):
+        super().__init__(title="СБП в ДО", *args, **kwargs)
+        
+    num = discord.ui.TextInput(label="Сколько переводить бебр? (1 к 1.5)", required=True)
+    async def on_submit(self, inter: discord.Interaction):
+        try:
+            num = int(self.num.value)
+        except:
+            return await inter.response.edit_message(content="Не является числом!", view=donateBtns())
+        if num < 300:
+            return await inter.response.edit_message(content="Минимальный перевод 300 бебр", view=donateBtns())
+
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT balance FROM `sbp` WHERE id = ?", (inter.user.id,))
+            me = await cursor.fetchone()
+
+            if me[0] < num:
+                return await inter.response.edit_message(content="Недостаточно средств!", view=donateBtns())
+
+            await cursor.execute("UPDATE `dl` SET balance = balance +? WHERE id =?", (round(num*1.5, 1), inter.user.id,))
+            await cursor.execute("UPDATE `sbp` SET balance = balance -? WHERE id =?", (num, inter.user.id,))
+            await db.commit()
+
+        await inter.response.edit_message(content=f"Успешно перевёл {round(num*1.5, 1)} монет ДО!", view=DL.mn(), embed=None)
+
 class DL(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
@@ -182,6 +266,22 @@ class DL(commands.Cog):
             if user[7] == 1: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
 
             await inter.response.send_modal(DL.seller())
+
+        @discord.ui.button(label="Донат", style=discord.ButtonStyle.danger, row=3)
+        async def donate_dl(self, inter: discord.Interaction, button: discord.ui.Button,):
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute("SELECT * FROM `dl` WHERE id = ?", (inter.user.id,))
+                user = await cursor.fetchone()
+
+            if not user: return await inter.response.send_message("Добро пожаловать в края Дромляндии, путник! Введи свои данные, нажав на кнопку ниже", view=DL.regb(), ephemeral=True)
+            if user[7] == 1: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
+            embed = embed=discord.Embed(
+                color=discord.Color.random(), title="Донатик", description=
+                "Добро пожаловать в меню доната!\nЧтобы перевести деньги из баланса **Дромляндии: Онлайн** на свой счёт СБП нажмите кнопку 'ДО в СБП'.\nЧтобы перевести деньги из баланса **СБП** на свой счёт Дромляндии: Онлайн нажмите кнопку 'СБП в ДО'\nКурс перевода из ДО в СБП - 300 к 1\nКурс перевода из СБП в ДО - 1 к 1.5")
+            embed.set_footer(text="При поддержке Системы Быстрых Платежей")
+            await inter.response.edit_message(embed=embed,
+                view=donateBtns(), content="")
 
     class regmodal(discord.ui.Modal):
         def __init__(self, *args, **kwargs):

@@ -12,7 +12,7 @@ class sexb(discord.ui.View):
         self.author: discord.User = author
 
     @discord.ui.button(label="Да", style=discord.ButtonStyle.success)
-    async def yessex(self, inter: discord.MessageInteraction, button: discord.ui.Button):
+    async def yessex(self, inter: discord.Interaction, button: discord.ui.Button):
         if inter.user != self.user: return await inter.response.send_message("Завидуй молча, это не тебе секс предлагали", ephemeral=True)
         
         giffs = ["https://media.tenor.com/pn5xTq0WtqcAAAAC/anime-girl.gif", "https://media.tenor.com/9G1zsVIiV6UAAAAC/anime-bed.gif", "https://media.tenor.com/tdK59AzAWZgAAAAC/pokemon-anime.gif"
@@ -29,7 +29,7 @@ class sexb(discord.ui.View):
         await inter.followup.send(embed=soglaz)
 
     @discord.ui.button(label="Нет", style=discord.ButtonStyle.danger)
-    async def nosex(self , inter: discord.MessageInteraction, button: discord.ui.Button):
+    async def nosex(self , inter: discord.Interaction, button: discord.ui.Button):
         if inter.user != self.user: return await inter.response.send_message("Завидуй молча, это не тебе секс предлагали", ephemeral=True)
         for x in self.children:
             x.disabled = True
@@ -83,6 +83,12 @@ class Fun(commands.Cog):
         await asyncio.sleep(2.5)
         await inter.edit_original_response(content="Выпало число " + str(random.randint(1, 6)))
 
+    @app_commands.command( description="Слава узбии!", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    async def slava_uzbii(self, inter: discord.Interaction):
+        await inter.response.send_message(embed=discord.Embed(title="Слава узбии!", color=discord.Color.random()))
+
     @app_commands.command( description="Предложить секс", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
@@ -106,9 +112,9 @@ class casinoV(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    # @discord.ui.button(label="Рулетка", style=discord.ButtonStyle.success, custom_id="ruletka", emoji="🎰")
-    # async def ruletka(self, interaction: discord.Interaction, button: discord.ui.Button):
-    #     await interaction.response.send_modal(ruletkaModal())
+    @discord.ui.button(label="Слоты", style=discord.ButtonStyle.success, custom_id="sloti", emoji="🎰")
+    async def ruletka(self, interaction: discord.Interaction, button: discord.ui.Button):
+         await interaction.response.send_modal(slotiModal())
 
     @discord.ui.button(label="Угадай число", style=discord.ButtonStyle.blurple, custom_id="guess_game", emoji="🤔")
     async def guess_game(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -161,11 +167,15 @@ class guessModal(discord.ui.Modal, title = "Угадай число"):
 
         await inter.response.send_message(embed=discord.Embed(title=f"Спасибо, ставка принята!", description="Я выдумываю число, подождите немного...", color=discord.Color.random()), ephemeral=True)
         
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute("UPDATE `sbp` SET balance = balance -? WHERE id =?", (stavka, inter.user.id,))
+            await db.commit()
+
         await asyncio.sleep(3)
 
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            await cursor.execute("UPDATE `sbp` SET balance = balance -? WHERE id =?", (stavka, inter.user.id,))
             num = random.randint(1, numbers)
             win = round(stavka * numbers*0.2)
             if num == number:
@@ -176,15 +186,69 @@ class guessModal(discord.ui.Modal, title = "Угадай число"):
             
             await db.commit()
 
-# class ruletkaModal(discord.ui.Modal, title = "Рулетка"):
-#     def __init__(self):
-#         super().__init__(timeout=None)
+class slotiModal(discord.ui.Modal, title = "Слоты"):
+    def __init__(self):
+        super().__init__(timeout=None)
 
-#     stavka = discord.ui.TextInput(label="Ваша ставка:", required=True)
-#     stavka = discord.ui.TextInput(label="", required=True)
+    stavka = discord.ui.TextInput(label="Ваша ставка:", required=True)
 
-#     async def on_submit(self, inter: discord.Interaction):
-#         pass
+    async def on_submit(self, inter: discord.Interaction):
+        try:
+            stavka = int(self.stavka.value)
+        except:
+            return await inter.response.send_message("Ваша ставка не является числом!", ephemeral=True)
+        
+        if stavka < 300:
+            return await inter.response.send_message("Минимальная ставка 300 бебр", ephemeral=True)
+        
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT balance FROM `sbp` WHERE id = ?", (inter.user.id,))
+            me = await cursor.fetchone()
+            if not me: return await inter.response.send_message(content="Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", view=None, ephemeral=True)
+            if me[0] < stavka:
+                return await inter.response.send_message(content="У вас недостаточно средств!", view=None, ephemeral=True)
+        
+            await cursor.execute("UPDATE `sbp` SET balance = balance -? WHERE id =?", (stavka, inter.user.id,))
+            await db.commit()
+
+        await inter.response.send_message(embed=discord.Embed(title=f"Спасибо, ставка принята!", description="Кручу барабан, подождите немного...", color=discord.Color.random()), ephemeral=True)
+        await asyncio.sleep(3)
+        
+        emoges = {"7️⃣": 0, "☢️": 0, "3️⃣": 0, "🗂": 0, "#️⃣": 0, "🔥": 0, "⚛️": 0, "🦑": 0, "🧪": 0}
+        slots = []
+        slots.append(random.choice(list(emoges.keys())))
+
+        await inter.edit_original_response(embed=discord.Embed(title=" ".join(slots), color=discord.Color.random()))
+        await asyncio.sleep(2)
+        slots.append(random.choice(list(emoges.keys())))
+        await inter.edit_original_response(embed=discord.Embed(title=" ".join(slots), color=discord.Color.random()))
+        await asyncio.sleep(2)
+        slots.append(random.choice(list(emoges.keys())))
+        for x in emoges:
+            for y in slots:
+                if y == x:
+                    emoges[x] += 1
+
+        for x in emoges:
+            if emoges[x] == 3:
+                win = round(stavka * 3.5)
+                break
+            elif emoges[x] == 2:
+                win = round(stavka * 2)
+                break
+            elif emoges[x] == 1:
+                win = False
+
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            if win != False:
+                await cursor.execute("UPDATE `sbp` SET balance = balance +? WHERE id =?", (win, inter.user.id,))
+                await inter.edit_original_response(embed=discord.Embed(title=f"Вы выиграли! " + " ".join(slots), description=f"Ваша ставка: {stavka} бебр\nВыигрыш: {win} бебр", color=discord.Color.random()))
+            else:
+                await inter.edit_original_response(embed=discord.Embed(title=f"Вы проиграли! " + " ".join(slots), description=f"Вы могли бы выиграть {round(stavka * 3)} бебр!", color=discord.Color.random()))
+            
+            await db.commit()
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Fun(bot))
