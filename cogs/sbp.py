@@ -9,6 +9,7 @@ from discord import app_commands
 import string
 from PIL import Image, ImageDraw, ImageFont
 import random
+import check
 
 class Sbp(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -144,8 +145,8 @@ class Sbp(commands.Cog):
     @app_commands.command( description="Твой личный кабинет Системы Быстрых Платежей!", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check.check)
     async def account(self, inter: discord.Interaction):
-        if await self.bot.check(inter) == 1: return
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
@@ -160,8 +161,8 @@ class Sbp(commands.Cog):
     @app_commands.command( description="Зарегистрироваться в Системе Быстрых Платежей", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check.check)
     async def reg(self, inter: discord.Interaction):
-        if await self.bot.check(inter) == 1: return
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
@@ -178,6 +179,7 @@ class Sbp(commands.Cog):
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.describe(user="Кому переводить?", amount="Сколько переводить?")
+    @app_commands.check(check.check)
     async def setbal(self, inter: discord.Interaction, amount:int, user:discord.User = None):
         if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
         async with aiosqlite.connect(dbn, timeout=20) as db:
@@ -189,9 +191,9 @@ class Sbp(commands.Cog):
     @app_commands.command( description="Перевод бебр пользователю Системы Быстрых Платежей", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check.check)
     @app_commands.describe(user="Кому переводить?", amount="Сколько переводить?", comment="Комментарий к переводу")
     async def transfer(self, inter: discord.Interaction, user:discord.User, amount:int, comment:str = None):
-        if await self.bot.check(inter) == 1: return
         if comment and len(comment) > 50:
             await inter.response.send_message(
                 "Комментарий не может превышать 50 символов.", 
@@ -220,7 +222,7 @@ class Sbp(commands.Cog):
             await db.commit()
 
         await inter.response.send_message("Успешно!", ephemeral=True)
-
+        await check.update_quest(inter, "transfer", amount)
         if usr[2] == 1:
             if comment:
                 embed = discord.Embed(title=f"Получен перевод от {inter.user.global_name} суммой {amount} бебр.", description=
@@ -233,8 +235,8 @@ class Sbp(commands.Cog):
     @app_commands.command( description="Пройти капчу и получить бебры", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check.check)
     async def captcha(self, inter: discord.Interaction):
-        if await self.bot.check(inter) == 1: return
         letters = string.ascii_letters + string.digits
         kap = ''.join(random.choice(letters) for i in range(10))
         image = Image.new('RGB', (200, 50), (255, 255, 255))
@@ -249,121 +251,6 @@ class Sbp(commands.Cog):
         await inter.response.send_message("Привет!\nТвоя капча:", ephemeral=True, file=discord.File('random_text.png'), view=captchab(captcha=kap))
         os.remove('random_text.png')
 
-    @app_commands.command( description="Магазин", )
-    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-    @app_commands.allowed_installs(guilds=True, users=True)
-    async def shop(self, ctx: discord.Interaction):
-        await ctx.response.send_message("Добро пожаловать в круглосуточный магазин <<**У легенды**>>\n||Внимание! После завершения операции ваша душа будет\nавтоматически передана в вечное пользование Uzbia Inc.||", ephemeral=True, view=shop())
-
-    @app_commands.command( description="Инвентарь", )
-    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-    @app_commands.allowed_installs(guilds=True, users=True)
-    async def inventory(self, inter: discord.Interaction):
-        async with aiosqlite.connect(dbn) as db:
-            cursor = await db.cursor()
-            await cursor.execute("SELECT inv FROM sbp WHERE id = ?", (inter.user.id,))
-            usr = await cursor.fetchone()
-            
-            if usr:
-                if not usr[0]:
-                    return await inter.response.send_message("У вас пустой инвентарь", ephemeral=True)
-                inv: dict = json.loads(usr[0])
-                if len(inv) == 0:
-                    return await inter.response.send_message("У вас пустой инвентарь", ephemeral=True)
-            else:
-                return await inter.response.send_message("Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", ephemeral=True)
-
-            inv_items = []
-
-            for i in inv.keys():
-                inv_items.append(f"**{i}** - {inv[i]}")
-            
-            await inter.response.send_message("Название предмета - количество у Вас в инвентаре:\n\n" + ",\n".join(inv_items) , ephemeral=True)
-
-    def zov():
-        return [app_commands.Choice(name="Талон на секс", value="талон на секс")]
-
-    @app_commands.command( description="Использовать предмет из инвентаря", )
-    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-    @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.describe(what="Что использовать?", user="На ком использовать?")
-    @app_commands.choices(what=zov())
-    async def use(self, ctx: discord.Interaction, what: str, user: discord.User = None):
-        if await self.bot.check(ctx) == 1: return
-        if what == "талон на секс":
-            if user == None: return await ctx.response.send_message("Укажите пользователя", ephemeral=True)
-            await use_sex_talon(ctx, user)
-        
-async def use_sex_talon(inter: discord.Interaction, user: discord.User):
-    if user.bot: return await inter.response.send_message("Нельзя использовать на боте", ephemeral=True)
-    if user == inter.user: return await inter.response.send_message("Нельзя использовать на себе", ephemeral=True)
-    async with aiosqlite.connect(dbn) as db:
-        cursor = await db.cursor()
-        await cursor.execute("SELECT inv FROM sbp WHERE id = ?", (inter.user.id,))
-        usr = await cursor.fetchone()
-        
-        if usr:
-            if not usr[0]:
-                return await inter.response.send_message("У вас пустой инвентарь", ephemeral=True)
-            inv: dict = json.loads(usr[0])
-            if len(inv) == 0:
-                return await inter.response.send_message("У вас пустой инвентарь", ephemeral=True)
-        else:
-            return await inter.response.send_message("Вы не зарегистрированы в Системе Быстрых платежей! Сделайте это, написав **/reg**", ephemeral=True)
-
-        for i in inv.keys():
-            if i == "Талон на секс":
-                giffs = ["https://media.tenor.com/pn5xTq0WtqcAAAAC/anime-girl.gif", "https://media.tenor.com/9G1zsVIiV6UAAAAC/anime-bed.gif", "https://media.tenor.com/tdK59AzAWZgAAAAC/pokemon-anime.gif"
-                            , "https://media.tenor.com/i7S2Taae5H8AAAAC/sex-anime.gif", "https://media.tenor.com/eq-B2_glw0sAAAAC/ver-anime.gif"]
-                randgif = random.choice(giffs)
-                soglaz=discord.Embed(title=f"**{inter.user.name} использует талон на секс и ебётся с {user.name}**", color=discord.Color.random())
-                soglaz.set_image(url=randgif)
-                await inter.response.send_message(embed=soglaz)
-                inv[i] -= 1
-                if inv[i] <= 0:
-                    await cursor.execute("UPDATE sbp SET inv =? WHERE id =?", (None, inter.user.id))
-                else:
-                    await cursor.execute("UPDATE sbp SET inv =? WHERE id =?", (json.dumps(inv), inter.user.id))
-                await db.commit()
-                return
-        
-    await inter.response.send_message("У вас нет талонов на секс", ephemeral=True)
-
-class shop(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-
-    @discord.ui.button(label="Талон на секс [2200]", style=discord.ButtonStyle.success, custom_id="talon_na_sex")
-    async def talon_na_sex(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("Талон на секс позволяет занятся сексом с любым пользователем дискорда, без его согласия.\nВы подтверждаете покупку?", ephemeral=True, view=confirm_buy(item="Талон на секс"))
-
-class confirm_buy(discord.ui.View):
-    def __init__(self, item: string):
-        super().__init__(timeout=None)
-        self.item = item
-    
-    @discord.ui.button(label="Приобрести", style=discord.ButtonStyle.success, custom_id="buy")
-    async def buy(self, interaction: discord.Interaction, button: discord.ui.Button):
-        async with aiosqlite.connect(dbn) as db:
-            cursor = await db.cursor()
-            await cursor.execute("SELECT balance, inv FROM sbp WHERE id = ?", (interaction.user.id,))
-            usr = await cursor.fetchone()
-
-            if usr[0] < 2200:
-                return await interaction.response.send_message("Недостаточно средств!", ephemeral=True)
-            
-            if usr[1]:
-                inv = json.loads(usr[1]) 
-                inv[self.item] = inv.get(self.item, 0) + 1
-            else:
-                inv = {self.item: 1}
-
-            inv_json = json.dumps(inv)
-
-            await cursor.execute("UPDATE sbp SET balance = balance - 2200, inv = ? WHERE id = ?", (inv_json, interaction.user.id))
-            await db.commit()
-
-        await interaction.response.edit_message(content="Вы успешно приобрели " + self.item, view=None)
 
 class captchab(discord.ui.View):
     def __init__(self, captcha: string):
@@ -396,6 +283,7 @@ class captcham(discord.ui.Modal, title = "Капча"):
                 await db.commit()
 
             await inter.response.edit_message(content="Капча успешно введена! Вам было добавлено 5 бебр", view=None)
+            await check.update_quest(inter, "captcha", )
         else:
             await inter.response.edit_message(content="Капча введена неверно! Попробуйте ещё раз", view=None)
 
@@ -435,6 +323,8 @@ class transferm(discord.ui.Modal):
         else:
             await inter.response.edit_message(content="Успешно!", view=None)
 
+        await check.update_quest(inter, "transfer", amount)
+
         if usr[2] == 1:
             if self.comment.value:
                 embed = discord.Embed(title=f"Получен перевод от {inter.user.global_name} суммой {amount} бебр.", description=
@@ -454,8 +344,8 @@ async def setup(bot: commands.Bot):
 @app_commands.context_menu( name="Перевод", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check.check)
 async def transferu(inter: discord.Interaction, user: discord.User):
-    if await inter.client.check(inter) == 1: return
     if user.bot: return await inter.response.send_message("Нельзя перевести бебры боту", ephemeral=True)
     if user == inter.user: return await inter.response.send_message("Нельзя перевести бебры себе", ephemeral=True)
 

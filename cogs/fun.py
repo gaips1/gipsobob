@@ -4,6 +4,7 @@ import aiosqlite
 import asyncio
 import random
 from discord import app_commands
+from check import *
 
 class sexb(discord.ui.View):
     def __init__(self, user, author):
@@ -28,6 +29,8 @@ class sexb(discord.ui.View):
         
         await inter.followup.send(embed=soglaz)
 
+        await update_quest(inter, "sex", )
+
     @discord.ui.button(label="Нет", style=discord.ButtonStyle.danger)
     async def nosex(self , inter: discord.Interaction, button: discord.ui.Button):
         if inter.user != self.user: return await inter.response.send_message("Завидуй молча, это не тебе секс предлагали", ephemeral=True)
@@ -45,56 +48,61 @@ class Fun(commands.Cog):
     @app_commands.command( description="Подбросить монетку", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
     async def monetka(self, inter: discord.Interaction):
-        if await self.bot.check(inter) == 1: return
         wh = random.choices(["Орёл!", "Решка!", "Ребро!"], weights=[45,45, 10], k=1)[0]
         await inter.response.send_message("Подбрасываю...")
         await asyncio.sleep(2.5)
-        await inter.edit(content=wh)
+        await inter.edit_original_response(content=wh)
+        await update_quest(inter, "monetka", )
 
     @app_commands.command( description="Да или нет", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
     async def yesorno(self, inter: discord.Interaction):
-        if await self.bot.check(inter) == 1: return
         wh = random.choice(["Да", "Нет"])
         await inter.response.send_message(wh)
 
     @app_commands.command( description="Русская Рулетка", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
     async def russianroulette(self, inter: discord.Interaction):
-        if await self.bot.check(inter) == 1: return
         await inter.response.send_message("Вставляю пулю...")
         await asyncio.sleep(1.5)
-        await inter.edit(content="Раскручиваю барабан...")
+        await inter.edit_original_response(content="Раскручиваю барабан...")
         await asyncio.sleep(1.5)
         if random.choices([False,True], weights=[90,10], k=1)[0] == True:
-            await inter.edit(content="Бум! Тебе разорвало лицо.")
+            await inter.edit_original_response(content="Бум! Тебе разорвало лицо.")
+            await update_quest(inter, "rr", )
         else:
-            await inter.edit(content="Повезло, ты остался жив.")
+            await inter.edit_original_response(content="Повезло, ты остался жив.")
 
     @app_commands.command( description="Кинуть кости", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
     async def kosti(self, inter: discord.Interaction):
-        if await self.bot.check(inter) == 1: return
         await inter.response.send_message("Кидаю...")
         await asyncio.sleep(2.5)
         await inter.edit_original_response(content="Выпало число " + str(random.randint(1, 6)))
+        await update_quest(inter, "kosti", )
 
     @app_commands.command( description="Слава узбии!", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
     async def slava_uzbii(self, inter: discord.Interaction):
         await inter.response.send_message(embed=discord.Embed(title="Слава узбии!", color=discord.Color.random()))
+        await update_quest(inter, "slava_uzbii", )
 
     @app_commands.command( description="Предложить секс", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.describe(user="Кому предложить секс?")
+    @app_commands.check(check)
     async def sex(self, inter: discord.Interaction, user:discord.User):
-        if await self.bot.check(inter) == 1: return
         if user.bot: return await inter.response.send_message("Зачем ебать бота?", ephemeral=True)
         if user == inter.user: return await inter.response.send_message("Ты че ебать себя собираешься?", ephemeral=True)
         await inter.response.send_message(embed=discord.Embed(title=f"{user.global_name}, {inter.user.global_name} предложил Вам секс, Вы согласны?", color=discord.Color.random())
@@ -103,6 +111,7 @@ class Fun(commands.Cog):
     @app_commands.command( description="Казино", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
     async def casino(self, inter: discord.Interaction):
         await inter.response.send_message(embed=
         discord.Embed(title="Добро пожаловать в казино!", description="**Выбирайте игру:**", color=discord.Color.random()), view=casinoV(),
@@ -185,6 +194,7 @@ class guessModal(discord.ui.Modal, title = "Угадай число"):
                 await inter.edit_original_response(embed=discord.Embed(title=f"Вы проиграли!", description=f"Я выдумал число {num}\nВы могли бы выиграть {win} бебр!", color=discord.Color.random()))
             
             await db.commit()
+        await update_quest(inter, "casino", )
 
 class slotiModal(discord.ui.Modal, title = "Слоты"):
     def __init__(self):
@@ -249,20 +259,22 @@ class slotiModal(discord.ui.Modal, title = "Слоты"):
                 await inter.edit_original_response(embed=discord.Embed(title=f"Вы проиграли! " + " ".join(slots), description=f"Вы могли бы выиграть {round(stavka * 3)} бебр!", color=discord.Color.random()))
             
             await db.commit()
+        await update_quest(inter, "casino", )
 
 async def setup(bot: commands.Bot):
+    global dbn
+    dbn = bot.dbn
     await bot.add_cog(Fun(bot))
     bot.tree.add_command(hug)
     bot.tree.add_command(sexu)
     bot.tree.add_command(kiss)
     bot.tree.add_command(punch)
-    global dbn
-    dbn = bot.dbn
     print("Fun cog loaded")
 
 @app_commands.context_menu( name="Обнять", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
 async def hug(inter: discord.Interaction, user: discord.User):
     if await inter.client.check(inter) == 1: return
     if user.bot: return await inter.response.send_message("Зачем обнимать бота?", ephemeral=True)
@@ -271,12 +283,13 @@ async def hug(inter: discord.Interaction, user: discord.User):
                     , "https://media.tenor.com/MApGHq5Kvj0AAAAM/anime-hug.gif", "https://media.tenor.com/iEDbr-ZhHMkAAAAM/anime-hug.gif"]
     randgif = random.choice(giffs)
     await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} обнял(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
+    await update_quest(inter, "hug", )
 
 @app_commands.context_menu( name="Предложить секс", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
 async def sexu(inter: discord.Interaction, user: discord.User):
-    if await inter.client.check(inter) == 1: return
     if user.bot: return await inter.response.send_message("Зачем ебать бота?", ephemeral=True)
     if user == inter.user: return await inter.response.send_message("Ты че ебать себя собираешься?", ephemeral=True)
 
@@ -286,23 +299,25 @@ async def sexu(inter: discord.Interaction, user: discord.User):
 @app_commands.context_menu( name="Поцеловать", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
 async def kiss(inter: discord.Interaction, user: discord.User):
-    if await inter.client.check(inter) == 1: return
     if user.bot: return await inter.response.send_message("Зачем целовать бота?", ephemeral=True)
     if user == inter.user: return await inter.response.send_message("Ты че целовать себя собираешься?", ephemeral=True)
     giffs = ["https://media.tenor.com/jnndDmOm5wMAAAAC/kiss.gif", "https://media.tenor.com/fiafXWajQFoAAAAC/kiss-anime.gif", "https://media.tenor.com/dn_KuOESmUYAAAAC/engage-kiss-anime-kiss.gif"
                 , "https://media.tenor.com/9jB6M6aoW0AAAAAM/val-ally-kiss.gif", "https://media.tenor.com/SYwRyd6N1UIAAAAC/anime-kiss.gif"]
     randgif = random.choice(giffs)
     await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} поцеловал(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
+    await update_quest(inter, "kiss", )
 
 @app_commands.context_menu( name="Ударить", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
 async def punch(inter: discord.Interaction, user: discord.User):
-    if await inter.client.check(inter) == 1: return
     if user.bot: return await inter.response.send_message("Зачем бить бота?", ephemeral=True)
     if user == inter.user: return await inter.response.send_message("Ты че бить себя собираешься?", ephemeral=True)
     giffs = ["https://media.tenor.com/p_mMicg1pgUAAAAC/anya-forger-damian-spy-x-family.gif", "https://media.tenor.com/BoYBoopIkBcAAAAC/anime-smash.gif", "https://media.tenor.com/UH8Jnl1W3CYAAAAC/anime-punch-anime.gif"
                     , "https://media.tenor.com/SwMgGqBirvcAAAAM/saki-saki-kanojo-mo-kanojo.gif", "https://media.tenor.com/vv1mgp7IQn8AAAAC/tgggg-anime.gif"]
     randgif = random.choice(giffs)
     await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} ударил(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
+    await update_quest(inter, "punch", )

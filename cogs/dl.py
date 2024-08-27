@@ -2,6 +2,7 @@ from discord.ext import commands
 import discord
 import aiosqlite
 import os
+from check import check
 from datetime import datetime
 import random
 import asyncio
@@ -316,8 +317,8 @@ class DL(commands.Cog):
     @app_commands.command( description="Войти в Дромляндия: Онлайн", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
     async def game(self, inter: discord.Interaction):
-        if await self.bot.check(inter) == 1: return
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM `dl` WHERE id = ?", (inter.user.id,))

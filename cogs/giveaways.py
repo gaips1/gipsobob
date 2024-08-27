@@ -4,6 +4,7 @@ import discord
 import aiosqlite
 import os
 from datetime import datetime, timedelta
+from check import check
 from discord.ui import Button, View
 import random
 import asyncio
@@ -188,6 +189,7 @@ class GA(commands.Cog):
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.describe(amount="На сколько бебр розыгрыш?", opis="Описание розыгрыша", ends="Когда заканчивается розыгрыш?")
+    @app_commands.check(check)
     async def create_giveaway(self, inter: discord.Interaction, amount: int, opis: str, ends: str):
         if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
 

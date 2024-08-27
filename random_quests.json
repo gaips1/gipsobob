@@ -1,0 +1,110 @@
+[
+    {
+        "name": "Купидон",
+        "desc": "Поцелуйте 15 человек (не обязательно разных)",
+        "do": "kiss",
+        "reward": 300,
+        "progress": 0,
+        "id": "kisses",
+        "progress_max": 15 
+    },
+    {
+        "name": "Секс Бомба",
+        "desc": "Поебитесь с 30 людьми (не обязательно разных)",
+        "do": "sex",
+        "reward": 1000,
+        "progress": 0,
+        "id": "sex_bomba",
+        "progress_max": 30
+    },
+    {
+        "name": "Секс Мастер",
+        "desc": "Поебитесь с 12 людьми (не обязательно разных)",
+        "do": "sex",
+        "reward": 500,
+        "progress": 0,
+        "id": "sex_master",
+        "progress_max": 15
+    },
+    {
+        "name": "Переводчик",
+        "desc": "Переведите людям в сумме 3500 бебр",
+        "do": "transfer",
+        "reward": 1000,
+        "progress": 0,
+        "id": "transfer-3500",
+        "progress_max": 3500
+    },
+    {
+        "name": "Переводчик-5000",
+        "desc": "Переведите людям в сумме 5000 бебр",
+        "do": "transfer",
+        "reward": 3000,
+        "progress": 0,
+        "id": "transfer-5000",
+        "progress_max": 5000
+    },
+    {
+        "name": "Обниматель",
+        "desc": "Обнимите 15 человек (не обязательно разных)",
+        "do": "hug",
+        "reward": 300,
+        "progress": 0,
+        "id": "huges",
+        "progress_max": 15 
+    },
+    {
+        "name": "Борзый",
+        "desc": "Ударьте 15 человек (не обязательно разных)",
+        "do": "punch",
+        "reward": 300,
+        "progress": 0,
+        "id": "punches",
+        "progress_max": 15 
+    },
+    {
+        "name": "Счастливчик",
+        "desc": "Поиграйте в казино /casino",
+        "do": "casino",
+        "reward": 150,
+        "progress": 0,
+        "id": "casino",
+        "progress_max": 1
+    },
+    {
+        "name": "Не повезло",
+        "desc": "Убейте себя в русской рулетке /russianroulette",
+        "do": "rr",
+        "reward": 150,
+        "progress": 0,
+        "id": "rr",
+        "progress_max": 1
+    },
+    {
+        "name": "Не бот",
+        "desc": "Пройти 10 капч /captcha",
+        "do": "captcha",
+        "reward": 150,
+        "progress": 0,
+        "id": "captcha",
+        "progress_max": 10
+    },
+    {
+        "name": "Ребро!!!!",
+        "desc": "Кинуть монетку чтобы она упала на ребро /monetka",
+        "do": "monetka",
+        "reward": 150,
+        "progress": 0,
+        "id": "monetka",
+        "progress_max": 1
+    },
+    {
+        "name": "Слава узбии",
+        "desc": "Крикнуть слава узбии 3 раза /slava_uzbii",
+        "do": "slava_uzbii",
+        "reward": 150,
+        "progress": 0,
+        "id": "slava_uzbii",
+        "progress_max": 3
+    }
+]

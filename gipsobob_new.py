@@ -1,13 +1,20 @@
+mode = "DEV"
+
 import discord
 from discord.ext import commands
 import asyncio
 from discord import app_commands
 from dotenv import load_dotenv
 import aiosqlite
+from check import check
 import inspect, os.path
 import random
 load_dotenv()
-TOKEN = os.environ.get("TOKEN")
+if mode == "PROD":
+    TOKEN = os.environ.get("TOKEN")
+else:
+    TOKEN = os.environ.get("DEV_TOKEN")
+
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -15,26 +22,9 @@ filename = inspect.getframeinfo(inspect.currentframe()).filename
 path     = os.path.dirname(os.path.abspath(filename))
 dbn = path + "/gipsobob.sql"
 
-async def check(inter: discord.Interaction):
-    async with aiosqlite.connect(dbn, timeout=20) as db:
-        cursor = await db.cursor()
-        await cursor.execute("SELECT * FROM `users` WHERE id = ?", (inter.user.id,))
-        me = await cursor.fetchone()
-    if not me:
-        async with aiosqlite.connect(dbn, timeout=20) as db:
-            cursor = await db.cursor()
-            await cursor.execute("INSERT INTO `users` (id) VALUES (?)", (inter.user.id,))
-            await db.commit()
-            return 0
-
-    if me[1] == 1:
-        await inter.response.send_message("Вы забанены в боте.", ephemeral=True)
-        return 1
-    return 0
-
 bot = commands.Bot(intents=intents, help=None, command_prefix="$")
 bot.dbn = dbn
-bot.check = check
+bot.mode = mode
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -50,6 +40,7 @@ async def on_ready():
     await bot.load_extension("cogs.sbp")
     await bot.load_extension("cogs.dl")
     await bot.load_extension("cogs.giveaways")
+    await bot.load_extension("cogs.inv")
     await bot.tree.sync()
     await bot.change_presence(status=discord.Status.dnd, activity=discord.Game("Visual Studio Code"))
 
@@ -57,8 +48,8 @@ async def on_ready():
 @app_commands.describe(what="Что писать?", inchat="Писать ли в чате?")
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
 async def say(inter: discord.Interaction, what:str, inchat:bool = None):
-    if await bot.check(inter) == 1: return
     try:
         await inter.response.send_message(what) if not inchat else await inter.channel.send(what)
         await inter.response.defer()
@@ -70,15 +61,15 @@ async def say(inter: discord.Interaction, what:str, inchat:bool = None):
 @bot.tree.command(name="ping", description="Пинг?",)
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
 async def ping(inter: discord.Interaction):
-    if await bot.check(inter) == 1: return
     await inter.response.send_message("Понг!\n" + "Задержка: **" + str(round(bot.latency * 1000)) + "** мс", ephemeral=True)
 
 @bot.tree.context_menu(name="Инфо о сообщении",)
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
 async def get_messag12e_id(inter: discord.Interaction, message: discord.Message):
-    if await bot.check(inter) == 1: return
     await inter.response.send_message(f"Message ID: `{message.id}`, Message author: '{message.author.mention}', Message author ID: `{message.author.id}`, Message content: `{message.content}`", ephemeral=True)
 
 @bot.tree.context_menu(name="(Раз)забанить автора сообщения",)
