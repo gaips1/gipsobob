@@ -1,4 +1,4 @@
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import app_commands
 import discord
 import aiosqlite
@@ -82,20 +82,18 @@ class GA(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
         bot.loop.create_task(self.start_giveaway())
-        bot.loop.create_task(self.runs())
+        self.runs.start()
 
+    @tasks.loop(seconds=1)
     async def runs(self):
-        await self.bot.wait_until_ready()
-        while True:
-            while True:
-                now = datetime.now(pytz.timezone('Europe/Moscow'))
-                if now.hour == 12 and now.minute == 00 and now.second == 00:
-                    break
-                else:
-                    await asyncio.sleep(1)
-
-            await self.evday()
-            await asyncio.sleep(1)
+        now = datetime.now(pytz.timezone('Europe/Moscow'))
+        target_hour = 12
+        target_minute = 0
+        print(now.second)
+        if now.hour == target_hour and now.minute == target_minute:
+            if 0 <= now.second < 1:
+                await self.evday()
+                await asyncio.sleep(60 - now.second)
 
     async def evday(self):
         await self.bot.wait_until_ready()

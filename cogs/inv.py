@@ -78,18 +78,26 @@ class Inv(commands.Cog):
 
         await inter.response.send_message(embed=embed, ephemeral=True)
 
+    @app_commands.command(description="Дать рандомный квест", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check.check)
+    async def add_random_quest(self, inter: discord.Interaction, user: discord.User = None):
+        if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
+        await check.add_random_quest(user if user is not None else None)
+        await inter.response.send_message("Успешно!", ephemeral=True)
+
     @tasks.loop(seconds=1)
     async def add_quest(self):
-        if self.bot.mode == "PROD":
-            now = datetime.now(pytz.timezone('Europe/Moscow'))
-            if now.hour == 12 and now.minute == 00 and now.second == 00:
+        now = datetime.now(pytz.timezone('Europe/Moscow'))
+        
+        target_hour = 12 if self.bot.mode == "PROD" else 13
+        target_minute = 0 if self.bot.mode == "PROD" else 5
+        
+        if now.hour == target_hour and now.minute == target_minute:
+            if 0 <= now.second < 1:
                 await check.add_random_quest()
-                await asyncio.sleep(1)
-        else:
-            now = datetime.now(pytz.timezone('Europe/Moscow'))
-            if now.hour == 22 and now.minute == 51 and now.second == 0:
-                await check.add_random_quest()
-                await asyncio.sleep(1)
+                await asyncio.sleep(60 - now.second)
 
 async def use_sex_talon(inter: discord.Interaction, user: discord.User):
     if user.bot: return await inter.response.send_message("Нельзя использовать на боте", ephemeral=True)
