@@ -74,7 +74,7 @@ async def check(inter: discord.Interaction):
     return True
 
 async def add_random_quest(user: discord.User = None):
-    with open('random_quests.json', 'r', encoding="utf-8") as json_file:
+    with open(path+'/random_quests.json', 'r', encoding="utf-8") as json_file:
         random_quests = json.load(json_file)
 
     if user == None:
