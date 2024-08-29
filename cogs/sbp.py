@@ -222,7 +222,7 @@ class Sbp(commands.Cog):
             await db.commit()
 
         await inter.response.send_message("Успешно!", ephemeral=True)
-        await check.update_quest(inter, "transfer", amount)
+        await check.update_quest(inter.user, "transfer", amount)
         if usr[2] == 1:
             if comment:
                 embed = discord.Embed(title=f"Получен перевод от {inter.user.global_name} суммой {amount} бебр.", description=
@@ -283,7 +283,7 @@ class captcham(discord.ui.Modal, title = "Капча"):
                 await db.commit()
 
             await inter.response.edit_message(content="Капча успешно введена! Вам было добавлено 5 бебр", view=None)
-            await check.update_quest(inter, "captcha", )
+            await check.update_quest(inter.user, "captcha", )
         else:
             await inter.response.edit_message(content="Капча введена неверно! Попробуйте ещё раз", view=None)
 
@@ -323,7 +323,7 @@ class transferm(discord.ui.Modal):
         else:
             await inter.response.edit_message(content="Успешно!", view=None)
 
-        await check.update_quest(inter, "transfer", amount)
+        await check.update_quest(inter.user, "transfer", amount)
 
         if usr[2] == 1:
             if self.comment.value:

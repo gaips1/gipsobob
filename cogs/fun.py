@@ -29,7 +29,7 @@ class sexb(discord.ui.View):
         
         await inter.followup.send(embed=soglaz)
 
-        await update_quest(inter, "sex", )
+        await update_quest(self.author, "sex", )
 
     @discord.ui.button(label="Нет", style=discord.ButtonStyle.danger)
     async def nosex(self , inter: discord.Interaction, button: discord.ui.Button):
@@ -54,7 +54,7 @@ class Fun(commands.Cog):
         await inter.response.send_message("Подбрасываю...")
         await asyncio.sleep(2.5)
         await inter.edit_original_response(content=wh)
-        await update_quest(inter, "monetka", )
+        await update_quest(inter.user, "monetka", )
 
     @app_commands.command( description="Да или нет", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -75,7 +75,7 @@ class Fun(commands.Cog):
         await asyncio.sleep(1.5)
         if random.choices([False,True], weights=[90,10], k=1)[0] == True:
             await inter.edit_original_response(content="Бум! Тебе разорвало лицо.")
-            await update_quest(inter, "rr", )
+            await update_quest(inter.user, "rr", )
         else:
             await inter.edit_original_response(content="Повезло, ты остался жив.")
 
@@ -87,7 +87,7 @@ class Fun(commands.Cog):
         await inter.response.send_message("Кидаю...")
         await asyncio.sleep(2.5)
         await inter.edit_original_response(content="Выпало число " + str(random.randint(1, 6)))
-        await update_quest(inter, "kosti", )
+        await update_quest(inter.user, "kosti", )
 
     @app_commands.command( description="Слава узбии!", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -95,7 +95,7 @@ class Fun(commands.Cog):
     @app_commands.check(check)
     async def slava_uzbii(self, inter: discord.Interaction):
         await inter.response.send_message(embed=discord.Embed(title="Слава узбии!", color=discord.Color.random()))
-        await update_quest(inter, "slava_uzbii", )
+        await update_quest(inter.user, "slava_uzbii", )
 
     @app_commands.command( description="Предложить секс", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -194,7 +194,7 @@ class guessModal(discord.ui.Modal, title = "Угадай число"):
                 await inter.edit_original_response(embed=discord.Embed(title=f"Вы проиграли!", description=f"Я выдумал число {num}\nВы могли бы выиграть {win} бебр!", color=discord.Color.random()))
             
             await db.commit()
-        await update_quest(inter, "casino", )
+        await update_quest(inter.user, "casino", )
 
 class slotiModal(discord.ui.Modal, title = "Слоты"):
     def __init__(self):
@@ -259,7 +259,7 @@ class slotiModal(discord.ui.Modal, title = "Слоты"):
                 await inter.edit_original_response(embed=discord.Embed(title=f"Вы проиграли! " + " ".join(slots), description=f"Вы могли бы выиграть {round(stavka * 3)} бебр!", color=discord.Color.random()))
             
             await db.commit()
-        await update_quest(inter, "casino", )
+        await update_quest(inter.user, "casino", )
 
 async def setup(bot: commands.Bot):
     global dbn
@@ -283,7 +283,7 @@ async def hug(inter: discord.Interaction, user: discord.User):
                     , "https://media.tenor.com/MApGHq5Kvj0AAAAM/anime-hug.gif", "https://media.tenor.com/iEDbr-ZhHMkAAAAM/anime-hug.gif"]
     randgif = random.choice(giffs)
     await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} обнял(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
-    await update_quest(inter, "hug", )
+    await update_quest(inter.user, "hug", )
 
 @app_commands.context_menu( name="Предложить секс", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -307,7 +307,7 @@ async def kiss(inter: discord.Interaction, user: discord.User):
                 , "https://media.tenor.com/9jB6M6aoW0AAAAAM/val-ally-kiss.gif", "https://media.tenor.com/SYwRyd6N1UIAAAAC/anime-kiss.gif"]
     randgif = random.choice(giffs)
     await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} поцеловал(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
-    await update_quest(inter, "kiss", )
+    await update_quest(inter.user, "kiss", )
 
 @app_commands.context_menu( name="Ударить", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -320,4 +320,4 @@ async def punch(inter: discord.Interaction, user: discord.User):
                     , "https://media.tenor.com/SwMgGqBirvcAAAAM/saki-saki-kanojo-mo-kanojo.gif", "https://media.tenor.com/vv1mgp7IQn8AAAAC/tgggg-anime.gif"]
     randgif = random.choice(giffs)
     await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} ударил(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
-    await update_quest(inter, "punch", )
+    await update_quest(inter.user, "punch", )

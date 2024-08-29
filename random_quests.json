@@ -106,5 +106,23 @@
         "progress": 0,
         "id": "slava_uzbii",
         "progress_max": 3
+    },
+    {
+        "name": "Мастер Лабиринта",
+        "desc": "Победить монстра 5 раз в Дромляндии: Онлайн",
+        "do": "dromlyandia",
+        "reward": 300,
+        "progress": 0,
+        "id": "dromlyandia-5",
+        "progress_max": 5
+    },
+    {
+        "name": "Ты победишь, я верю",
+        "desc": "3 раза участвовать в розыгрыше бебр в канале #розыгрыши",
+        "do": "join-giveaway",
+        "reward": 300,
+        "progress": 0,
+        "id": "join-giveaway",
+        "progress_max": 3
     }
 ]

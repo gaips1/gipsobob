@@ -25,10 +25,10 @@ async def check_first_quest(inter: discord.Interaction, me):
 
     return False
 
-async def update_quest(inter: discord.Interaction, do: str, add: int = 1):
+async def update_quest(user: discord.User | discord.Member, do: str, add: int = 1):
     async with aiosqlite.connect(dbn, timeout=20) as db:
         cursor = await db.cursor()
-        await cursor.execute("SELECT * FROM `users` WHERE id = ?", (inter.user.id,))
+        await cursor.execute("SELECT * FROM `users` WHERE id = ?", (user.id,))
         me = await cursor.fetchone()
 
         quests: list = json.loads(me[3])
@@ -39,12 +39,12 @@ async def update_quest(inter: discord.Interaction, do: str, add: int = 1):
                 if quest["progress"] >= quest["progress_max"]:
                     quests.remove(quest)
                     comleted_quests.append(quest['id'])
-                    await inter.user.send(embed=discord.Embed(title=f"Вы выполнили квест {quest['name']}", description=f"{quest['desc']}\n\nВаша награда - {quest['reward']} бебр!", color=0x00ff00))
-                    await cursor.execute("UPDATE `sbp` SET balance = balance+? WHERE id =?", (quest["reward"], inter.user.id))
+                    await user.send(embed=discord.Embed(title=f"Вы выполнили квест {quest['name']}", description=f"{quest['desc']}\n\nВаша награда - {quest['reward']} бебр!", color=0x00ff00))
+                    await cursor.execute("UPDATE `sbp` SET balance = balance+? WHERE id =?", (quest["reward"], user.id))
                 break
         else:
             return False
-        await cursor.execute("UPDATE `users` SET (quests, completed_quests) = (?,?) WHERE id =?", (json.dumps(quests), json.dumps(comleted_quests), inter.user.id))
+        await cursor.execute("UPDATE `users` SET (quests, completed_quests) = (?,?) WHERE id =?", (json.dumps(quests), json.dumps(comleted_quests), user.id))
         await db.commit()
 
     return True

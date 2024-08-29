@@ -4,7 +4,7 @@ import discord
 import aiosqlite
 import os
 from datetime import datetime, timedelta
-from check import check
+from check import check, update_quest
 from discord.ui import Button, View
 import random
 import asyncio
@@ -50,6 +50,8 @@ class dm(discord.ui.View):
 
         await inter.followup.send("Успешно!", ephemeral=True)
 
+        update_quest(inter.user, "join-giveaway")
+
 class gab(discord.ui.View):
     def __init__(self, giveaway):
         super().__init__(timeout=None)
@@ -89,7 +91,6 @@ class GA(commands.Cog):
         now = datetime.now(pytz.timezone('Europe/Moscow'))
         target_hour = 12
         target_minute = 0
-        print(now.second)
         if now.hour == target_hour and now.minute == target_minute:
             if 0 <= now.second < 1:
                 await self.evday()

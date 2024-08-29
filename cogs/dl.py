@@ -2,7 +2,7 @@ from discord.ext import commands
 import discord
 import aiosqlite
 import os
-from check import check
+from check import check, update_quest
 from datetime import datetime
 import random
 import asyncio
@@ -196,6 +196,7 @@ class DL(commands.Cog):
                 if monster_hp <= 0:
                     embed=discord.Embed(title=r_name, description=f"**Ты победил {r_name}!\nЗа победу тебе выдали {monster[2]} монет!**", color=discord.Color.random())
                     await inter.followup.edit_message(message_id=msg.id, content="", embed=embed, view=DL.mn())
+                    update_quest(inter.user, "dromlyandia")
                     async with aiosqlite.connect(dbn, timeout=20) as db:
                         cursor = await db.cursor()
                         await cursor.execute('UPDATE dl SET balance = ? WHERE id = ?', (user[3]+monster[2], inter.user.id))
