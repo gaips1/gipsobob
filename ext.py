@@ -101,8 +101,7 @@ async def check(inter: discord.Interaction):
     if not me:
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            quests: list = json.loads(me[3])
-            quests.append(first_quest)
+            quests = [first_quest]
             await cursor.execute("INSERT INTO `users` (id, quests) VALUES (?, ?)", (inter.user.id, json.dumps(quests)))
             await db.commit()
             return True
@@ -111,7 +110,6 @@ async def check(inter: discord.Interaction):
         return False
     
     await check_first_quest(inter, me)
-
     return True
 
 async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):

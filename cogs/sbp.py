@@ -251,6 +251,42 @@ class Sbp(commands.Cog):
         await inter.response.send_message("Привет!\nТвоя капча:", ephemeral=True, file=discord.File('random_text.png'), view=captchab(captcha=kap))
         os.remove('random_text.png')
 
+    @app_commands.command( description="Пригласить друга в СБП и получить деньги", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(ext.check)
+    async def invite(self, inter: discord.Interaction):
+        await inter.response.send_message(embed=discord.Embed(title="Приглашение зарегистрироваться в СБП",
+                                                              description="Чтобы принять, нажмите на кнопку ниже"),
+                                                              view=AcceptInvite(author=inter.user))
+        
+class AcceptInvite(discord.ui.View):
+    def __init__(self, author):
+        super().__init__(timeout=None)
+        self.author: discord.User = author
+
+    @discord.ui.button(label="Принять приглашение", style=discord.ButtonStyle.blurple, custom_id="accept_invite")
+    async def accept_invite_handler(self, inter: discord.Interaction, button: discord.ui.Button):
+        if inter.user == self.author: return await inter.response.send_message("Вы являетесь автором приглашения", ephemeral=True)
+
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (inter.user.id,))
+            user_db = await cursor.fetchone()        
+
+            if user_db: return await inter.response.send_message("Вы уже зарегистрированы в Системе Быстрых платежей!", ephemeral=True)
+
+            await cursor.execute("SELECT * FROM `sbp` WHERE id = ?", (self.author.id,))
+            invites = await cursor.fetchone()
+            invites: list = json.loads(invites[3])
+            invites.append(inter.user.id)
+
+            await cursor.execute("INSERT INTO `sbp` (id) VALUES (?)", (inter.user.id,))
+            await cursor.execute("UPDATE sbp SET (invites, balance) = (?, balance+?) WHERE id = ?", (json.dumps(invites), 200, self.author.id))
+            await db.commit()
+
+        await inter.response.send_message(embed=discord.Embed(title="Приглашение принято", description="Вы зарегистрировались в СБП по ссылке от " + self.author.name), ephemeral=True)
+        await self.author.send(f"{inter.user.name} зарегистрировался в СБП по вашей ссылке!")
 
 class captchab(discord.ui.View):
     def __init__(self, captcha: string):
