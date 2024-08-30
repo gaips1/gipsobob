@@ -4,7 +4,7 @@ import aiosqlite
 import asyncio
 import random
 from discord import app_commands
-from check import *
+from ext import *
 
 class sexb(discord.ui.View):
     def __init__(self, user, author):

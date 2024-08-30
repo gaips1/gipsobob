@@ -9,7 +9,7 @@ from discord import app_commands
 import string
 from PIL import Image, ImageDraw, ImageFont
 import random
-import check
+import ext
 
 class Sbp(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -145,7 +145,7 @@ class Sbp(commands.Cog):
     @app_commands.command( description="Твой личный кабинет Системы Быстрых Платежей!", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.check(check.check)
+    @app_commands.check(ext.check)
     async def account(self, inter: discord.Interaction):
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
@@ -161,7 +161,7 @@ class Sbp(commands.Cog):
     @app_commands.command( description="Зарегистрироваться в Системе Быстрых Платежей", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.check(check.check)
+    @app_commands.check(ext.check)
     async def reg(self, inter: discord.Interaction):
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
@@ -179,7 +179,7 @@ class Sbp(commands.Cog):
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.describe(user="Кому переводить?", amount="Сколько переводить?")
-    @app_commands.check(check.check)
+    @app_commands.check(ext.check)
     async def setbal(self, inter: discord.Interaction, amount:int, user:discord.User = None):
         if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
         async with aiosqlite.connect(dbn, timeout=20) as db:
@@ -191,7 +191,7 @@ class Sbp(commands.Cog):
     @app_commands.command( description="Перевод бебр пользователю Системы Быстрых Платежей", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.check(check.check)
+    @app_commands.check(ext.check)
     @app_commands.describe(user="Кому переводить?", amount="Сколько переводить?", comment="Комментарий к переводу")
     async def transfer(self, inter: discord.Interaction, user:discord.User, amount:int, comment:str = None):
         if comment and len(comment) > 50:
@@ -222,7 +222,7 @@ class Sbp(commands.Cog):
             await db.commit()
 
         await inter.response.send_message("Успешно!", ephemeral=True)
-        await check.update_quest(inter.user, "transfer", amount)
+        await ext.update_quest(inter.user, "transfer", amount)
         if usr[2] == 1:
             if comment:
                 embed = discord.Embed(title=f"Получен перевод от {inter.user.global_name} суммой {amount} бебр.", description=
@@ -235,7 +235,7 @@ class Sbp(commands.Cog):
     @app_commands.command( description="Пройти капчу и получить бебры", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.check(check.check)
+    @app_commands.check(ext.check)
     async def captcha(self, inter: discord.Interaction):
         letters = string.ascii_letters + string.digits
         kap = ''.join(random.choice(letters) for i in range(10))
@@ -283,7 +283,7 @@ class captcham(discord.ui.Modal, title = "Капча"):
                 await db.commit()
 
             await inter.response.edit_message(content="Капча успешно введена! Вам было добавлено 5 бебр", view=None)
-            await check.update_quest(inter.user, "captcha", )
+            await ext.update_quest(inter.user, "captcha", )
         else:
             await inter.response.edit_message(content="Капча введена неверно! Попробуйте ещё раз", view=None)
 
@@ -323,7 +323,7 @@ class transferm(discord.ui.Modal):
         else:
             await inter.response.edit_message(content="Успешно!", view=None)
 
-        await check.update_quest(inter.user, "transfer", amount)
+        await ext.update_quest(inter.user, "transfer", amount)
 
         if usr[2] == 1:
             if self.comment.value:
@@ -344,7 +344,7 @@ async def setup(bot: commands.Bot):
 @app_commands.context_menu( name="Перевод", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.check(check.check)
+@app_commands.check(ext.check)
 async def transferu(inter: discord.Interaction, user: discord.User):
     if user.bot: return await inter.response.send_message("Нельзя перевести бебры боту", ephemeral=True)
     if user == inter.user: return await inter.response.send_message("Нельзя перевести бебры себе", ephemeral=True)

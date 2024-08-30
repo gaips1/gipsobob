@@ -6,7 +6,7 @@ import asyncio
 from discord import app_commands
 from dotenv import load_dotenv
 import aiosqlite
-from check import check
+from ext import check, turnoff1, turnon1
 import inspect, os.path
 import random
 load_dotenv()
@@ -27,9 +27,11 @@ bot.dbn = dbn
 bot.mode = mode
 
 @bot.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx: discord.Interaction, error):
     if isinstance(error, commands.CommandNotFound):
         pass
+    elif isinstance(error, app_commands.CheckFailure):
+        await ctx.response.send_message("Вы забанены в боте!", ephemeral=True)
     else:
         raise error
 
@@ -42,6 +44,8 @@ async def on_ready():
     await bot.load_extension("cogs.giveaways")
     await bot.load_extension("cogs.inv")
     await bot.tree.sync()
+    bot.add_view(turnon1())
+    bot.add_view(turnoff1())
     await bot.change_presence(status=discord.Status.dnd, activity=discord.Game("Visual Studio Code"))
 
 @bot.tree.command(name="say", description="Пинг?",)
@@ -69,7 +73,7 @@ async def ping(inter: discord.Interaction):
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.check(check)
-async def get_messag12e_id(inter: discord.Interaction, message: discord.Message):
+async def get_message_id(inter: discord.Interaction, message: discord.Message):
     await inter.response.send_message(f"Message ID: `{message.id}`, Message author: '{message.author.mention}', Message author ID: `{message.author.id}`, Message content: `{message.content}`", ephemeral=True)
 
 @bot.tree.context_menu(name="(Раз)забанить автора сообщения",)

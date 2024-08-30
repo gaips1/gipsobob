@@ -2,7 +2,7 @@ from discord.ext import commands
 import discord
 import aiosqlite
 import os
-from check import check, update_quest
+from ext import check, update_quest
 from datetime import datetime
 import random
 import asyncio

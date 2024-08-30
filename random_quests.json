@@ -6,7 +6,8 @@
         "reward": 300,
         "progress": 0,
         "id": "kisses",
-        "progress_max": 15 
+        "progress_max": 15 ,
+        "ends": "1d"
     },
     {
         "name": "Секс Бомба",
@@ -15,16 +16,18 @@
         "reward": 1000,
         "progress": 0,
         "id": "sex_bomba",
-        "progress_max": 30
+        "progress_max": 30,
+        "ends": "1d"
     },
     {
         "name": "Секс Мастер",
-        "desc": "Поебитесь с 12 людьми (не обязательно разных)",
+        "desc": "Поебитесь с 15 людьми (не обязательно разных)",
         "do": "sex",
         "reward": 500,
         "progress": 0,
         "id": "sex_master",
-        "progress_max": 15
+        "progress_max": 15,
+        "ends": "1d"
     },
     {
         "name": "Переводчик",
@@ -33,7 +36,8 @@
         "reward": 1000,
         "progress": 0,
         "id": "transfer-3500",
-        "progress_max": 3500
+        "progress_max": 3500,
+        "ends": "7d"
     },
     {
         "name": "Переводчик-5000",
@@ -42,7 +46,8 @@
         "reward": 3000,
         "progress": 0,
         "id": "transfer-5000",
-        "progress_max": 5000
+        "progress_max": 5000,
+        "ends": "7d"
     },
     {
         "name": "Обниматель",
@@ -51,7 +56,8 @@
         "reward": 300,
         "progress": 0,
         "id": "huges",
-        "progress_max": 15 
+        "progress_max": 15,
+        "ends": "1d"
     },
     {
         "name": "Борзый",
@@ -60,7 +66,8 @@
         "reward": 300,
         "progress": 0,
         "id": "punches",
-        "progress_max": 15 
+        "progress_max": 15,
+        "ends": "1d"
     },
     {
         "name": "Счастливчик",
@@ -69,7 +76,8 @@
         "reward": 150,
         "progress": 0,
         "id": "casino",
-        "progress_max": 1
+        "progress_max": 1,
+        "ends": "1d"
     },
     {
         "name": "Не повезло",
@@ -78,7 +86,8 @@
         "reward": 150,
         "progress": 0,
         "id": "rr",
-        "progress_max": 1
+        "progress_max": 1,
+        "ends": "1d"
     },
     {
         "name": "Не бот",
@@ -87,7 +96,8 @@
         "reward": 150,
         "progress": 0,
         "id": "captcha",
-        "progress_max": 10
+        "progress_max": 10,
+        "ends": "1d"
     },
     {
         "name": "Ребро!!!!",
@@ -96,7 +106,8 @@
         "reward": 150,
         "progress": 0,
         "id": "monetka",
-        "progress_max": 1
+        "progress_max": 1,
+        "ends": "1d"
     },
     {
         "name": "Слава узбии",
@@ -105,7 +116,8 @@
         "reward": 150,
         "progress": 0,
         "id": "slava_uzbii",
-        "progress_max": 3
+        "progress_max": 3,
+        "ends": "1d"
     },
     {
         "name": "Мастер Лабиринта",
@@ -114,7 +126,8 @@
         "reward": 300,
         "progress": 0,
         "id": "dromlyandia-5",
-        "progress_max": 5
+        "progress_max": 5,
+        "ends": "1d"
     },
     {
         "name": "Ты победишь, я верю",
@@ -123,6 +136,7 @@
         "reward": 300,
         "progress": 0,
         "id": "join-giveaway",
-        "progress_max": 3
+        "progress_max": 3,
+        "ends": "7d"
     }
 ]

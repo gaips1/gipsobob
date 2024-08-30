@@ -4,7 +4,7 @@ import discord
 import aiosqlite
 import os
 from datetime import datetime, timedelta
-from check import check, update_quest
+from ext import check, update_quest
 from discord.ui import Button, View
 import random
 import asyncio

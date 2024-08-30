@@ -12,3 +12,5 @@ gipsobob.sql-wal
 .vscode/settings.json
 __pycache__/check.cpython-312.pyc
 cogs/__pycache__/inv.cpython-312.pyc
+__pycache__/ext.cpython-312.pyc
+__pycache__/gipsobob_new.cpython-312.pyc

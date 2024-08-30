@@ -1,4 +1,6 @@
 from datetime import datetime
+import inspect
+import os
 from discord.ext import commands, tasks
 import discord
 import aiosqlite
@@ -7,24 +9,28 @@ import json
 import random
 from discord import app_commands
 import pytz
-import check
+import ext
+
+filename = inspect.getframeinfo(inspect.currentframe()).filename
+path     = os.path.dirname(os.path.abspath(filename))
 
 class Inv(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
         self.add_quest.start()
+        self.timeout_quests.start()
 
     @app_commands.command( description="Магазин", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.check(check.check)
+    @app_commands.check(ext.check)
     async def shop(self, ctx: discord.Interaction):
         await ctx.response.send_message("Добро пожаловать в круглосуточный магазин <<**У легенды**>>\n||Внимание! После завершения операции ваша душа будет\nавтоматически передана в вечное пользование Uzbia Inc.||", ephemeral=True, view=shop())
 
     @app_commands.command( description="Инвентарь", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.check(check.check)
+    @app_commands.check(ext.check)
     async def inventory(self, inter: discord.Interaction):
         async with aiosqlite.connect(dbn) as db:
             cursor = await db.cursor()
@@ -51,7 +57,7 @@ class Inv(commands.Cog):
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.describe(what="Что использовать?", user="На ком использовать?")
     @app_commands.choices(what=zov())
-    @app_commands.check(check.check)
+    @app_commands.check(ext.check)
     async def use(self, ctx: discord.Interaction, what: str, user: discord.User = None):
         if what == "талон на секс":
             if user == None: return await ctx.response.send_message("Укажите пользователя", ephemeral=True)
@@ -60,7 +66,7 @@ class Inv(commands.Cog):
     @app_commands.command(description="Квесты", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.check(check.check)
+    @app_commands.check(ext.check)
     async def quests(self, inter: discord.Interaction):
         async with aiosqlite.connect(dbn) as db:
             cursor = await db.cursor()
@@ -74,18 +80,67 @@ class Inv(commands.Cog):
             embed = discord.Embed(title="Квесты", color=discord.Color.random())
             quests: list = json.loads(quests[0])
             for quest in quests:
-                embed.add_field(name=quest["name"], value=f"{quest["desc"]}\nВыполнено - {quest["progress"]}/{quest["progress_max"]}\nНаграда: {quest["reward"]} бебр")
+                ends = datetime.fromisoformat(quest["ends"]) if quest["ends"] != None else None
+                embed.add_field(name=quest["name"], value=f"{quest["desc"]}\nВыполнено - {quest["progress"]}/{quest["progress_max"]}\nНаграда: {quest["reward"]} бебр\nИстекает: {"<t:" + str(int(ends.timestamp())) + ":R>" if ends != None else "Никогда"}", inline=False)
 
         await inter.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(description="Дать рандомный квест", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
-    @app_commands.check(check.check)
-    async def add_random_quest(self, inter: discord.Interaction, user: discord.User = None):
+    @app_commands.check(ext.check)
+    async def add_random_quest(self, inter: discord.Interaction, user: discord.User):
         if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
-        await check.add_random_quest(user if user is not None else None)
+        await ext.add_random_quest(user)
         await inter.response.send_message("Успешно!", ephemeral=True)
+
+    @app_commands.command(description="Выполненые квесты", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(ext.check)
+    async def completed_quests(self, inter: discord.Interaction):
+        async with aiosqlite.connect(dbn) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT completed_quests FROM users WHERE id = ?", (inter.user.id,))
+            quests = await cursor.fetchone()
+
+        if not quests or not quests[0] or len(json.loads(quests[0])) == 0:
+            embed = discord.Embed(title="Выполненные квесты", color=discord.Color.random(), 
+                                description="У вас нет выполненных квестов.")
+            return await inter.response.send_message(embed=embed, ephemeral=True)
+        
+        quests: list = json.loads(quests[0])
+
+        for quest in quests:
+            with open(path+"/completed_quests-"+str(inter.user.id) + ".txt", "w") as f:
+                f.write(f"{quest['name']} - {quest["desc"]}, награда - {quest['reward']}, истекло - {quest["ends"] if quest["ends"] != None else "Никогда"}\n")
+
+        await inter.response.send_message(content="Выполненные квесты:", ephemeral=True, file=discord.File(path+"/completed_quests-"+str(inter.user.id) + ".txt"))
+        os.remove(path+"/completed_quests-"+str(inter.user.id) + ".txt")
+
+    @app_commands.command(description="Просроченные квесты", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(ext.check)
+    async def expired_quests(self, inter: discord.Interaction):
+        async with aiosqlite.connect(dbn) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT ended_quests FROM users WHERE id = ?", (inter.user.id,))
+            quests = await cursor.fetchone()
+
+        if not quests or not quests[0] or len(json.loads(quests[0])) == 0:
+            embed = discord.Embed(title="Просроченные квесты", color=discord.Color.random(), 
+                                description="У вас нет просроченных квестов.")
+            return await inter.response.send_message(embed=embed, ephemeral=True)
+        
+        quests: list = json.loads(quests[0])
+
+        for quest in quests:
+            with open(path+"/expired_quests-"+str(inter.user.id) + ".txt", "w") as f:
+                f.write(f"{quest['name']} - {quest["desc"]}, награда - {quest['reward']}, истекло -  {quest["ends"] if quest["ends"] != None else "Никогда"}\n")
+
+        await inter.response.send_message(content="Просроченные квесты:", ephemeral=True, file=discord.File(path+"/expired_quests-"+str(inter.user.id) + ".txt"))
+        os.remove(path+"/expired_quests-"+str(inter.user.id) + ".txt")
 
     @tasks.loop(seconds=1)
     async def add_quest(self):
@@ -96,8 +151,21 @@ class Inv(commands.Cog):
         
         if now.hour == target_hour and now.minute == target_minute:
             if 0 <= now.second < 1:
-                await check.add_random_quest()
+                await ext.add_random_quest()
                 await asyncio.sleep(60 - now.second)
+
+    @tasks.loop(count=1)
+    async def timeout_quests(self):
+        async with aiosqlite.connect(dbn) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT * FROM users")
+            users = await cursor.fetchall()
+
+        for user in users:
+            quests = json.loads(user[3])
+            for quest in quests:
+                if quest["ends"] != None:
+                    self.bot.loop.create_task(ext.timeout_quests_timer(user=await ext.get_or_fetch_user(bot=self.bot, id=user[0]), quest=quest))
 
 async def use_sex_talon(inter: discord.Interaction, user: discord.User):
     if user.bot: return await inter.response.send_message("Нельзя использовать на боте", ephemeral=True)
