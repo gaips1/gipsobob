@@ -1,4 +1,4 @@
-mode = "PROD"
+mode = "dev"
 
 import discord
 from discord.ext import commands

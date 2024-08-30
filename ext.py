@@ -114,34 +114,64 @@ async def check(inter: discord.Interaction):
 
     return True
 
-async def add_random_quest(user: discord.User):
+async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
     with open(path+'/random_quests.json', 'r', encoding="utf-8") as json_file:
-        random_quests = json.load(json_file)
-        
+            random_quests = json.load(json_file)
     loop = asyncio.get_event_loop()
-    async with aiosqlite.connect(dbn, timeout=20) as db:
-        cursor = await db.cursor()
-        await cursor.execute("SELECT quests FROM `users` WHERE id = ?", (user.id,))
-        me = await cursor.fetchone()
-        quests: list = json.loads(me[0])
-        if len(quests) >= 5: return
-        rq = random.choice(random_quests)
-        if rq["ends"] != None:
-            a = int(rq["ends"][0])
-            b = str(rq["ends"][1])
-            day = a if b == "d" else None
-            hour = a if b == "h" else None
-            if day != None:
-                date = datetime.datetime.now(pytz.timezone('Europe/Moscow')) + datetime.timedelta(days=day)
-            elif hour != None:
-                date = datetime.datetime.now(pytz.timezone('Europe/Moscow')) + datetime.timedelta(hours=hour)
+    if user != None:            
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT quests FROM `users` WHERE id = ?", (user.id,))
+            me = await cursor.fetchone()
+            quests: list = json.loads(me[0])
+            if len(quests) >= 5: return
+            rq = random.choice(random_quests)
+            if rq["ends"] != None:
+                a = int(rq["ends"][0])
+                b = str(rq["ends"][1])
+                day = a if b == "d" else None
+                hour = a if b == "h" else None
+                if day != None:
+                    date = datetime.datetime.now(pytz.timezone('Europe/Moscow')) + datetime.timedelta(days=day)
+                elif hour != None:
+                    date = datetime.datetime.now(pytz.timezone('Europe/Moscow')) + datetime.timedelta(hours=hour)
 
-            rq["ends"] = date.isoformat()
-        quests.append(rq)
-        await cursor.execute("UPDATE `users` SET (quests) = (?) WHERE id =?", (json.dumps(quests), user.id))
-        await db.commit()
+                rq["ends"] = date.isoformat()
+            quests.append(rq)
+            await cursor.execute("UPDATE `users` SET (quests) = (?) WHERE id =?", (json.dumps(quests), user.id))
+            await db.commit()
 
-    loop.create_task(timeout_quests_timer(user=user, quest=rq))
+        loop.create_task(timeout_quests_timer(user=user, quest=rq))
+    else:
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT * FROM `users`")
+            users = await cursor.fetchall()
+
+        for user in users:
+            quests: list = json.loads(user[3])
+            if len(quests) >= 5: continue
+            rq = random.choice(random_quests)
+            if rq["ends"] != None:
+                a = int(rq["ends"][0])
+                b = str(rq["ends"][1])
+                day = a if b == "d" else None
+                hour = a if b == "h" else None
+                if day != None:
+                    date = datetime.datetime.now(pytz.timezone('Europe/Moscow')) + datetime.timedelta(days=day)
+                elif hour != None:
+                    date = datetime.datetime.now(pytz.timezone('Europe/Moscow')) + datetime.timedelta(hours=hour)
+
+                rq["ends"] = date.isoformat()
+            usr = await get_or_fetch_user(id=user[0], bot=bot)
+            loop.create_task(timeout_quests_timer(user=usr, quest=rq))
+            quests.append(rq)
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute("UPDATE `users` SET (quests) = (?) WHERE id =?", (json.dumps(quests), user[0]))
+                await db.commit()
+                
+            await asyncio.sleep(5)
 
 async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict):
     while True:
@@ -181,7 +211,7 @@ async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict)
 
 async def get_or_fetch_user(bot: commands.Bot, id: str | int):
     user = bot.get_user(id)
-    if user == None:
+    if user is None:
         user = await bot.fetch_user(id)
 
     return user

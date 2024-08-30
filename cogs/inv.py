@@ -89,9 +89,9 @@ class Inv(commands.Cog):
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.check(ext.check)
-    async def add_random_quest(self, inter: discord.Interaction, user: discord.User):
+    async def add_random_quest(self, inter: discord.Interaction, user: discord.User = None):
         if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
-        await ext.add_random_quest(user)
+        await ext.add_random_quest(user, self.bot)
         await inter.response.send_message("Успешно!", ephemeral=True)
 
     @app_commands.command(description="Выполненые квесты", )
@@ -146,12 +146,12 @@ class Inv(commands.Cog):
     async def add_quest(self):
         now = datetime.now(pytz.timezone('Europe/Moscow'))
         
-        target_hour = 12 if self.bot.mode == "PROD" else 13
-        target_minute = 0 if self.bot.mode == "PROD" else 5
+        target_hour = 12 if self.bot.mode == "PROD" else 12
+        target_minute = 0 if self.bot.mode == "PROD" else 38
         
         if now.hour == target_hour and now.minute == target_minute:
             if 0 <= now.second < 1:
-                await ext.add_random_quest()
+                await ext.add_random_quest(bot=self.bot)
                 await asyncio.sleep(60 - now.second)
 
     @tasks.loop(count=1)
@@ -166,6 +166,7 @@ class Inv(commands.Cog):
             for quest in quests:
                 if quest["ends"] != None:
                     self.bot.loop.create_task(ext.timeout_quests_timer(user=await ext.get_or_fetch_user(bot=self.bot, id=user[0]), quest=quest))
+                    await asyncio.sleep(2)
 
 async def use_sex_talon(inter: discord.Interaction, user: discord.User):
     if user.bot: return await inter.response.send_message("Нельзя использовать на боте", ephemeral=True)
