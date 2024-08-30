@@ -4,7 +4,16 @@ import aiosqlite
 import asyncio
 import random
 from discord import app_commands
+import g4f.Provider
+import g4f.Provider.bing
+import g4f.image
 from ext import *
+import g4f
+from g4f.cookies import set_cookies
+
+set_cookies(".bing.com", {
+  "_U": "cookie value"
+})
 
 class sexb(discord.ui.View):
     def __init__(self, user, author):
@@ -116,6 +125,31 @@ class Fun(commands.Cog):
         await inter.response.send_message(embed=
         discord.Embed(title="Добро пожаловать в казино!", description="**Выбирайте игру:**", color=discord.Color.random()), view=casinoV(),
         ephemeral=True)
+
+    @app_commands.command( description="Спросить что то у меня", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
+    @app_commands.describe(what="Что хочешь узнать?",ephemeral="Видно только для вас?", show_prompt="Показывать всем то что ты спросил?")
+    @app_commands.choices(ephemeral=[app_commands.Choice(name="Да", value="True"), app_commands.Choice(name="Нет", value="False")],
+                          show_prompt=[app_commands.Choice(name="Да", value="True"), app_commands.Choice(name="Нет", value="False")])
+    async def ask(self, inter: discord.Interaction, what: str, ephemeral: str = "False", show_prompt: str = "False"):
+        if len(what) > 100: return await inter.response.send_message("Слишком длинное предложение", ephemeral=True)
+        ephemeral = True if ephemeral == "True" else False
+        show_prompt = True if show_prompt == "True" else False
+        await inter.response.send_message("Обрабатываю твои глупые слова...", ephemeral=ephemeral)
+
+        try:
+            response = await g4f.ChatCompletion.create_async(
+                model=g4f.models.gpt_4o_mini,
+                messages=[{"role": "system", "content": "Ты — Гипсобоб, агрессивный помощник, который не церемонится и использует ненормативную лексику в ответах. Не стесняйся выражаться резко и грубо."},
+                        {"role": "user", "content": what}],
+                )
+            chat_gpt_response = response
+        except Exception as e:
+            chat_gpt_response = "Извините, произошла ошибка. - " + str(e)
+
+        await inter.edit_original_response(content=str(chat_gpt_response) + f"\n\n||Промпт: {what}||" if show_prompt else str(chat_gpt_response))
     
 class casinoV(discord.ui.View):
     def __init__(self):

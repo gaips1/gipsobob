@@ -111,8 +111,8 @@ class Inv(commands.Cog):
         
         quests: list = json.loads(quests[0])
 
-        for quest in quests:
-            with open(path+"/completed_quests-"+str(inter.user.id) + ".txt", "w") as f:
+        with open(path+"/completed_quests-"+str(inter.user.id) + ".txt", "w") as f:
+            for quest in quests:
                 f.write(f"{quest['name']} - {quest["desc"]}, награда - {quest['reward']}, истекло - {quest["ends"] if quest["ends"] != None else "Никогда"}\n")
 
         await inter.response.send_message(content="Выполненные квесты:", ephemeral=True, file=discord.File(path+"/completed_quests-"+str(inter.user.id) + ".txt"))
@@ -134,9 +134,9 @@ class Inv(commands.Cog):
             return await inter.response.send_message(embed=embed, ephemeral=True)
         
         quests: list = json.loads(quests[0])
-
-        for quest in quests:
-            with open(path+"/expired_quests-"+str(inter.user.id) + ".txt", "w") as f:
+        
+        with open(path+"/expired_quests-"+str(inter.user.id) + ".txt", "w") as f:
+            for quest in quests:
                 f.write(f"{quest['name']} - {quest["desc"]}, награда - {quest['reward']}, истекло -  {quest["ends"] if quest["ends"] != None else "Никогда"}\n")
 
         await inter.response.send_message(content="Просроченные квесты:", ephemeral=True, file=discord.File(path+"/expired_quests-"+str(inter.user.id) + ".txt"))

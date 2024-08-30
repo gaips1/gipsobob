@@ -1,5 +1,6 @@
-mode = "PROD"
+mode = "DEV"
 
+import sys
 import discord
 from discord.ext import commands
 import asyncio
@@ -47,6 +48,9 @@ async def on_ready():
     bot.add_view(turnon1())
     bot.add_view(turnoff1())
     await bot.change_presence(status=discord.Status.dnd, activity=discord.Game("Visual Studio Code"))
+
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 @bot.tree.command(name="say", description="Пинг?",)
 @app_commands.describe(what="Что писать?", inchat="Писать ли в чате?")
