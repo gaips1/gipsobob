@@ -1,4 +1,4 @@
-mode = "DEV"
+mode = "PROD"
 
 import sys
 import discord

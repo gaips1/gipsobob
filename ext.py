@@ -189,6 +189,9 @@ async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict)
             for q in quests_to_remove:
                 if q not in completed_quests:
                     ended_quests.append(q)
+                    if user1[6] == 1:
+                        await user.send(embed=discord.Embed(title=f"Квест {quest['name']} истёк", description="Увы...", color=discord.Color.random()),
+                                        view=turnoff1())
 
             quests = [q for q in quests if q not in quests_to_remove]
 
@@ -199,10 +202,6 @@ async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict)
                     (json.dumps(quests), json.dumps(completed_quests), json.dumps(ended_quests), user.id)
                 )
                 await db.commit()
-
-            if user1[6] == 1:
-                await user.send(embed=discord.Embed(title=f"Квест {quest['name']} истёк", description="Увы...", color=discord.Color.random()),
-                                view=turnoff1())
             break
 
         await asyncio.sleep(5)
