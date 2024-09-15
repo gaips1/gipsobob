@@ -172,6 +172,9 @@ async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
             await asyncio.sleep(5)
 
 async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict):
+    #print(user.name)
+    #print(quest)
+    #print("----------------------------------")
     while True:
         ends = datetime.datetime.fromisoformat(quest["ends"]) - datetime.datetime.now(pytz.timezone('Europe/Moscow'))
         if ends.total_seconds() <= 0:
@@ -190,8 +193,11 @@ async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict)
                 if q not in completed_quests:
                     ended_quests.append(q)
                     if user1[6] == 1:
-                        await user.send(embed=discord.Embed(title=f"Квест {quest['name']} истёк", description="Увы...", color=discord.Color.random()),
-                                        view=turnoff1())
+                        try:
+                            await user.send(embed=discord.Embed(title=f"Квест {quest['name']} истёк", description="Увы...", color=discord.Color.random()),
+                                            view=turnoff1())
+                        except:
+                            pass
 
             quests = [q for q in quests if q not in quests_to_remove]
 
@@ -204,7 +210,7 @@ async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict)
                 await db.commit()
             break
 
-        await asyncio.sleep(5)
+        await asyncio.sleep(min(ends.total_seconds(), 5))
 
 async def get_or_fetch_user(bot: commands.Bot, id: str | int):
     user = bot.get_user(id)

@@ -166,7 +166,7 @@ class Inv(commands.Cog):
             for quest in quests:
                 if quest["ends"] != None:
                     self.bot.loop.create_task(ext.timeout_quests_timer(user=await ext.get_or_fetch_user(bot=self.bot, id=user[0]), quest=quest))
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(0.5)
 
 async def use_sex_talon(inter: discord.Interaction, user: discord.User):
     if user.bot: return await inter.response.send_message("Нельзя использовать на боте", ephemeral=True)

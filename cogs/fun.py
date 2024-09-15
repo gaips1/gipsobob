@@ -11,10 +11,6 @@ from ext import *
 import g4f
 from g4f.cookies import set_cookies
 
-set_cookies(".bing.com", {
-  "_U": "cookie value"
-})
-
 class sexb(discord.ui.View):
     def __init__(self, user, author):
         super().__init__(timeout=None)

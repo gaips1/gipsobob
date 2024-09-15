@@ -15,6 +15,8 @@ path     = os.path.dirname(os.path.abspath(filename))
 images = path + "/images/"
 images = images.replace("cogs/", "")
 
+in_fight = []
+
 class donateBtns(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -159,11 +161,10 @@ class DL(commands.Cog):
                 cursor = await db.cursor()
                 await cursor.execute("SELECT * FROM `dl` WHERE id = ?", (inter.user.id,))
                 user = await cursor.fetchone()
-                await cursor.execute('UPDATE dl SET ingm = ? WHERE id = ?', (1, inter.user.id))
-                await db.commit()
-
+            global in_fight
             if not user: return await inter.response.send_message("Добро пожаловать в края Дромляндии, путник! Введи свои данные, нажав на кнопку ниже", view=DL.regb(), ephemeral=True)
-            if user[7] == 1: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
+            if inter.user.id in in_fight: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
+            else: in_fight.append(inter.user.id)
 
             await inter.response.edit_message(content="Вы вошли в лабиринт.", embed=None, view=None)
 
@@ -196,7 +197,7 @@ class DL(commands.Cog):
                 if monster_hp <= 0:
                     embed=discord.Embed(title=r_name, description=f"**Ты победил {r_name}!\nЗа победу тебе выдали {monster[2]} монет!**", color=discord.Color.random())
                     await inter.followup.edit_message(message_id=msg.id, content="", embed=embed, view=DL.mn())
-                    update_quest(inter.user, "dromlyandia")
+                    await update_quest(inter.user, "dromlyandia")
                     async with aiosqlite.connect(dbn, timeout=20) as db:
                         cursor = await db.cursor()
                         await cursor.execute('UPDATE dl SET balance = ? WHERE id = ?', (user[3]+monster[2], inter.user.id))
@@ -224,10 +225,7 @@ class DL(commands.Cog):
                     await inter.followup.edit_message(message_id=msg.id, content="", embed=embed, view=None)
                     continue
 
-            async with aiosqlite.connect(dbn, timeout=20) as db:
-                cursor = await db.cursor()
-                await cursor.execute('UPDATE dl SET ingm = ? WHERE id = ?', (0, inter.user.id))
-                await db.commit()
+            in_fight.remove(inter.user.id)
 
         @discord.ui.button(label="Информация о игроке", style=discord.ButtonStyle.success, row=1)
         async def playerinfo(self, inter: discord.Interaction, button: discord.ui.Button,):
@@ -237,7 +235,7 @@ class DL(commands.Cog):
                 user = await cursor.fetchone()
                 
             if not user: return await inter.response.send_message("Добро пожаловать в края Дромляндии, путник! Введи свои данные, нажав на кнопку ниже", view=DL.regb(), ephemeral=True)
-            if user[7] == 1: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
+            if inter.user.id in in_fight: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
 
             embed = discord.Embed(title=f"Ваше имя: {user[1]}\nКласс: {user[2]}\nБаланс: {user[3]}\nХП: {user[4]}\nМана: {user[5]}\nУрон: {user[6]}", color=discord.Color.random())
             now = datetime.now(pytz.timezone('Europe/Moscow'))
@@ -253,7 +251,7 @@ class DL(commands.Cog):
                 user = await cursor.fetchone()
 
             if not user: return await inter.response.send_message("Добро пожаловать в края Дромляндии, путник! Введи свои данные, нажав на кнопку ниже", view=DL.regb(), ephemeral=True)
-            if user[7] == 1: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
+            if inter.user.id in in_fight: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
 
             await inter.response.edit_message(content=f"Вы действительно хотите удалить персонажа?\nВы потеряете {user[3]} монет!", embed=None, view=DL.confdel())
 
@@ -265,7 +263,7 @@ class DL(commands.Cog):
                 user = await cursor.fetchone()
 
             if not user: return await inter.response.send_message("Добро пожаловать в края Дромляндии, путник! Введи свои данные, нажав на кнопку ниже", view=DL.regb(), ephemeral=True)
-            if user[7] == 1: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
+            if inter.user.id in in_fight: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
 
             await inter.response.send_modal(DL.seller())
 
@@ -277,7 +275,7 @@ class DL(commands.Cog):
                 user = await cursor.fetchone()
 
             if not user: return await inter.response.send_message("Добро пожаловать в края Дромляндии, путник! Введи свои данные, нажав на кнопку ниже", view=DL.regb(), ephemeral=True)
-            if user[7] == 1: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
+            if inter.user.id in in_fight: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
             embed = embed=discord.Embed(
                 color=discord.Color.random(), title="Донатик", description=
                 "Добро пожаловать в меню доната!\nЧтобы перевести деньги из баланса **Дромляндии: Онлайн** на свой счёт СБП нажмите кнопку 'ДО в СБП'.\nЧтобы перевести деньги из баланса **СБП** на свой счёт Дромляндии: Онлайн нажмите кнопку 'СБП в ДО'\nКурс перевода из ДО в СБП - 300 к 1\nКурс перевода из СБП в ДО - 1 к 1.5")
@@ -325,7 +323,7 @@ class DL(commands.Cog):
             await cursor.execute("SELECT * FROM `dl` WHERE id = ?", (inter.user.id,))
             user = await cursor.fetchone()
         if not user: return await inter.response.send_message("Добро пожаловать в края Дромляндии, путник! Введи свои данные, нажав на кнопку ниже", view=self.regb(), ephemeral=True)
-        if user[7] == 1: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
+        if inter.user.id in in_fight: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)
         await inter.response.send_message(f"Добро пожаловать обратно, {user[2]} {user[1]}", view=self.mn(), ephemeral=True)
 
 async def setup(bot: commands.Bot):
