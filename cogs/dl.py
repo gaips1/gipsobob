@@ -161,6 +161,7 @@ class DL(commands.Cog):
                 cursor = await db.cursor()
                 await cursor.execute("SELECT * FROM `dl` WHERE id = ?", (inter.user.id,))
                 user = await cursor.fetchone()
+                
             global in_fight
             if not user: return await inter.response.send_message("Добро пожаловать в края Дромляндии, путник! Введи свои данные, нажав на кнопку ниже", view=DL.regb(), ephemeral=True)
             if inter.user.id in in_fight: return await inter.response.send_message("Вы в данный момент в лабиринте", ephemeral=True)

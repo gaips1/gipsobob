@@ -161,6 +161,7 @@ async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
                     date = datetime.datetime.now(pytz.timezone('Europe/Moscow')) + datetime.timedelta(hours=hour)
 
                 rq["ends"] = date.isoformat()
+                
             usr = await get_or_fetch_user(id=user[0], bot=bot)
             loop.create_task(timeout_quests_timer(user=usr, quest=rq))
             quests.append(rq)

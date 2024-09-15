@@ -59,7 +59,8 @@ class Fun(commands.Cog):
         await inter.response.send_message("Подбрасываю...")
         await asyncio.sleep(2.5)
         await inter.edit_original_response(content=wh)
-        await update_quest(inter.user, "monetka", )
+        if wh == "Решка!":
+            await update_quest(inter.user, "monetka", )
 
     @app_commands.command( description="Да или нет", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -306,7 +307,6 @@ async def setup(bot: commands.Bot):
 @app_commands.allowed_installs(guilds=True, users=True)
 @app_commands.check(check)
 async def hug(inter: discord.Interaction, user: discord.User):
-    if await inter.client.check(inter) == 1: return
     if user.bot: return await inter.response.send_message("Зачем обнимать бота?", ephemeral=True)
     if user == inter.user: return await inter.response.send_message("Ты че обнимать себя собираешься?", ephemeral=True)
     giffs = ["https://media.tenor.com/hwsbuAcG8UQAAAAM/foxplushy-foxy.gif", "https://media.tenor.com/WIOsEr_4XFcAAAAM/happy-anime.gif", "https://media.tenor.com/BmbTYhCZ5UsAAAAM/yuri-sleeping-yuri-sleep.gif"
