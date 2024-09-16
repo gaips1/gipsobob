@@ -17,7 +17,7 @@ class turnon1(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Включить уведомления", style=discord.ButtonStyle.success, custom_id="turnon111")
+    @discord.ui.button(label="Включить уведомления", style=discord.ButtonStyle.success, custom_id="turgergergnon111")
     async def gkrkkkgrg(self, inter: discord.Interaction, button: discord.ui.Button):
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
@@ -29,13 +29,37 @@ class turnoff1(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Выключить уведомления", style=discord.ButtonStyle.danger, custom_id="turnoff111")
+    @discord.ui.button(label="Выключить уведомления", style=discord.ButtonStyle.danger, custom_id="turgrwegewgnoff111")
     async def gkrejgdfdlg(self, inter: discord.Interaction, button: discord.ui.Button):
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
             await cursor.execute(f"UPDATE users SET ended_quests_notif = 0 WHERE id = {inter.user.id}")
             await db.commit()
         await inter.response.edit_message(view=turnon1())
+
+class turnon2(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Включить уведомления", style=discord.ButtonStyle.success, custom_id="turgergergno222")
+    async def gkrkkkgrg(self, inter: discord.Interaction, button: discord.ui.Button):
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute(f"UPDATE users SET new_quest_notif = 1 WHERE id = {inter.user.id}")
+            await db.commit()
+        await inter.response.edit_message(view=turnoff2())
+
+class turnoff2(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Выключить уведомления", style=discord.ButtonStyle.danger, custom_id="turgrwegewgnoff1222")
+    async def gkrejgdfdlg(self, inter: discord.Interaction, button: discord.ui.Button):
+        async with aiosqlite.connect(dbn, timeout=20) as db:
+            cursor = await db.cursor()
+            await cursor.execute(f"UPDATE users SET new_quest_notif = 0 WHERE id = {inter.user.id}")
+            await db.commit()
+        await inter.response.edit_message(view=turnon2())
 
 async def check_first_quest(inter: discord.Interaction, me):
     completed_quests: list = json.loads(me[4])
@@ -119,9 +143,9 @@ async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
     if user != None:            
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            await cursor.execute("SELECT quests FROM `users` WHERE id = ?", (user.id,))
+            await cursor.execute("SELECT * FROM `users` WHERE id = ?", (user.id,))
             me = await cursor.fetchone()
-            quests: list = json.loads(me[0])
+            quests: list = json.loads(me[3])
             if len(quests) >= 5: return
             rq = random.choice(random_quests)
             if rq["ends"] != None:
@@ -138,7 +162,15 @@ async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
             quests.append(rq)
             await cursor.execute("UPDATE `users` SET (quests) = (?) WHERE id =?", (json.dumps(quests), user.id))
             await db.commit()
-
+        if me[7] == 1:
+            try:
+                await user.send(embed=discord.Embed(
+                    title="Новый квест!",
+                    description=f"Вам был добавлен новый квест - {rq["name"]}\nПодробнее в **/quests**",
+                    color=discord.Color.random()
+                ), view=turnoff2())
+            except:
+                pass
         loop.create_task(timeout_quests_timer(user=user, quest=rq))
     else:
         async with aiosqlite.connect(dbn, timeout=20) as db:
@@ -169,8 +201,18 @@ async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
                 cursor = await db.cursor()
                 await cursor.execute("UPDATE `users` SET (quests) = (?) WHERE id =?", (json.dumps(quests), user[0]))
                 await db.commit()
+
+            if user[7] == 1:
+                try:
+                    await usr.send(embed=discord.Embed(
+                        title="Новый квест!",
+                        description=f"Вам был добавлен новый квест - {rq["name"]}\nПодробнее в **/quests**",
+                        color=discord.Color.random()
+                    ), view=turnoff2())
+                except:
+                    pass
                 
-            await asyncio.sleep(5)
+            await asyncio.sleep(0.5)
 
 async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict):
     #print(user.name)

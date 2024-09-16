@@ -91,8 +91,9 @@ class Inv(commands.Cog):
     @app_commands.check(ext.check)
     async def add_random_quest(self, inter: discord.Interaction, user: discord.User = None):
         if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
+        await inter.response.send_message("Начинаю выдавать...", ephemeral=True)
         await ext.add_random_quest(user, self.bot)
-        await inter.response.send_message("Успешно!", ephemeral=True)
+        await inter.edit_original_response(content="Успешно!")
 
     @app_commands.command(description="Выполненые квесты", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)

@@ -253,6 +253,10 @@ class sexb(discord.ui.View):
 class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
+        bot.add_view(turnoff1())
+        bot.add_view(turnon1())
+        bot.add_view(turnoff2())
+        bot.add_view(turnon2())
 
     @app_commands.command( description="Подбросить монетку", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -343,6 +347,7 @@ class Fun(commands.Cog):
                 await cursor.execute("SELECT * FROM sbp WHERE id =?", (inter.user.id,))
                 usr = await cursor.fetchone()
             if not usr: await inter.response.send_message("У человека нет СБП, попросите его зарегистрироваться, написав команду /reg, либо играйте без ставки", ephemeral=True)
+            if usr[1] < stavka: return await inter.response.send_message("У вас недостаточно бебр", ephemeral=True)
 
         embed = discord.Embed(title="Цуефа", description=f"**{inter.user.name}** предложил **{user.name}** поиграть в цуефа!\nБез ставки!\nУ него 1 минута на ответ!" if stavka == None else
                               f"**{inter.user.name}** предложил **{user.name}** поиграть в цуефа!\nСтавка {stavka} бебр\nУ него 1 минута на ответ!", color=discord.Color.random())
