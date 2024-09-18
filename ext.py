@@ -138,7 +138,7 @@ async def check(inter: discord.Interaction):
 
 async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
     with open(path+'/random_quests.json', 'r', encoding="utf-8") as json_file:
-            random_quests = json.load(json_file)
+        random_quests = json.load(json_file)
     loop = asyncio.get_event_loop()
     if user != None:            
         async with aiosqlite.connect(dbn, timeout=20) as db:
@@ -215,45 +215,49 @@ async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
             await asyncio.sleep(0.5)
 
 async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict):
-    #print(user.name)
-    #print(quest)
-    #print("----------------------------------")
-    while True:
-        ends = datetime.datetime.fromisoformat(quest["ends"]) - datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-        if ends.total_seconds() <= 0:
-            async with aiosqlite.connect(dbn) as db:
-                cursor = await db.cursor()
-                await cursor.execute("SELECT * FROM users WHERE id = ?", (user.id,))
-                user1 = await cursor.fetchone()
+    try:
+        while True:
+            ends = datetime.datetime.fromisoformat(quest["ends"]).astimezone(pytz.timezone('Europe/Moscow')) - datetime.datetime.now(pytz.timezone('Europe/Moscow'))
+            if ends.total_seconds() <= 0:
+                async with aiosqlite.connect(dbn) as db:
+                    cursor = await db.cursor()
+                    await cursor.execute("SELECT * FROM users WHERE id = ?", (user.id,))
+                    user1 = await cursor.fetchone()
 
-            quests: list = json.loads(user1[3])
-            completed_quests: list = json.loads(user1[4])
-            ended_quests: list = json.loads(user1[5])
+                quests: list = json.loads(user1[3])
+                completed_quests: list = json.loads(user1[4])
+                ended_quests: list = json.loads(user1[5])
 
-            quests_to_remove = [q for q in quests if q == quest]
+                quests_to_remove = [q for q in quests if q == quest]
 
-            for q in quests_to_remove:
-                if q not in completed_quests:
-                    ended_quests.append(q)
-                    if user1[6] == 1:
-                        try:
-                            await user.send(embed=discord.Embed(title=f"Квест {quest['name']} истёк", description="Увы...", color=discord.Color.random()),
-                                            view=turnoff1())
-                        except:
-                            pass
+                for q in quests_to_remove:
+                    if q not in completed_quests:
+                        ended_quests.append(q)
+                        if user1[6] == 1:
+                            try:
+                                await user.send(embed=discord.Embed(
+                                    title=f"Квест {quest['name']} истёк", 
+                                    description="Увы...", 
+                                    color=discord.Color.random()
+                                ), view=turnoff1())
+                            except Exception as e:
+                                print(f"Ошибка отправки сообщения пользователю {user.id}: {e}")
 
-            quests = [q for q in quests if q not in quests_to_remove]
+                quests = [q for q in quests if q not in quests_to_remove]
 
-            async with aiosqlite.connect(dbn) as db:
-                cursor = await db.cursor()
-                await cursor.execute(
-                    "UPDATE users SET quests = ?, completed_quests = ?, ended_quests = ? WHERE id = ?",
-                    (json.dumps(quests), json.dumps(completed_quests), json.dumps(ended_quests), user.id)
-                )
-                await db.commit()
-            break
+                async with aiosqlite.connect(dbn) as db:
+                    cursor = await db.cursor()
+                    await cursor.execute(
+                        "UPDATE users SET quests = ?, completed_quests = ?, ended_quests = ? WHERE id = ?",
+                        (json.dumps(quests), json.dumps(completed_quests), json.dumps(ended_quests), user.id)
+                    )
+                    await db.commit()
+                break
 
-        await asyncio.sleep(min(ends.total_seconds(), 5))
+            await asyncio.sleep(min(ends.total_seconds(), 5))
+
+    except Exception as e:
+        print(f"Ошибка в таймере квестов для пользователя {user.id}: {e}")
 
 async def get_or_fetch_user(bot: commands.Bot, id: str | int):
     user = bot.get_user(id)

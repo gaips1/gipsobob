@@ -322,6 +322,40 @@ class Fun(commands.Cog):
         await inter.response.send_message(embed=discord.Embed(title=f"{user.global_name}, {inter.user.global_name} предложил Вам секс, Вы согласны?", color=discord.Color.random())
                                             , view=sexb(user, inter.user))
         
+    @app_commands.command( description="Ограбить кого либо", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.describe(user="Кого грабить?")
+    @app_commands.check(check)
+    @app_commands.checks.cooldown(1, 86400)
+    async def rob(self, inter: discord.Interaction, user: discord.User):
+        if user.bot: return await inter.response.send_message("Зачем грабить бота?", ephemeral=True)
+        if inter.user == user: return await inter.response.send_message("Зачем грабить себя?", ephemeral=True)
+       
+        if random.randint(1, 100) <= 60:
+            await inter.response.send_message("Вы попались!", ephemeral=True)
+        else:
+            bigwin = random.randint(150, 900)
+            
+            await update_quest(inter.user, "rob", )
+
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute("SELECT * FROM `sbp` WHERE id =?", (inter.user.id,))
+                usr = await cursor.fetchone()
+                if not usr:
+                    return await inter.response.send_message("Вы украли " + str(bigwin) + " бебр!\nНо у вас не было СБП и вы не получите деньги :(\nЗарегистрируйтесь используя /reg!", ephemeral=True)
+
+                await cursor.execute("UPDATE `sbp` SET balance = balance +? WHERE id =?", (bigwin, inter.user.id,))
+                await db.commit()
+
+        await inter.response.send_message("Вы украли " + str(bigwin) + " бебр!", ephemeral=True)
+
+    @rob.error
+    async def on_rob_error(self, inter: discord.Interaction, error: app_commands.AppCommandError):
+        if isinstance(error, app_commands.CommandOnCooldown):
+            await inter.response.send_message("Вы сможете повторить попытку грабежа через " + str(int(error.retry_after)) + " секунд.", ephemeral=True)
+
     @app_commands.command( description="Казино", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     @app_commands.allowed_installs(guilds=True, users=True)
@@ -499,6 +533,7 @@ class slotiModal(discord.ui.Modal, title = "Слоты"):
         await inter.edit_original_response(embed=discord.Embed(title=" ".join(slots), color=discord.Color.random()))
         await asyncio.sleep(2)
         slots.append(random.choice(list(emoges.keys())))
+
         for x in emoges:
             for y in slots:
                 if y == x:

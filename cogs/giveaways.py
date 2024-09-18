@@ -50,8 +50,6 @@ class dm(discord.ui.View):
 
         await inter.followup.send("Успешно!", ephemeral=True)
 
-        update_quest(inter.user, "join-giveaway")
-
 class gab(discord.ui.View):
     def __init__(self, giveaway):
         super().__init__(timeout=None)
