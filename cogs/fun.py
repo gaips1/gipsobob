@@ -84,7 +84,7 @@ class Rps():
                     await cursor.execute("UPDATE `sbp` SET balance = balance +? WHERE id =?", (self.game.stavka, self.game.p2.id,))
                     await db.commit()
 
-        @discord.ui.button(label="Камень", style=discord.ButtonStyle.success)
+        @discord.ui.button(label="Камень", style=discord.ButtonStyle.success, emoji="🪨")
         async def rpsrock(self, inter: discord.Interaction, button: discord.ui.Button):
             remaining_time = (inter.message.edited_at + datetime.timedelta(minutes=3)) - datetime.datetime.now(pytz.utc)
             self.timeout = max(remaining_time.total_seconds(), 0)
@@ -101,7 +101,7 @@ class Rps():
 
             await inter.response.send_message("Успешно выбрал камень!", ephemeral=True)
 
-        @discord.ui.button(label="Ножницы", style=discord.ButtonStyle.success)
+        @discord.ui.button(label="Ножницы", style=discord.ButtonStyle.success, emoji="✂️")
         async def rpssc(self, inter: discord.Interaction, button: discord.ui.Button):
             remaining_time = (inter.message.edited_at + datetime.timedelta(minutes=3)) - datetime.datetime.now(pytz.utc)
             self.timeout = max(remaining_time.total_seconds(), 0)
@@ -118,7 +118,7 @@ class Rps():
 
             await inter.response.send_message("Успешно выбрал ножницы!", ephemeral=True)
 
-        @discord.ui.button(label="Бумага", style=discord.ButtonStyle.success)
+        @discord.ui.button(label="Бумага", style=discord.ButtonStyle.success, emoji="📄")
         async def rpspaper(self, inter: discord.Interaction, button: discord.ui.Button):
             remaining_time = (inter.message.edited_at + datetime.timedelta(minutes=3)) - datetime.datetime.now(pytz.utc)
             self.timeout = max(remaining_time.total_seconds(), 0)
@@ -364,6 +364,22 @@ class Fun(commands.Cog):
         await inter.response.send_message(embed=
         discord.Embed(title="Добро пожаловать в казино!", description="**Выбирайте игру:**", color=discord.Color.random()), view=casinoV(),
         ephemeral=True)
+
+    @app_commands.command( description="Камшот", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
+    async def cumshot(self, inter: discord.Interaction, user: discord.User):
+        if user.bot: return await inter.response.send_message("Зачем камшотить в бота?", ephemeral=True)
+        if user == inter.user: return await inter.response.send_message("Ты че камшотить в себя собираешься?", ephemeral=True)
+
+        await inter.response.send_message(f"Выпускаю кам в {user.global_name}...")
+        await asyncio.sleep(1.5)
+        if random.random() < 0.5:
+            await update_quest(inter.user, "cumshot", )
+            await inter.edit_original_response(content="Успешно попал камом прямо в глаз " + user.global_name)
+        else:
+            await inter.edit_original_response(content="Увы, не попал камом в глаз " + user.global_name)
 
     @app_commands.command( description="Предложить сыграть в цуефа", name="цуефа")
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)

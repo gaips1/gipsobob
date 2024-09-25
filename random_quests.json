@@ -138,5 +138,25 @@
         "id": "rob",
         "progress_max": 1,
         "ends": "5d"
+    },
+    {
+        "name": "Камшот мастер",
+        "desc": "Успешно обкамить 5 человек (не обязательно разных) /cumshot",
+        "do": "cumshot",
+        "reward": 300,
+        "progress": 0,
+        "id": "cumshot-5",
+        "progress_max": 5,
+        "ends": "1d"
+    },
+    {
+        "name": "Камшот бомба",
+        "desc": "Успешно обкамить 15 человек (не обязательно разных) /cumshot",
+        "do": "cumshot",
+        "reward": 300,
+        "progress": 0,
+        "id": "cumshot-15",
+        "progress_max": 15,
+        "ends": "1d"
     }
 ]

@@ -1,4 +1,4 @@
-mode = "DEV"
+mode = "PROD"
 
 import sys
 import discord
@@ -44,6 +44,7 @@ async def on_ready():
     await bot.load_extension("cogs.dl")
     await bot.load_extension("cogs.giveaways")
     await bot.load_extension("cogs.inv")
+    await bot.load_extension("cogs.farm")
     await bot.tree.sync()
     bot.add_view(turnon1())
     bot.add_view(turnoff1())
