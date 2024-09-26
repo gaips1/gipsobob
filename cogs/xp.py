@@ -13,6 +13,31 @@ class XP(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.bot: return
+        if message.channel.id == 1072943570962620477:
+            async with aiosqlite.connect(dbn) as db:
+                try:
+                    current_number = int(message.content)
+                except ValueError:
+                    await message.add_reaction('❌')
+                    await message.channel.send(f"{message.author.mention} успешно заруинил! Счет вернулся к 0.")
+                    await db.execute('UPDATE counter SET num = 0')
+                    return await db.commit()
+
+                cursor = await db.cursor()
+                await cursor.execute('SELECT num FROM counter')
+                row = await cursor.fetchone()
+                last_number = row[0]
+
+                if current_number == last_number + 1:
+                    await db.execute('UPDATE counter SET num = ?', (current_number,))
+                    await message.add_reaction('✅')
+                else:
+                    await db.execute('UPDATE counter SET num = 0')
+                    await message.add_reaction('❌')
+                    await message.channel.send(f"{message.author.mention} успешно заруинил! Счет вернулся к 0.")
+
+                await db.commit()
+
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM `xp` WHERE id = ?", (message.author.id,))
