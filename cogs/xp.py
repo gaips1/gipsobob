@@ -1,15 +1,17 @@
-from disnake.ext import commands
-import disnake
+from discord.ext import commands, tasks
+from discord import app_commands
+import discord
 import aiosqlite
 import os
 import random
+import ext
 
 class XP(commands.Cog):
-    def __init__(self, bot):
-        self.bot: commands.InteractionBot = bot
+    def __init__(self, bot: commands.Bot):
+        self.bot: commands.Bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, message: disnake.Message):
+    async def on_message(self, message: discord.Message):
         if message.author.bot: return
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
@@ -28,24 +30,29 @@ class XP(commands.Cog):
                 await db.commit()
                 await message.channel.send(f"{message.author.mention} достиг нового уровня!")
 
-    @commands.slash_command(description="Посмотреть свой уровень", integration_types=[0,1], contexts=[0,1,2])
-    async def rank(self, inter: disnake.ApplicationCommandInteraction):
-        if await self.bot.check(inter) == 1: return
+    @app_commands.command( description="Посмотреть свой уровень", )
+    @app_commands.allowed_contexts(guilds=True, dms=False, private_channels=False)
+    @app_commands.allowed_installs(guilds=True, users=False)
+    @app_commands.check(ext.check)
+    async def rank(self, inter: discord.Interaction):
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
-            await cursor.execute("SELECT * FROM `xp` WHERE id = ?", (inter.author.id,))
+            await cursor.execute("SELECT * FROM `xp` WHERE id = ?", (inter.user.id,))
             me = await cursor.fetchone()
             if not me:
-                await cursor.execute("INSERT INTO `xp` (id) VALUES (?)", (inter.author.id,))
+                await cursor.execute("INSERT INTO `xp` (id) VALUES (?)", (inter.user.id,))
                 await db.commit()
-                me = [inter.author.id, 0, 150, 1]
-        await inter.response.send_message(ephemeral=True, embed=disnake.Embed(
-            title="Система Быстрых Уровней", description=f"**Количество опыта: {me[1]}/{me[2]}\nУровень: {me[3]}**", color=disnake.Color.random()
+                me = [inter.user.id, 0, 150, 1]
+
+        await inter.response.send_message(ephemeral=True, embed=discord.Embed(
+            title="Система Быстрых Уровней", description=f"**Количество опыта: {me[1]}/{me[2]}\nУровень: {me[3]}**", color=discord.Color.random()
         ))
 
-    @commands.slash_command(description="Топ людей по опыту", integration_types=[0,1], contexts=[0,1,2])
-    async def top(self, inter: disnake.ApplicationCommandInteraction):
-        if await self.bot.check(inter) == 1: return
+    @app_commands.command( description="Топ людей по опыту", )
+    @app_commands.allowed_contexts(guilds=True, dms=False, private_channels=False)
+    @app_commands.allowed_installs(guilds=True, users=False)
+    @app_commands.check(ext.check)
+    async def top(self, inter: discord.Interaction):
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM `xp`")
@@ -53,15 +60,15 @@ class XP(commands.Cog):
         spis = []
         sorted_players = sorted(clanst, key=lambda x: int(x[1]), reverse=True)
         for i, player in enumerate(sorted_players[:10]):
-            usr = await self.bot.getch_user(player[0])
+            usr = await ext.get_or_fetch_user(bot=self.bot, id=player[0])
             spis.append(f"{i+1}.  **{usr.display_name}: {player[1]} XP**")
 
-        await inter.response.send_message(ephemeral=True, embed=disnake.Embed(
-            title="Топ 10 людей по уровню", description='\n'.join(spis), color=disnake.Color.random()
+        await inter.response.send_message(ephemeral=True, embed=discord.Embed(
+            title="Топ 10 людей по уровню", description='\n'.join(spis), color=discord.Color.random()
         ))
 
-def setup(bot):
-    bot.add_cog(XP(bot))
+async def setup(bot: commands.Bot):
     global dbn
     dbn = bot.dbn
+    await bot.add_cog(XP(bot))
     print("XP cog loaded")

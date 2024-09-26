@@ -7,7 +7,7 @@ import asyncio
 from discord import app_commands
 from dotenv import load_dotenv
 import aiosqlite
-from ext import check, turnoff1, turnon1
+from ext import check, turnoff1, turnon1, get_or_fetch_user
 import inspect, os.path
 import random
 load_dotenv()
@@ -45,6 +45,7 @@ async def on_ready():
     await bot.load_extension("cogs.giveaways")
     await bot.load_extension("cogs.inv")
     await bot.load_extension("cogs.farm")
+    await bot.load_extension("cogs.xp")
     await bot.tree.sync()
     bot.add_view(turnon1())
     bot.add_view(turnoff1())
@@ -111,6 +112,21 @@ async def banauthor(inter: discord.Interaction, message: discord.Message):
             await db.commit()
         return await inter.response.send_message("Забанил!", ephemeral=True)
 
+@bot.tree.command(description="Тест команда секс порно не юзайте",)
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
+async def send(inter: discord.Interaction, id: str, text: str):
+    if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
+
+    usr = await get_or_fetch_user(bot=bot, id=id)
+
+    try:
+        await usr.send(content=text)
+    except Exception as e:
+        return await inter.response.send_message("Ошибка: " + str(e), ephemeral=True)
+    await inter.response.send_message("Успешно!")
+
 @bot.event
 async def on_member_join(member: discord.Member):
     if member.guild.id == 621378615174758421:
@@ -133,5 +149,4 @@ async def on_member_remove(member: discord.Member):
         channel = await bot.fetch_channel(807651258520436736)
         await channel.send(embed=embed)
 
-#bot.load_extension("cogs.xp") deprecated. do not use.
 bot.run(TOKEN)
