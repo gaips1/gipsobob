@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 import inspect
 import os
 from discord.ext import commands, tasks
@@ -13,14 +14,14 @@ import ext
 from enum import Enum
 
 class Cards(Enum):
-    GTX760 = {"name": "GTX 760", "ins": 0.001, "price": 0.1}
-    GTX1050_TI = {"name": "GTX 1050 TI", "ins": 0.005, "price": 0.5}
-    GTX1060_TI = {"name": "GTX 1060 TI", "ins": 0.01, "price": 1}
-    RTX3060_TI = {"name": "RTX 3060 TI", "ins": 0.1, "price": 7.5}
-    RTX4080 = {"name": "RTX 4080", "ins": 0.5, "price": 9.5}
-    RTX4090_TI = {"name": "RTX 4090 TI", "ins": 0.9, "price": 13.5}
-    TESLA_T4 = {"name": "Tesla T4", "ins": 1.3, "price": 20}
-    TESLA_T4_X2 = {"name": "Tesla T4 X2", "ins": 3, "price": 40}
+    GTX760 = {"name": "GTX 760", "ins": 0.001, "price": 10}
+    GTX1050_TI = {"name": "GTX 1050 TI", "ins": 0.015, "price": 50}
+    GTX1060_TI = {"name": "GTX 1060 TI", "ins": 0.05, "price": 200}
+    RTX3060_TI = {"name": "RTX 3060 TI", "ins": 0.2, "price": 1000}
+    RTX4080 = {"name": "RTX 4080", "ins": 1.0, "price": 5000}
+    RTX4090_TI = {"name": "RTX 4090 TI", "ins": 2.5, "price": 20000}
+    TESLA_T4 = {"name": "Tesla T4", "ins": 5.0, "price": 50000}
+    TESLA_T4_X2 = {"name": "Tesla T4 X2", "ins": 12.0, "price": 100000}
 
     @property
     def ins(self):
@@ -97,53 +98,31 @@ class FarmMenu():
 
         @discord.ui.button(label="Вывод UCS", style=discord.ButtonStyle.danger, emoji="📤",row=3)
         async def vivoducs(self, inter: discord.Interaction, button: discord.ui.Button):
-            await inter.response.send_message("Ждите листинга!", ephemeral=True, embed=None)
-            #скоро
+            await inter.response.send_modal(FarmMenu.exportucs())
 
     class BuyCardsView(discord.ui.View):
         def __init__(self):
             super().__init__(timeout=None)
+            for i, card in enumerate(Cards):
+                label = f"{card.value['name']} [{card.value['price']:,} UCS]"
+                button = discord.ui.Button(
+                    label=label,
+                    style=discord.ButtonStyle.success,
+                    emoji="💵",
+                    row=i // 2 
+                )
+                button.callback = self.create_button_callback(card)
+                self.add_item(button)
 
-        @discord.ui.button(label="GTX 760 [0.1 UCS]", style=discord.ButtonStyle.success, emoji="💵")
-        async def buycardgtx760(self, inter: discord.Interaction, button: discord.ui.Button):
-            card = Cards.GTX760
-            await inter.response.send_message("Успешно!", ephemeral=True, embed=None) if await FarmMenu.buy_card(card=card, user_id=inter.user.id) else await inter.response.send_message("Не хватает УзбиКойнов!", ephemeral=True)
-
-        @discord.ui.button(label="GTX 1050 TI [0.5 UCS]", style=discord.ButtonStyle.success, emoji="💵")
-        async def buycardgtx1050ti(self, inter: discord.Interaction, button: discord.ui.Button):
-            card = Cards.GTX1050_TI
-            await inter.response.send_message("Успешно!", ephemeral=True, embed=None) if await FarmMenu.buy_card(card=card, user_id=inter.user.id) else await inter.response.send_message("Не хватает УзбиКойнов!", ephemeral=True)
-
-        @discord.ui.button(label="GTX 1060 TI [1 UCS]", style=discord.ButtonStyle.success, emoji="💵", row=2)
-        async def buycardgtx1060ti(self, inter: discord.Interaction, button: discord.ui.Button):
-            card = Cards.GTX1060_TI
-            await inter.response.send_message("Успешно!", ephemeral=True, embed=None) if await FarmMenu.buy_card(card=card, user_id=inter.user.id) else await inter.response.send_message("Не хватает УзбиКойнов!", ephemeral=True)
-
-        @discord.ui.button(label="RTX 3060 TI [7.5 UCS]", style=discord.ButtonStyle.success, emoji="💵", row=2)
-        async def buycardrtx3060ti(self, inter: discord.Interaction, button: discord.ui.Button):
-            card = Cards.RTX3060_TI
-            await inter.response.send_message("Успешно!", ephemeral=True, embed=None) if await FarmMenu.buy_card(card=card, user_id=inter.user.id) else await inter.response.send_message("Не хватает УзбиКойнов!", ephemeral=True)
-
-        @discord.ui.button(label="RTX 4080 [9.5 UCS]", style=discord.ButtonStyle.success, emoji="💵", row=3)
-        async def buycardrtx4080(self, inter: discord.Interaction, button: discord.ui.Button):
-            card = Cards.RTX4080
-            await inter.response.send_message("Успешно!", ephemeral=True, embed=None) if await FarmMenu.buy_card(card=card, user_id=inter.user.id) else await inter.response.send_message("Не хватает УзбиКойнов!", ephemeral=True)
-
-        @discord.ui.button(label="RTX 4090 TI [13.5 UCS]", style=discord.ButtonStyle.success, emoji="💵", row=3)
-        async def buycardrtx4090ti(self, inter: discord.Interaction, button: discord.ui.Button):
-            card = Cards.RTX4090_TI
-            await inter.response.send_message("Успешно!", ephemeral=True, embed=None) if await FarmMenu.buy_card(card=card, user_id=inter.user.id) else await inter.response.send_message("Не хватает УзбиКойнов!", ephemeral=True)
-
-        @discord.ui.button(label="Tesla T4 [20 UCS]", style=discord.ButtonStyle.success, emoji="💵", row=4)
-        async def buycardteslat4(self, inter: discord.Interaction, button: discord.ui.Button):
-            card = Cards.TESLA_T4
-            await inter.response.send_message("Успешно!", ephemeral=True, embed=None) if await FarmMenu.buy_card(card=card, user_id=inter.user.id) else await inter.response.send_message("Не хватает УзбиКойнов!", ephemeral=True)
-
-        @discord.ui.button(label="Tesla T4 X2 [40 UCS]", style=discord.ButtonStyle.success, emoji="💵", row=4)
-        async def buycardteslat4x2(self, inter: discord.Interaction, button: discord.ui.Button):
-            card = Cards.TESLA_T4_X2
-            await inter.response.send_message("Успешно!", ephemeral=True, embed=None) if await FarmMenu.buy_card(card=card, user_id=inter.user.id) else await inter.response.send_message("Не хватает УзбиКойнов!", ephemeral=True)
-
+        def create_button_callback(self, card):
+            async def button_callback(interaction: discord.Interaction):
+                if await FarmMenu.buy_card(card=card, user_id=interaction.user.id):
+                    await interaction.response.send_message("Успешно!", ephemeral=True, embed=None)
+                else:
+                    await interaction.response.send_message("Не хватает УзбиКойнов!", ephemeral=True)
+            
+            return button_callback
+        
     async def buy_card(card: Cards, user_id: int | str):
         async with aiosqlite.connect(dbn, timeout=20) as db:
             cursor = await db.cursor()
@@ -166,6 +145,40 @@ class FarmMenu():
             await db.commit()
 
         return True
+
+    class exportucs(discord.ui.Modal, title = "Вывод UCS | 0.005 за 1 бебру"):
+        def __init__(self):
+            super().__init__()
+
+        value = discord.ui.TextInput(label="Введите желаемое количество бебр для вывода", required=True)
+
+        async def on_submit(self, inter: discord.Interaction):
+            try:
+                value = float(self.value.value)
+            except:
+                return await inter.response.send_message("Введите целое, либо дробное число (0.1)!", ephemeral=True)
+            
+            if value < 500:
+                return await inter.response.send_message("Минимальный вывод - 500 Бебр (100.000 UCS)", ephemeral=True)
+            
+            async with aiosqlite.connect(dbn) as db:
+                cursor = await db.cursor()
+                await cursor.execute("SELECT balance FROM farms WHERE id =?", (inter.user.id,))
+                balance = await cursor.fetchone()
+            
+            balance = balance[0]
+            ucs = value / 0.005
+
+            if balance < ucs:
+                return await inter.response.send_message(f"Не хватает {(ucs-balance):.3f} UCS!", ephemeral=True)
+            
+            async with aiosqlite.connect(dbn) as db:
+                cursor = await db.cursor()
+                await cursor.execute("UPDATE farms SET balance = balance - ? WHERE id =?", (ucs, inter.user.id))
+                await cursor.execute("UPDATE sbp SET balance = balance + ? WHERE id =?", (value, inter.user.id))
+                await db.commit()
+
+            await inter.response.send_message(f"Успешно перевёл {value} бебр ({ucs:.3f} UCS) на твой счёт!", ephemeral=True)
 
 class Farm(commands.Cog):
     def __init__(self, bot: commands.Bot):
