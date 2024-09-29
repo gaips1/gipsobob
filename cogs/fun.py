@@ -267,7 +267,7 @@ class Fun(commands.Cog):
         await inter.response.send_message("Подбрасываю...")
         await asyncio.sleep(2.5)
         await inter.edit_original_response(content=wh)
-        if wh == "Решка!":
+        if wh == "Ребро!":
             await update_quest(inter.user, "monetka", )
 
     @app_commands.command( description="Да или нет", )

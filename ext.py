@@ -7,7 +7,7 @@ import json
 import asyncio
 import datetime
 import pytz
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 filename = inspect.getframeinfo(inspect.currentframe()).filename
 path = os.path.dirname(os.path.abspath(filename))
@@ -165,6 +165,7 @@ async def add_quest_to_user(user: discord.User, random_quests):
 
         rq = random.choice(random_quests)
         rq["ends"] = await calculate_end_time(rq["ends"])
+        timeout_quests_timer.start(user=user, quest=rq)
 
         quests.append(rq)
         await cursor.execute("UPDATE users SET quests = ? WHERE id = ?", (json.dumps(quests), user.id))
@@ -202,16 +203,13 @@ async def calculate_end_time(end_data):
     time_delta = datetime.timedelta(days=amount) if unit == "d" else datetime.timedelta(hours=amount)
     return (datetime.datetime.now(pytz.timezone('Europe/Moscow')) + time_delta).isoformat()
 
+@tasks.loop(seconds=5)
 async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict):
-    while True:
-        now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-        quest_end_time = datetime.datetime.fromisoformat(quest["ends"]).astimezone(pytz.timezone('Europe/Moscow'))
+    now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
+    quest_end_time = datetime.datetime.fromisoformat(quest["ends"]).astimezone(pytz.timezone('Europe/Moscow'))
 
-        if quest_end_time <= now:
-            await handle_quest_timeout(user, quest)
-            break
-
-        await asyncio.sleep(5)
+    if quest_end_time <= now:
+        return await handle_quest_timeout(user, quest)
 
 async def handle_quest_timeout(user: discord.User, quest: dict):
     async with aiosqlite.connect(dbn) as db:
@@ -219,25 +217,30 @@ async def handle_quest_timeout(user: discord.User, quest: dict):
         await cursor.execute("SELECT * FROM users WHERE id = ?", (user.id,))
         me = await cursor.fetchone()
 
-        if me is None:
-            raise Exception(f"Пользователь {user.id} не найден в базе данных.")
+    if me is None:
+        raise Exception(f"Пользователь {user.id} не найден в базе данных.")
 
-        quests = json.loads(me[3])
-        completed_quests = json.loads(me[4])
-        ended_quests = json.loads(me[5])
+    quests = json.loads(me[3])
+    completed_quests = json.loads(me[4])
+    ended_quests = json.loads(me[5])
 
-        if quest in quests:
+    if quest in quests:
+        try:
             await user.send(embed=discord.Embed(
                 title=f"Квест '{quest['name']}' истёк",
                 description="Увы, время выполнения квеста истекло.",
                 color=discord.Color.random()
             ), view=turnoff1())
+        except:
+            print(f"Ошибка отправки сообщения пользователю {user.id}")
 
-            quests.remove(quest)
+        quests.remove(quest)
 
-        if quest not in completed_quests and quest not in ended_quests:
-            ended_quests.append(quest)
+    if quest not in completed_quests and quest not in ended_quests:
+        ended_quests.append(quest)
 
+    async with aiosqlite.connect(dbn) as db:
+        cursor = await db.cursor()
         await cursor.execute(
             "UPDATE users SET quests = ?, completed_quests = ?, ended_quests = ? WHERE id = ?",
             (json.dumps(quests), json.dumps(completed_quests), json.dumps(ended_quests), user.id)
