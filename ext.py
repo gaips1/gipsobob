@@ -165,7 +165,8 @@ async def add_quest_to_user(user: discord.User, random_quests):
 
         rq = random.choice(random_quests)
         rq["ends"] = await calculate_end_time(rq["ends"])
-        timeout_quests_timer.start(user=user, quest=rq)
+
+        asyncio.create_task(timeout_quests_timer(user=user, quest=rq))
 
         quests.append(rq)
         await cursor.execute("UPDATE users SET quests = ? WHERE id = ?", (json.dumps(quests), user.id))
@@ -203,13 +204,15 @@ async def calculate_end_time(end_data):
     time_delta = datetime.timedelta(days=amount) if unit == "d" else datetime.timedelta(hours=amount)
     return (datetime.datetime.now(pytz.timezone('Europe/Moscow')) + time_delta).isoformat()
 
-@tasks.loop(seconds=5)
 async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict):
-    now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-    quest_end_time = datetime.datetime.fromisoformat(quest["ends"]).astimezone(pytz.timezone('Europe/Moscow'))
+    while True:
+        now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
+        quest_end_time = datetime.datetime.fromisoformat(quest["ends"]).astimezone(pytz.timezone('Europe/Moscow'))
 
-    if quest_end_time <= now:
-        return await handle_quest_timeout(user, quest)
+        if quest_end_time <= now:
+            return await handle_quest_timeout(user, quest)
+        
+        await asyncio.sleep(5)
 
 async def handle_quest_timeout(user: discord.User, quest: dict):
     async with aiosqlite.connect(dbn) as db:
