@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 import inspect
 import os
@@ -85,20 +85,62 @@ class FarmMenu():
         async def mycards(self, inter: discord.Interaction, button: discord.ui.Button):
             async with aiosqlite.connect(dbn, timeout=20) as db:
                 cursor = await db.cursor()
-                await cursor.execute("SELECT cards FROM farms WHERE id =?", (inter.user.id,))
-                cards = await cursor.fetchone()
-            cards = json.loads(cards[0])
+                await cursor.execute("SELECT * FROM farms WHERE id =?", (inter.user.id,))
+                user = await cursor.fetchone()
+
+            cards = json.loads(user[3])
+            if user[4] != "1":
+                time = datetime.fromisoformat(user[4])
+                string = f"Ваш сервер в данных момент не перегружен, рекомендую его перезапустить <t:{int(time.timestamp())}:f>"
+            else:
+                string = "Ваш сервер в данный момент **ПЕРЕГРУЖЕН**, перезапустите его нажатием соответствующей кнопки"
 
             embed = discord.Embed(
                 title="Мои видеокарты",
-                description="\n".join([f"**{card['name']}**: +{card['ins']} UCS - {card["count"]} шт." for card in cards]),
+                description=f'{"\n".join([f"**{card['name']}**: +{card['ins']} UCS - {card["count"]} шт." for card in cards])}\n\n{string}',
                 color=discord.Color.random()
             )
-            await inter.response.edit_message(embed=embed, view=FarmMenu.FarmMMView())
+            await inter.response.edit_message(embed=embed, view=FarmMenu.FarmCardsView())
 
         @discord.ui.button(label="Вывод UCS", style=discord.ButtonStyle.danger, emoji="📤",row=3)
         async def vivoducs(self, inter: discord.Interaction, button: discord.ui.Button):
             await inter.response.send_modal(FarmMenu.exportucs())
+
+    class FarmCardsView(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=None)
+
+        @discord.ui.button(label="Назад", style=discord.ButtonStyle.blurple, emoji="🔙")
+        async def backtomeny111111(self, inter: discord.Interaction, button: discord.ui.Button):
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute("SELECT * FROM farms WHERE id =?", (inter.user.id,))
+                user = await cursor.fetchone()
+
+            cards = json.loads(user[3])
+            if user[4] != "1":
+                time = datetime.fromisoformat(user[4])
+                string = f"Ваш сервер в данных момент не перегружен, рекомендую его перезапустить <t:{int(time.timestamp())}:f>"
+            else:
+                string = "Ваш сервер в данный момент **ПЕРЕГРУЖЕН**, перезапустите его нажатием соответствующей кнопки"
+
+            embed = discord.Embed(
+                title="Мои видеокарты",
+                description=f'{"\n".join([f"**{card['name']}**: +{card['ins']} UCS - {card["count"]} шт." for card in cards])}\n\n{string}',
+                color=discord.Color.random()
+            )
+            await inter.response.edit_message(embed=embed, view=FarmMenu.FarmMMView())
+
+        @discord.ui.button(label="Перезагрузить сервер", style=discord.ButtonStyle.success, emoji="♻️")
+        async def restartcards(self, inter: discord.Interaction, button: discord.ui.Button):
+            async with aiosqlite.connect(dbn) as db:
+                cursor = await db.cursor()
+                
+                new_notif = datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(hours=3)
+                await cursor.execute("UPDATE farms SET overheat = ? WHERE id =?", (new_notif.isoformat(), inter.user.id,))
+                await db.commit()
+
+            await inter.response.send_message(f"Успешно!\nРекомендую перезапустить сервер <t:{int(new_notif.timestamp())}:f>", ephemeral=True)
 
     class BuyCardsView(discord.ui.View):
         def __init__(self):
@@ -184,6 +226,7 @@ class Farm(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
         self.timer.start()
+        self.overheat_timer.start()
 
     @app_commands.command( description="Майнинговая ферма << У Легенды >>", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -209,9 +252,34 @@ class Farm(commands.Cog):
     @tasks.loop(seconds=1)
     async def timer(self):
         async with aiosqlite.connect(dbn) as db:
-            cursor = await db.cursor()
-            await cursor.execute("UPDATE farms SET balance = balance + ins")
+            await db.execute("UPDATE farms SET balance = balance + ins WHERE overheat != 1")
             await db.commit()
+
+    @tasks.loop(seconds=10)
+    async def overheat_timer(self):
+        async with aiosqlite.connect(dbn) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT * FROM farms")
+            users = await cursor.fetchall()
+
+            for user in users:
+                if user[4] == "1":
+                    continue
+
+                elif user[4] == "2":
+                    new_notif = (datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(hours=3)).isoformat()
+                    await cursor.execute("UPDATE farms SET overheat = ? WHERE id =?", (new_notif, user[0],))
+                    await db.commit()
+
+                else:
+                    if datetime.fromisoformat(user[4]) <= datetime.now(pytz.timezone('Europe/Moscow')):
+                        await cursor.execute("UPDATE farms SET overheat = 1 WHERE id =?", (user[0],))
+                        await db.commit()
+                        if user[5] == 1:
+                            usr = await ext.get_or_fetch_user(bot=self.bot, id=user[0])
+                            await usr.send("Видеокарты на твоей ферме перегрелись!\nСкорее перезапусти сервера!")
+
+                await asyncio.sleep(0.35)
 
 async def setup(bot: commands.Bot):
     global dbn
