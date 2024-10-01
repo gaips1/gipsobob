@@ -15,13 +15,13 @@ from enum import Enum
 
 class Cards(Enum):
     GTX760 = {"name": "GTX 760", "ins": 0.001, "price": 10}
-    GTX1050_TI = {"name": "GTX 1050 TI", "ins": 0.015, "price": 50}
-    GTX1060_TI = {"name": "GTX 1060 TI", "ins": 0.05, "price": 200}
-    RTX3060_TI = {"name": "RTX 3060 TI", "ins": 0.2, "price": 2000}
-    RTX4080 = {"name": "RTX 4080", "ins": 0.6, "price": 8500}
-    RTX4090_TI = {"name": "RTX 4090 TI", "ins": 1.3, "price": 30000}
-    TESLA_T4 = {"name": "Tesla T4", "ins": 3.6, "price": 55000}
-    TESLA_T4_X2 = {"name": "Tesla T4 X2", "ins": 7.5, "price": 110000}
+    GTX1050_TI = {"name": "GTX 1050 TI", "ins": 0.01, "price": 50}
+    GTX1060_TI = {"name": "GTX 1060 TI", "ins": 0.035, "price": 200}
+    RTX3060_TI = {"name": "RTX 3060 TI", "ins": 0.15, "price": 2000}
+    RTX4080 = {"name": "RTX 4080", "ins": 0.7, "price": 8500}
+    RTX4090_TI = {"name": "RTX 4090 TI", "ins": 1.45, "price": 30000}
+    TESLA_T4 = {"name": "Tesla T4", "ins": 3.6, "price": 60000}
+    TESLA_T4_X2 = {"name": "Tesla T4 X2", "ins": 7.5, "price": 120000}
 
     @property
     def ins(self):
