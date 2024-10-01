@@ -17,11 +17,11 @@ class Cards(Enum):
     GTX760 = {"name": "GTX 760", "ins": 0.001, "price": 10}
     GTX1050_TI = {"name": "GTX 1050 TI", "ins": 0.015, "price": 50}
     GTX1060_TI = {"name": "GTX 1060 TI", "ins": 0.05, "price": 200}
-    RTX3060_TI = {"name": "RTX 3060 TI", "ins": 0.2, "price": 1000}
-    RTX4080 = {"name": "RTX 4080", "ins": 1.0, "price": 5000}
-    RTX4090_TI = {"name": "RTX 4090 TI", "ins": 2.5, "price": 20000}
-    TESLA_T4 = {"name": "Tesla T4", "ins": 5.0, "price": 50000}
-    TESLA_T4_X2 = {"name": "Tesla T4 X2", "ins": 12.0, "price": 100000}
+    RTX3060_TI = {"name": "RTX 3060 TI", "ins": 0.2, "price": 200}
+    RTX4080 = {"name": "RTX 4080", "ins": 0.6, "price": 8500}
+    RTX4090_TI = {"name": "RTX 4090 TI", "ins": 1.3, "price": 30000}
+    TESLA_T4 = {"name": "Tesla T4", "ins": 3.6, "price": 55000}
+    TESLA_T4_X2 = {"name": "Tesla T4 X2", "ins": 7.5, "price": 110000}
 
     @property
     def ins(self):
@@ -241,7 +241,7 @@ class FarmMenu():
         )
         return embed
 
-    class exportucs(discord.ui.Modal, title = "Вывод UCS | 0.005 за 1 бебру"):
+    class exportucs(discord.ui.Modal, title = "Вывод UCS | 0.002 за 1 бебру"):
         def __init__(self):
             super().__init__()
 
@@ -262,7 +262,7 @@ class FarmMenu():
                 balance = await cursor.fetchone()
             
             balance = balance[0]
-            ucs = value / 0.005
+            ucs = value / 0.002
 
             if balance < ucs:
                 return await inter.response.send_message(f"Не хватает {(ucs-balance):.3f} UCS!", ephemeral=True)
