@@ -94,6 +94,96 @@ class FarmMenu():
         async def vivoducs(self, inter: discord.Interaction, button: discord.ui.Button):
             await inter.response.send_modal(FarmMenu.exportucs())
 
+        @discord.ui.button(label="Бустеры", style=discord.ButtonStyle.danger, emoji="💥",row=3)
+        async def boostersbtn(self, inter: discord.Interaction, button: discord.ui.Button):
+            async with aiosqlite.connect(dbn, timeout=20) as db:
+                cursor = await db.cursor()
+                await cursor.execute("SELECT booster FROM farms WHERE id =?", (inter.user.id,))
+                booster = await cursor.fetchone()
+
+            booster: dict = json.loads(booster[0])
+            bstr = f"{booster["name"]} - истекает <t:{booster["ends_timestamp"]}:R>" if len(booster) > 0 else "❌❌❌"
+
+            await inter.response.send_message(embed=discord.Embed(
+                title="Покупка бустеров",
+                description=f"Бустеры - это временное увеличение вашей статистики, заработка, и т.д.\nБустер, работающий в данный момент:\n\n" + bstr,
+                color=discord.Color.random()
+            ), ephemeral=True, view=FarmMenu.FarmBoostersBuyView())
+
+    class FarmBoostersBuyView(discord.ui.View):
+        def __init__(self):
+            super().__init__(timeout=None)
+
+        async def buybooster(self, inter: discord.Interaction, booster_to_buy: str):
+            async with aiosqlite.connect(dbn) as db:
+                cursor = await db.cursor()
+                await cursor.execute("SELECT balance FROM sbp WHERE id =?", (inter.user.id,))
+                bal = await cursor.fetchone()
+                await cursor.execute("SELECT booster FROM farms WHERE id =?", (inter.user.id,))
+                booster = await cursor.fetchone()
+
+                booster: dict = json.loads(booster[0])
+                bal: int = bal[0]
+
+                if len(booster) > 0:
+                    return await inter.response.send_message("У тебя уже есть активный бустер!", ephemeral=True)
+
+                if booster_to_buy == "x1_5_10min":
+                    if bal < 2499: return await inter.response.send_message("Недостаточно средств!", ephemeral=True)
+                    ends = datetime.now() + timedelta(minutes=10)
+                    booster = {"name": "x1.5 заработок на 10 минут", "ends": ends.isoformat(), "ends_timestamp": int(ends.timestamp())}
+                    await cursor.execute("UPDATE sbp SET balance = balance - 2499 WHERE id =?", (inter.user.id,))
+                    await cursor.execute("UPDATE farms SET booster = ? WHERE id =?", (json.dumps(booster), inter.user.id,))
+                    await db.commit()
+
+                elif booster_to_buy == "x1_5_30min":
+                    if bal < 6999: return await inter.response.send_message("Недостаточно средств!", ephemeral=True)
+                    ends = datetime.now() + timedelta(minutes=30)
+                    booster = {"name": "x1.5 заработок на 30 минут", "ends": ends.isoformat(), "ends_timestamp": int(ends.timestamp())}
+                    await cursor.execute("UPDATE sbp SET balance = balance - 6999 WHERE id =?", (inter.user.id,))
+                    await cursor.execute("UPDATE farms SET booster = ? WHERE id =?", (json.dumps(booster), inter.user.id,))
+                    await db.commit()
+
+                elif booster_to_buy == "x2_10min":
+                    if bal < 5999: return await inter.response.send_message("Недостаточно средств!", ephemeral=True)
+                    ends = datetime.now() + timedelta(minutes=10)
+                    booster ={"name": "x2 заработок на 10 минут", "ends": ends.isoformat(), "ends_timestamp": int(ends.timestamp())}
+                    await cursor.execute("UPDATE sbp SET balance = balance - 5999 WHERE id =?", (inter.user.id,))
+                    await cursor.execute("UPDATE farms SET booster = ? WHERE id =?", (json.dumps(booster), inter.user.id,))
+                    await db.commit()
+
+                elif booster_to_buy == "x2_30min":
+                    if bal < 17399: return await inter.response.send_message("Недостаточно средств!", ephemeral=True)
+                    ends = datetime.now() + timedelta(minutes=30)
+                    booster = {"name": "x2 заработок на 30 минут", "ends": ends.isoformat(), "ends_timestamp": int(ends.timestamp())}
+                    await cursor.execute("UPDATE sbp SET balance = balance - 17399 WHERE id =?", (inter.user.id,))
+                    await cursor.execute("UPDATE farms SET booster = ? WHERE id =?", (json.dumps(booster), inter.user.id,))
+                    await db.commit()
+
+            bstr = f"{booster["name"]} - истекает <t:{booster["ends_timestamp"]}:R>" if len(booster) > 0 else "❌❌❌"
+
+            await inter.response.edit_message(content="Успешно!", embed=discord.Embed(
+                title="Покупка бустеров",
+                description=f"Бустеры - это временное увеличение вашей статистики, заработка, и т.д.\nБустер, работающий в данный момент:\n\n" + bstr,
+                color=discord.Color.random()
+            ))
+
+        @discord.ui.button(label="x1.5 заработок на 10 минут [2,499 Б]", style=discord.ButtonStyle.success, emoji="🛒",row=1)
+        async def x1_5_10minbuybtn(self, inter: discord.Interaction, button: discord.ui.Button):
+            await self.buybooster(inter, "x1_5_10min")
+
+        @discord.ui.button(label="x1.5 заработок на 30 минут [6,999 Б]", style=discord.ButtonStyle.success, emoji="🛒",row=2)
+        async def x1_5_30minbuybtn(self, inter: discord.Interaction, button: discord.ui.Button):
+            await self.buybooster(inter, "x1_5_30min")
+
+        @discord.ui.button(label="x2 заработок на 10 минут [5,999 Б]", style=discord.ButtonStyle.success, emoji="🛒",row=3)
+        async def x2_10minbuybtn(self, inter: discord.Interaction, button: discord.ui.Button):
+            await self.buybooster(inter, "x2_10min")
+
+        @discord.ui.button(label="x2 заработок на 30 минут [17,399 Б]", style=discord.ButtonStyle.success, emoji="🛒",row=4)
+        async def x2_30minbuybtn(self, inter: discord.Interaction, button: discord.ui.Button):
+            await self.buybooster(inter, "x2_30min")
+
     class FarmCardsView(discord.ui.View):
         def __init__(self, overheat_notif: int):
             super().__init__(timeout=None)
@@ -225,7 +315,7 @@ class FarmMenu():
         cards = json.loads(user[3])
         if user[4] != "1":
             time = datetime.fromisoformat(user[4])
-            string = f"Ваш сервер в данных момент не перегружен, рекомендую его перезапустить <t:{int(time.timestamp())}:f>"
+            string = f"Ваш сервер в данных момент не перегружен, рекомендую перезапустить его <t:{int(time.timestamp())}:f>"
         else:
             string = "Ваш сервер в данный момент **ПЕРЕГРУЖЕН**, перезапустите его нажатием соответствующей кнопки"
 
@@ -280,6 +370,7 @@ class Farm(commands.Cog):
         self.bot: commands.Bot = bot
         self.timer.start()
         self.overheat_timer.start()
+        self.boosters_timer.start()
 
     @app_commands.command( description="Майнинговая ферма << У Легенды >>", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -305,7 +396,19 @@ class Farm(commands.Cog):
     @tasks.loop(seconds=1)
     async def timer(self):
         async with aiosqlite.connect(dbn) as db:
-            await db.execute("UPDATE farms SET balance = balance + ins WHERE overheat != 1")
+            cursor = await db.cursor()
+            await cursor.execute("SELECT * FROM farms")
+            users = await cursor.fetchall()
+            for user in users:
+                booster = json.loads(user[6])
+                if len(booster) == 0:
+                    await cursor.execute(f"UPDATE farms SET balance = balance + ? WHERE overheat != 1 AND id =?", (user[2], user[0],))
+                else:
+                    if booster["name"] == "x1.5 заработок на 10 минут" or booster["name"] == "x1.5 заработок на 30 минут":
+                        await cursor.execute(f"UPDATE farms SET balance = balance + ? WHERE overheat != 1 AND id =?", (user[2]*1.5, user[0],))
+                    elif booster["name"] == "x2 заработок на 10 минут" or booster["name"] == "x2 заработок на 30 минут":
+                        await cursor.execute(f"UPDATE farms SET balance = balance + ? WHERE overheat != 1 AND id =?", (user[2]*2, user[0],))
+
             await db.commit()
 
     @tasks.loop(seconds=10)
@@ -323,17 +426,33 @@ class Farm(commands.Cog):
                     new_notif = (datetime.now(pytz.timezone('Europe/Moscow')) + timedelta(hours=3)).isoformat()
                     await cursor.execute("UPDATE farms SET overheat = ? WHERE id =?", (new_notif, user[0],))
                     await db.commit()
-
                 else:
                     if datetime.fromisoformat(user[4]) <= datetime.now(pytz.timezone('Europe/Moscow')):
                         await cursor.execute("UPDATE farms SET overheat = 1 WHERE id =?", (user[0],))
-                        await db.commit()
                         if user[5] == 2:
                             usr = await ext.get_or_fetch_user(bot=self.bot, id=user[0])
                             await usr.send("Видеокарты на твоей ферме перегрелись!\nСкорее перезапусти сервера!")
 
+                        await db.commit()
+
                 await asyncio.sleep(0.35)
 
+    @tasks.loop(seconds=1)
+    async def boosters_timer(self):
+         async with aiosqlite.connect(dbn) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT * FROM farms")
+            users = await cursor.fetchall()
+
+            for user in users:
+                booster: dict = json.loads(user[6])
+                if len(booster) > 0:
+                    if datetime.fromisoformat(booster["ends"]) <= datetime.now():
+                        await cursor.execute("UPDATE farms SET booster = '{}' WHERE id =?", (user[0],))
+                        await db.commit()
+                        usr = await ext.get_or_fetch_user(bot=self.bot, id=user[0])
+                        await usr.send(f"Твой бустер '**{booster["name"]}**' закончился!")
+                
 async def setup(bot: commands.Bot):
     global dbn
     dbn = bot.dbn

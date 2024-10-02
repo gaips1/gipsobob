@@ -51,9 +51,6 @@ async def on_ready():
     bot.add_view(turnoff1())
     await bot.change_presence(status=discord.Status.dnd, activity=discord.Game("Visual Studio Code"))
 
-    if sys.platform == 'win32':
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 @bot.tree.command(name="say", description="Пинг?",)
 @app_commands.describe(what="Что писать?", inchat="Писать ли в чате?")
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -150,3 +147,4 @@ async def on_member_remove(member: discord.Member):
         await channel.send(embed=embed)
 
 bot.run(TOKEN)
+#meow
