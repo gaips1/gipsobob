@@ -228,14 +228,15 @@ async def handle_quest_timeout(user: discord.User, quest: dict):
     ended_quests = json.loads(me[5])
 
     if quest in quests:
-        try:
-            await user.send(embed=discord.Embed(
-                title=f"Квест '{quest['name']}' истёк",
-                description="Увы, время выполнения квеста истекло.",
-                color=discord.Color.random()
-            ), view=turnoff1())
-        except:
-            print(f"Ошибка отправки сообщения пользователю {user.id}")
+        if me[6] == 1:
+            try:
+                await user.send(embed=discord.Embed(
+                    title=f"Квест '{quest['name']}' истёк",
+                    description="Увы, время выполнения квеста истекло.",
+                    color=discord.Color.random()
+                ), view=turnoff1())
+            except:
+                print(f"Ошибка отправки сообщения пользователю {user.id}")
 
         quests.remove(quest)
 
