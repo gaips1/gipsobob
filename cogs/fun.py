@@ -238,7 +238,7 @@ class sexb(discord.ui.View):
         
         await inter.followup.send(embed=soglaz)
 
-        await update_quest(self.author, "sex", )
+        await update_quest(self.author, "sex", used_user=self.user)
 
     @discord.ui.button(label="Нет", style=discord.ButtonStyle.danger)
     async def nosex(self , inter: discord.Interaction, button: discord.ui.Button):
@@ -376,7 +376,7 @@ class Fun(commands.Cog):
         await inter.response.send_message(f"Выпускаю кам в {user.global_name}...")
         await asyncio.sleep(1.5)
         if random.random() < 0.5:
-            await update_quest(inter.user, "cumshot", )
+            await update_quest(inter.user, "cumshot", used_user=user)
             await inter.edit_original_response(content="Успешно попал камом прямо в глаз " + user.global_name)
         else:
             await inter.edit_original_response(content="Увы, не попал камом в глаз " + user.global_name)
@@ -597,7 +597,7 @@ async def hug(inter: discord.Interaction, user: discord.User):
                     , "https://media.tenor.com/MApGHq5Kvj0AAAAM/anime-hug.gif", "https://media.tenor.com/iEDbr-ZhHMkAAAAM/anime-hug.gif"]
     randgif = random.choice(giffs)
     await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} обнял(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
-    await update_quest(inter.user, "hug", )
+    await update_quest(inter.user, "hug", used_user=user)
 
 @app_commands.context_menu( name="Предложить секс", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -621,7 +621,7 @@ async def kiss(inter: discord.Interaction, user: discord.User):
                 , "https://media.tenor.com/9jB6M6aoW0AAAAAM/val-ally-kiss.gif", "https://media.tenor.com/SYwRyd6N1UIAAAAC/anime-kiss.gif"]
     randgif = random.choice(giffs)
     await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} поцеловал(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
-    await update_quest(inter.user, "kiss", )
+    await update_quest(inter.user, "kiss", used_user=user)
 
 @app_commands.context_menu( name="Ударить", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -634,4 +634,4 @@ async def punch(inter: discord.Interaction, user: discord.User):
                     , "https://media.tenor.com/SwMgGqBirvcAAAAM/saki-saki-kanojo-mo-kanojo.gif", "https://media.tenor.com/vv1mgp7IQn8AAAAC/tgggg-anime.gif"]
     randgif = random.choice(giffs)
     await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} ударил(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
-    await update_quest(inter.user, "punch", )
+    await update_quest(inter.user, "punch", used_user=user)

@@ -8,6 +8,7 @@ import asyncio
 import datetime
 import pytz
 from discord.ext import commands, tasks
+lock = asyncio.Lock()
 
 filename = inspect.getframeinfo(inspect.currentframe()).filename
 path = os.path.dirname(os.path.abspath(filename))
@@ -99,8 +100,8 @@ async def check_first_quest(inter: discord.Interaction, me):
 
     return False
 
-async def update_quest(user: discord.User | discord.Member, do: str, add: int = 1):
-    async with aiosqlite.connect(dbn, timeout=20) as db:
+async def update_quest(user: discord.User | discord.Member, do: str, add: int = 1, used_user: discord.User | discord.Member = None):
+    async with aiosqlite.connect(dbn) as db:
         cursor = await db.cursor()
         await cursor.execute("SELECT * FROM users WHERE id = ?", (user.id,))
         me = await cursor.fetchone()
@@ -110,15 +111,27 @@ async def update_quest(user: discord.User | discord.Member, do: str, add: int = 
         
         for quest in quests[:]:
             if quest["do"] == do:
+                if used_user != None:
+                    if used_user.id in quest["users"] and quest["users_required"] == 2:
+                        continue
+
                 quest["progress"] += add
+
+                if quest["users_required"] == 2 or quest["users_required"] == 1 and used_user != None:
+                    quest["users"].append(used_user.id)
+
                 if quest["progress"] >= quest["progress_max"]:
                     quests.remove(quest)
                     completed_quests.append(quest)
-                    await user.send(embed=discord.Embed(
-                        title=f"Вы выполнили квест {quest['name']}",
-                        description=f"{quest['desc']}\n\nВаша награда - {quest['reward']} бебр!",
-                        color=0x00ff00
-                    ))
+
+                    try:
+                        await user.send(embed=discord.Embed(
+                            title=f"Вы выполнили квест {quest['name']}",
+                            description=f"{quest['desc']}\n\nВаша награда - {quest['reward']} бебр!",
+                            color=0x00ff00
+                        ))
+                    except:
+                        pass
                     await cursor.execute("UPDATE sbp SET balance = balance + ? WHERE id = ?", (quest["reward"], user.id))
 
         await cursor.execute("UPDATE users SET quests = ?, completed_quests = ? WHERE id = ?", (json.dumps(quests), json.dumps(completed_quests), user.id))
@@ -154,7 +167,7 @@ async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
         await add_quest_to_all_users(bot, random_quests)
 
 async def add_quest_to_user(user: discord.User, random_quests):
-    async with aiosqlite.connect(dbn, timeout=20) as db:
+    async with aiosqlite.connect(dbn) as db:
         cursor = await db.cursor()
         await cursor.execute("SELECT * FROM users WHERE id = ?", (user.id,))
         me = await cursor.fetchone()
@@ -165,8 +178,8 @@ async def add_quest_to_user(user: discord.User, random_quests):
 
         rq = random.choice(random_quests)
         rq["ends"] = await calculate_end_time(rq["ends"])
-
-        asyncio.create_task(timeout_quests_timer(user=user, quest=rq))
+        rq["users"] = []
+        rq["users_required"] = rq["users_required"] if rq.get("users_required") == 1 or rq.get("users_required") == 2 else 0
 
         quests.append(rq)
         await cursor.execute("UPDATE users SET quests = ? WHERE id = ?", (json.dumps(quests), user.id))
@@ -204,52 +217,42 @@ async def calculate_end_time(end_data):
     time_delta = datetime.timedelta(days=amount) if unit == "d" else datetime.timedelta(hours=amount)
     return (datetime.datetime.now(pytz.timezone('Europe/Moscow')) + time_delta).isoformat()
 
-async def timeout_quests_timer(user: discord.User | discord.Member, quest: dict):
-    while True:
-        now = datetime.datetime.now(pytz.timezone('Europe/Moscow'))
-        quest_end_time = datetime.datetime.fromisoformat(quest["ends"]).astimezone(pytz.timezone('Europe/Moscow'))
-
-        if quest_end_time <= now:
-            return await handle_quest_timeout(user, quest)
-        
-        await asyncio.sleep(5)
-
 async def handle_quest_timeout(user: discord.User, quest: dict):
-    async with aiosqlite.connect(dbn) as db:
-        cursor = await db.cursor()
-        await cursor.execute("SELECT * FROM users WHERE id = ?", (user.id,))
-        me = await cursor.fetchone()
+    async with lock:
+        async with aiosqlite.connect(dbn) as db:
+            cursor = await db.cursor()
+            await cursor.execute("SELECT * FROM users WHERE id = ?", (user.id,))
+            me = await cursor.fetchone()
 
-    if me is None:
-        raise Exception(f"Пользователь {user.id} не найден в базе данных.")
+        if me is None:
+            raise Exception(f"Пользователь {user.id} не найден в базе данных.")
 
-    quests = json.loads(me[3])
-    completed_quests = json.loads(me[4])
-    ended_quests = json.loads(me[5])
+        quests = json.loads(me[3])
+        completed_quests = json.loads(me[4])
+        ended_quests = json.loads(me[5])
 
-    if quest in quests:
-        if me[6] == 1:
-            try:
-                await user.send(embed=discord.Embed(
-                    title=f"Квест '{quest['name']}' истёк",
-                    description="Увы, время выполнения квеста истекло.",
-                    color=discord.Color.random()
-                ), view=turnoff1())
-            except:
-                print(f"Ошибка отправки сообщения пользователю {user.id}")
+        if quest in quests and quest not in ended_quests and quest not in completed_quests:
+            if me[6] == 1:
+                try:
+                    await user.send(embed=discord.Embed(
+                        title=f"Квест '{quest['name']}' истёк",
+                        description="Увы, время выполнения квеста истекло.",
+                        color=discord.Color.random()
+                    ), view=turnoff1())
+                except:
+                    print(f"Ошибка отправки сообщения пользователю {user.id}")
 
-        quests.remove(quest)
+            quests.remove(quest)
+            ended_quests.append(quest)
 
-    if quest not in completed_quests and quest not in ended_quests:
-        ended_quests.append(quest)
+            async with aiosqlite.connect(dbn) as db:
+                cursor = await db.cursor()
+                await cursor.execute(
+                    "UPDATE users SET quests = ?, completed_quests = ?, ended_quests = ? WHERE id = ?",
+                    (json.dumps(quests), json.dumps(completed_quests), json.dumps(ended_quests), user.id)
+                )
 
-    async with aiosqlite.connect(dbn) as db:
-        cursor = await db.cursor()
-        await cursor.execute(
-            "UPDATE users SET quests = ?, completed_quests = ?, ended_quests = ? WHERE id = ?",
-            (json.dumps(quests), json.dumps(completed_quests), json.dumps(ended_quests), user.id)
-        )
-        await db.commit()
+                await db.commit()
 
 async def get_or_fetch_user(bot: commands.Bot, id: str | int):
     user = bot.get_user(id)

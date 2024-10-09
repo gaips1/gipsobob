@@ -18,7 +18,7 @@ class Inv(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
         self.add_quest.start()
-        self.timeout_quests.start()
+        self.timeout_quests_timer.start()
 
     @app_commands.command( description="Магазин", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -155,19 +155,23 @@ class Inv(commands.Cog):
                 await ext.add_random_quest(bot=self.bot)
                 await asyncio.sleep(60 - now.second)
 
-    @tasks.loop(count=1)
-    async def timeout_quests(self):
+    @tasks.loop(seconds=10)
+    async def timeout_quests_timer(self):
         async with aiosqlite.connect(dbn) as db:
             cursor = await db.cursor()
             await cursor.execute("SELECT * FROM users")
             users = await cursor.fetchall()
 
-        for user in users:
-            quests = json.loads(user[3])
-            for quest in quests:
-                if quest["ends"] != None:
-                    self.bot.loop.create_task(ext.timeout_quests_timer(user=await ext.get_or_fetch_user(bot=self.bot, id=user[0]), quest=quest))
-                    await asyncio.sleep(0.5)
+            for user in users:
+                quests = json.loads(user[3])
+                for quest in quests:
+                    now = datetime.now(pytz.timezone('Europe/Moscow'))
+                    quest_end_time = datetime.fromisoformat(quest["ends"]).astimezone(pytz.timezone('Europe/Moscow')) if quest["ends"] != None else None
+
+                    if quest_end_time != None and quest_end_time <= now:
+                        usr = await ext.get_or_fetch_user(bot=self.bot, id=user[0])
+                        self.bot.loop.create_task(ext.handle_quest_timeout(usr, quest))
+                        await asyncio.sleep(0.15)
 
 async def use_sex_talon(inter: discord.Interaction, user: discord.User):
     if user.bot: return await inter.response.send_message("Нельзя использовать на боте", ephemeral=True)

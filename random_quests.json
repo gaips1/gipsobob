@@ -1,33 +1,36 @@
 [
     {
         "name": "Купидон",
-        "desc": "Поцелуйте 15 человек (не обязательно разных)",
+        "desc": "Поцелуйте 15 человек (разных)",
         "do": "kiss",
         "reward": 300,
         "progress": 0,
         "id": "kisses",
-        "progress_max": 15 ,
-        "ends": "1d"
+        "progress_max": 15,
+        "ends": "1d",
+        "users_required": 2
     },
     {
         "name": "Секс Бомба",
-        "desc": "Поебитесь с 30 людьми (не обязательно разных)",
+        "desc": "Поебитесь с 30 людьми (разных)",
         "do": "sex",
         "reward": 1000,
         "progress": 0,
         "id": "sex_bomba",
         "progress_max": 30,
-        "ends": "1d"
+        "ends": "1d",
+        "users_required": 2
     },
     {
         "name": "Секс Мастер",
-        "desc": "Поебитесь с 15 людьми (не обязательно разных)",
+        "desc": "Поебитесь с 15 людьми (разных)",
         "do": "sex",
         "reward": 500,
         "progress": 0,
         "id": "sex_master",
         "progress_max": 15,
-        "ends": "1d"
+        "ends": "1d",
+        "users_required": 2
     },
     {
         "name": "Переводчик",
@@ -51,23 +54,25 @@
     },
     {
         "name": "Обниматель",
-        "desc": "Обнимите 15 человек (не обязательно разных)",
+        "desc": "Обнимите 15 человек (разных)",
         "do": "hug",
         "reward": 300,
         "progress": 0,
         "id": "huges",
         "progress_max": 15,
-        "ends": "1d"
+        "ends": "1d",
+        "users_required": 2
     },
     {
         "name": "Борзый",
-        "desc": "Ударьте 15 человек (не обязательно разных)",
+        "desc": "Ударьте 15 человек (разных)",
         "do": "punch",
         "reward": 300,
         "progress": 0,
         "id": "punches",
         "progress_max": 15,
-        "ends": "1d"
+        "ends": "1d",
+        "users_required": 2
     },
     {
         "name": "Счастливчик",
@@ -141,22 +146,24 @@
     },
     {
         "name": "Камшот мастер",
-        "desc": "Успешно обкамить 5 человек (не обязательно разных) /cumshot",
+        "desc": "Успешно обкамить 5 человек (разных) /cumshot",
         "do": "cumshot",
         "reward": 300,
         "progress": 0,
         "id": "cumshot-5",
         "progress_max": 5,
-        "ends": "1d"
+        "ends": "1d",
+        "users_required": 2
     },
     {
         "name": "Камшот бомба",
-        "desc": "Успешно обкамить 15 человек (не обязательно разных) /cumshot",
+        "desc": "Успешно обкамить 15 человек (разных) /cumshot",
         "do": "cumshot",
         "reward": 300,
         "progress": 0,
         "id": "cumshot-15",
         "progress_max": 15,
-        "ends": "1d"
+        "ends": "1d",
+        "users_required": 2
     }
 ]

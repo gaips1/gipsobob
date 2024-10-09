@@ -49,7 +49,10 @@ async def on_ready():
     await bot.tree.sync()
     bot.add_view(turnon1())
     bot.add_view(turnoff1())
-    await bot.change_presence(status=discord.Status.dnd, activity=discord.Game("Visual Studio Code"))
+    await bot.change_presence(status=discord.Status.dnd, activity=discord.Activity(
+        name="Visual Studio Code",
+        type=discord.ActivityType.playing,
+        state="The best bot in the world!"))
 
 @bot.tree.command(name="say", description="Пинг?",)
 @app_commands.describe(what="Что писать?", inchat="Писать ли в чате?")
