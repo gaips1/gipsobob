@@ -151,6 +151,34 @@ class Fun(commands.Cog):
             ephemeral=True
         )
 
+    @app_commands.command(name="минет", description="Сделать минет пользователю", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
+    @app_commands.describe(user="Кому делать минет?")
+    async def minet(self, inter: discord.Interaction, user: discord.User):
+        if user.bot: return await inter.response.send_message("Зачем делать минет боту?", ephemeral=True)
+        if user == inter.user: return await inter.response.send_message("Ты че делать минет себе собираешься?", ephemeral=True)
+
+        await inter.response.send_message(f"Вы сосёте {user.global_name}...")
+        await asyncio.sleep(3.5)
+
+        if random.random() < 0.5:
+            await update_quest(inter.user, "minet", used_user=user)
+            await inter.edit_original_response(content=f"Вы успешно довели до оргазма {user.global_name}!")
+        else:
+            await inter.edit_original_response(content=f"Вы не смогли заставить кончить {user.global_name} :(")
+
+    @app_commands.command( description="KEEP YOURSELF SAFE", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
+    async def kys(self, inter: discord.Interaction):
+        with open("views/fun/dies.json", "r", encoding="utf-8") as f:
+            choices = json.load(f)
+
+        await inter.response.send_message(f"Вы {random.choice(choices)}. Поздравляю со смертью!", ephemeral=True)
+
 @app_commands.context_menu( name="Обнять", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)

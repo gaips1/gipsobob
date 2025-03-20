@@ -163,7 +163,18 @@
         "progress": 0,
         "id": "cumshot-15",
         "progress_max": 15,
-        "ends": "1d",
+        "ends": "2d",
+        "users_required": 2
+    },
+    {
+        "name": "Сосунок",
+        "description": "Заставить кончить 15 человек (разных) минетом /минет",
+        "action_type": "minet",
+        "reward": 300,
+        "progress": 0,
+        "id": "minet-15",
+        "progress_max": 15,
+        "ends": "2d",
         "users_required": 2
     }
 ]
