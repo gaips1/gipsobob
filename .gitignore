@@ -6,3 +6,4 @@ gipsobob.sql-wal
 .vscode/settings.json
 __pycache__
 upd_quests.py
+gipsobob_example.sql

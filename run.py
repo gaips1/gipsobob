@@ -1,58 +1,57 @@
-mode = "PROD"
-
-import sys
+import asyncio
 import discord
 from discord.ext import commands
-import asyncio
 from discord import app_commands
+import discord.ext.commands
 from dotenv import load_dotenv
-import aiosqlite
+import discord.ext
 from ext import check, turnoff1, turnon1, get_or_fetch_user
-import inspect, os.path
+import os
 import random
+from db.database_instance import db
+
 load_dotenv()
-if mode == "PROD":
-    TOKEN = os.environ.get("TOKEN")
-else:
-    TOKEN = os.environ.get("DEV_TOKEN")
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-filename = inspect.getframeinfo(inspect.currentframe()).filename
-path     = os.path.dirname(os.path.abspath(filename))
-dbn = path + "/gipsobob.sql"
 
-bot = commands.Bot(intents=intents, help=None, command_prefix="$")
-bot.dbn = dbn
-bot.mode = mode
+bot = commands.Bot(intents=intents, help_command=None, command_prefix="$")
 
-@bot.event
+@bot.tree.error
 async def on_command_error(ctx: discord.Interaction, error):
-    if isinstance(error, commands.CommandNotFound):
-        pass
-    elif isinstance(error, app_commands.CheckFailure):
+    if isinstance(error, app_commands.errors.CheckFailure):
         await ctx.response.send_message("Вы забанены в боте!", ephemeral=True)
     else:
         raise error
-
+    
 @bot.event
 async def on_ready():
     print(f"{bot.user} is ready and online!")
+
+    await db.connect()
+
     await bot.load_extension("cogs.fun")
     await bot.load_extension("cogs.sbp")
     await bot.load_extension("cogs.dl")
     await bot.load_extension("cogs.giveaways")
-    await bot.load_extension("cogs.inv")
-    await bot.load_extension("cogs.farm")
-    await bot.load_extension("cogs.xp")
+    await bot.load_extension("cogs.quests")
+
+    # DEPRECATED await bot.load_extension("cogs.farm") DEPRECATED
+
     await bot.tree.sync()
+
     bot.add_view(turnon1())
     bot.add_view(turnoff1())
-    await bot.change_presence(status=discord.Status.dnd, activity=discord.Activity(
-        name="Visual Studio Code",
-        type=discord.ActivityType.playing,
-        state="The best bot in the world!"))
+
+    await bot.change_presence(
+        status=discord.Status.dnd,
+        activity=discord.Activity(
+            name="Visual Studio Code",
+            type=discord.ActivityType.playing,
+            state="The best bot in the world!"
+        )
+    )
 
 @bot.tree.command(name="say", description="Пинг?",)
 @app_commands.describe(what="Что писать?", inchat="Писать ли в чате?")
@@ -68,9 +67,34 @@ async def say(inter: discord.Interaction, what:str, inchat:bool = None):
     except(discord.errors.InteractionResponded):
         pass
 
-@bot.tree.command(name="ping", description="Пинг?",)
+@bot.tree.command(description="Отправить всем людям в боте",)
+@app_commands.describe(what="Что писать?")
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
+async def say_to_all(inter: discord.Interaction, what:str):
+    if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
+
+    await inter.response.send_message("Отправляю...", ephemeral=True)
+
+    users = await db.users.get_users()
+    for user in users:
+        discord_user = await get_or_fetch_user(bot, user.id)
+        if discord_user:
+            try:
+                await discord_user.send(what)
+            except(discord.errors.Forbidden):
+                pass
+            except(discord.errors.RateLimited):
+                await asyncio.sleep(discord.errors.RateLimited.retry_after)
+                try:
+                    await discord_user.send(what)
+                except(discord.errors.Forbidden):
+                    pass
+                
+    await inter.user.send("Сообщение было отправлено всем пользователям!")
+
+@bot.tree.command(name="ping", description="Пинг?",)
 @app_commands.check(check)
 async def ping(inter: discord.Interaction):
     await inter.response.send_message("Понг!\n" + "Задержка: **" + str(round(bot.latency * 1000)) + "** мс", ephemeral=True)
@@ -87,45 +111,11 @@ async def get_message_id(inter: discord.Interaction, message: discord.Message):
 @app_commands.allowed_installs(guilds=True, users=True)
 async def banauthor(inter: discord.Interaction, message: discord.Message):
     if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
-    async with aiosqlite.connect(dbn, timeout=20) as db:
-        cursor = await db.cursor()
-        await cursor.execute("SELECT * FROM `users` WHERE id = ?", (message.author.id,))
-        me = await cursor.fetchone()
-    if not me:
-        async with aiosqlite.connect(dbn, timeout=20) as db:
-            cursor = await db.cursor()
-            await cursor.execute("INSERT INTO `users` (id, banned) VALUES (?, ?)", (message.author.id, 1))
-            await db.commit()
-        return await inter.response.send_message("Забанил!", ephemeral=True)
 
-    if me[1] == 1:
-        async with aiosqlite.connect(dbn, timeout=20) as db:
-            cursor = await db.cursor()
-            await cursor.execute('UPDATE users SET banned = 0 WHERE id = ?', (message.author.id,))
-            await db.commit()
-        return await inter.response.send_message("Разбанил!", ephemeral=True)
-    
-    if me[1] == 0:
-        async with aiosqlite.connect(dbn, timeout=20) as db:
-            cursor = await db.cursor()
-            await cursor.execute('UPDATE users SET banned = 1 WHERE id = ?', (message.author.id,))
-            await db.commit()
-        return await inter.response.send_message("Забанил!", ephemeral=True)
+    user = await db.users.get_user(message.author.id, True)
+    await user.set_banned(False if user.is_banned else True)
 
-@bot.tree.command(description="Тест команда секс порно не юзайте",)
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.check(check)
-async def send(inter: discord.Interaction, id: str, text: str):
-    if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
-
-    usr = await get_or_fetch_user(bot=bot, id=id)
-
-    try:
-        await usr.send(content=text)
-    except Exception as e:
-        return await inter.response.send_message("Ошибка: " + str(e), ephemeral=True)
-    await inter.response.send_message("Успешно!")
+    return await inter.response.send_message("Разбанен" if user.is_banned else "Забанен", ephemeral=True)
 
 @bot.event
 async def on_member_join(member: discord.Member):
@@ -149,5 +139,5 @@ async def on_member_remove(member: discord.Member):
         channel = await bot.fetch_channel(807651258520436736)
         await channel.send(embed=embed)
 
-bot.run(TOKEN)
+bot.run(os.environ.get("TOKEN"))
 #meow
