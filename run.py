@@ -83,14 +83,10 @@ async def say_to_all(inter: discord.Interaction, what:str):
         if discord_user:
             try:
                 await discord_user.send(what)
-            except(discord.errors.Forbidden):
-                pass
-            except(discord.errors.RateLimited):
-                await asyncio.sleep(discord.errors.RateLimited.retry_after)
-                try:
-                    await discord_user.send(what)
-                except(discord.errors.Forbidden):
-                    pass
+            except:
+                continue
+
+            await asyncio.sleep(1)
                 
     await inter.user.send("Сообщение было отправлено всем пользователям!")
 
