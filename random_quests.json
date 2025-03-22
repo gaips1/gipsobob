@@ -176,5 +176,27 @@
         "progress_max": 15,
         "ends": "2d",
         "users_required": 2
+    },
+    {
+        "name": "Само-Сосунок",
+        "description": "Сделать само-отсос 15 раз /минет",
+        "action_type": "self-minet",
+        "reward": 300,
+        "progress": 0,
+        "id": "self-minet-15",
+        "progress_max": 15,
+        "ends": "1d",
+        "users_required": 0
+    },
+    {
+        "name": "Рабочие Ноги",
+        "description": "Сделать футджоб 15 разным людям /footjob",
+        "action_type": "footjob",
+        "reward": 300,
+        "progress": 0,
+        "id": "footjob-15",
+        "progress_max": 15,
+        "ends": "2d",
+        "users_required": 2
     }
 ]

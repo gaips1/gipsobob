@@ -158,7 +158,18 @@ class Fun(commands.Cog):
     @app_commands.describe(user="Кому делать минет?")
     async def minet(self, inter: discord.Interaction, user: discord.User):
         if user.bot: return await inter.response.send_message("Зачем делать минет боту?", ephemeral=True)
-        if user == inter.user: return await inter.response.send_message("Ты че делать минет себе собираешься?", ephemeral=True)
+
+        if user == inter.user:
+            await inter.response.send_message("Вы пытаетесь сделать само-отсос...", ephemeral=True)
+            await asyncio.sleep(3.5)
+
+            if random.random() < 0.3:
+                await update_quest(inter.user, "self-minet", used_user=user)
+                await inter.edit_original_response(content="Вы успешно сделали само-отсос!")
+            else:
+                await inter.edit_original_response(content="Вы не смогли сделать само-отсос...")
+
+            return
 
         await inter.response.send_message(f"Вы сосёте {user.global_name}...")
         await asyncio.sleep(3.5)
@@ -178,6 +189,24 @@ class Fun(commands.Cog):
             choices = json.load(f)
 
         await inter.response.send_message(f"Вы {random.choice(choices)}. Поздравляю со смертью!", ephemeral=True)
+
+    @app_commands.command(description="Сделать футджоб пользователю", )
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.check(check)
+    @app_commands.describe(user="Кому делать футджоб?")
+    async def footjob(self, inter: discord.Interaction, user: discord.User):
+        if user.bot: return await inter.response.send_message("Зачем делать футджоб боту?", ephemeral=True)
+        if user == inter.user: return await inter.response.send_message("Ты че делать футджоб себе собираешься?", ephemeral=True)
+
+        await inter.response.send_message(f"Вы пытаетесь сделать футджоб {user.global_name}...")
+        await asyncio.sleep(3.5)
+
+        if random.random() < 0.5:
+            await update_quest(inter.user, "footjob", used_user=user)
+            await inter.edit_original_response(content=f"Вы успешно сделали футджоб {user.global_name}!")
+        else:
+            await inter.edit_original_response(content=f"Вы не смогли сделать футджоб {user.global_name} :(")
 
 @app_commands.context_menu( name="Обнять", )
 @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
