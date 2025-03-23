@@ -1,7 +1,7 @@
 import datetime
 import json
 from typing import Optional
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 import pytz
 from ..database_instance import db
 

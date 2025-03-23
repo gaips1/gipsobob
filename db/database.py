@@ -23,13 +23,15 @@ class DatabaseManager:
         from .models.dl import DLManager
         from .models.ga import GiveAwaysManager
         from .models.quests import QuestsManager
+        from .models.marriages import MarriagesManager
 
         self.users = UserManager()
         self.sbp = SBPManager()
         self.dl = DLManager()
         self.ga = GiveAwaysManager()
         self.quests = QuestsManager()
-
+        self.marriages = MarriagesManager()
+        
     async def disconnect(self):
         if self.pool:
             await self.pool.close()

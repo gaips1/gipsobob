@@ -1,6 +1,5 @@
 import random
 import discord
-
 from ext import update_quest
 
 async def offer_sex(inter: discord.Interaction, user: discord.User):

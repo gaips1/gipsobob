@@ -9,6 +9,52 @@ import views.fun.sex as sex
 import views.fun.rps as rps
 import views.fun.casino as casino
 
+@app_commands.context_menu( name="Обнять", )
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
+async def hug(inter: discord.Interaction, user: discord.User):
+    if user.bot: return await inter.response.send_message("Зачем обнимать бота?", ephemeral=True)
+    if user == inter.user: return await inter.response.send_message("Ты че обнимать себя собираешься?", ephemeral=True)
+    giffs = ["https://media.tenor.com/hwsbuAcG8UQAAAAM/foxplushy-foxy.gif", "https://media.tenor.com/WIOsEr_4XFcAAAAM/happy-anime.gif", "https://media.tenor.com/BmbTYhCZ5UsAAAAM/yuri-sleeping-yuri-sleep.gif"
+                    , "https://media.tenor.com/MApGHq5Kvj0AAAAM/anime-hug.gif", "https://media.tenor.com/iEDbr-ZhHMkAAAAM/anime-hug.gif"]
+    randgif = random.choice(giffs)
+    await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} обнял(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
+    await update_quest(inter.user, "hug", used_user=user)
+
+@app_commands.context_menu( name="Поцеловать", )
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
+async def kiss(inter: discord.Interaction, user: discord.User):
+    if user.bot: return await inter.response.send_message("Зачем целовать бота?", ephemeral=True)
+    if user == inter.user: return await inter.response.send_message("Ты че целовать себя собираешься?", ephemeral=True)
+    giffs = ["https://media.tenor.com/jnndDmOm5wMAAAAC/kiss.gif", "https://media.tenor.com/fiafXWajQFoAAAAC/kiss-anime.gif", "https://media.tenor.com/dn_KuOESmUYAAAAC/engage-kiss-anime-kiss.gif"
+                , "https://media.tenor.com/9jB6M6aoW0AAAAAM/val-ally-kiss.gif", "https://media.tenor.com/SYwRyd6N1UIAAAAC/anime-kiss.gif"]
+    randgif = random.choice(giffs)
+    await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} поцеловал(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
+    await update_quest(inter.user, "kiss", used_user=user)
+
+@app_commands.context_menu( name="Ударить", )
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
+async def punch(inter: discord.Interaction, user: discord.User):
+    if user.bot: return await inter.response.send_message("Зачем бить бота?", ephemeral=True)
+    if user == inter.user: return await inter.response.send_message("Ты че бить себя собираешься?", ephemeral=True)
+    giffs = ["https://media.tenor.com/p_mMicg1pgUAAAAC/anya-forger-damian-spy-x-family.gif", "https://media.tenor.com/BoYBoopIkBcAAAAC/anime-smash.gif", "https://media.tenor.com/UH8Jnl1W3CYAAAAC/anime-punch-anime.gif"
+                    , "https://media.tenor.com/SwMgGqBirvcAAAAM/saki-saki-kanojo-mo-kanojo.gif", "https://media.tenor.com/vv1mgp7IQn8AAAAC/tgggg-anime.gif"]
+    randgif = random.choice(giffs)
+    await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} ударил(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
+    await update_quest(inter.user, "punch", used_user=user)
+
+@app_commands.context_menu( name="Предложить секс", )
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.check(check)
+async def sexCM(inter: discord.Interaction, user: discord.User):
+    return await sex.offer_sex(inter, user)
+
 class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
@@ -207,52 +253,6 @@ class Fun(commands.Cog):
             await inter.edit_original_response(content=f"Вы успешно сделали футджоб {user.global_name}!")
         else:
             await inter.edit_original_response(content=f"Вы не смогли сделать футджоб {user.global_name} :(")
-
-@app_commands.context_menu( name="Обнять", )
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.check(check)
-async def hug(inter: discord.Interaction, user: discord.User):
-    if user.bot: return await inter.response.send_message("Зачем обнимать бота?", ephemeral=True)
-    if user == inter.user: return await inter.response.send_message("Ты че обнимать себя собираешься?", ephemeral=True)
-    giffs = ["https://media.tenor.com/hwsbuAcG8UQAAAAM/foxplushy-foxy.gif", "https://media.tenor.com/WIOsEr_4XFcAAAAM/happy-anime.gif", "https://media.tenor.com/BmbTYhCZ5UsAAAAM/yuri-sleeping-yuri-sleep.gif"
-                    , "https://media.tenor.com/MApGHq5Kvj0AAAAM/anime-hug.gif", "https://media.tenor.com/iEDbr-ZhHMkAAAAM/anime-hug.gif"]
-    randgif = random.choice(giffs)
-    await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} обнял(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
-    await update_quest(inter.user, "hug", used_user=user)
-
-@app_commands.context_menu( name="Поцеловать", )
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.check(check)
-async def kiss(inter: discord.Interaction, user: discord.User):
-    if user.bot: return await inter.response.send_message("Зачем целовать бота?", ephemeral=True)
-    if user == inter.user: return await inter.response.send_message("Ты че целовать себя собираешься?", ephemeral=True)
-    giffs = ["https://media.tenor.com/jnndDmOm5wMAAAAC/kiss.gif", "https://media.tenor.com/fiafXWajQFoAAAAC/kiss-anime.gif", "https://media.tenor.com/dn_KuOESmUYAAAAC/engage-kiss-anime-kiss.gif"
-                , "https://media.tenor.com/9jB6M6aoW0AAAAAM/val-ally-kiss.gif", "https://media.tenor.com/SYwRyd6N1UIAAAAC/anime-kiss.gif"]
-    randgif = random.choice(giffs)
-    await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} поцеловал(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
-    await update_quest(inter.user, "kiss", used_user=user)
-
-@app_commands.context_menu( name="Ударить", )
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.check(check)
-async def punch(inter: discord.Interaction, user: discord.User):
-    if user.bot: return await inter.response.send_message("Зачем бить бота?", ephemeral=True)
-    if user == inter.user: return await inter.response.send_message("Ты че бить себя собираешься?", ephemeral=True)
-    giffs = ["https://media.tenor.com/p_mMicg1pgUAAAAC/anya-forger-damian-spy-x-family.gif", "https://media.tenor.com/BoYBoopIkBcAAAAC/anime-smash.gif", "https://media.tenor.com/UH8Jnl1W3CYAAAAC/anime-punch-anime.gif"
-                    , "https://media.tenor.com/SwMgGqBirvcAAAAM/saki-saki-kanojo-mo-kanojo.gif", "https://media.tenor.com/vv1mgp7IQn8AAAAC/tgggg-anime.gif"]
-    randgif = random.choice(giffs)
-    await inter.response.send_message(embed=discord.Embed(title=f"{inter.user.global_name} ударил(а) {user.global_name}", color=discord.Color.random()).set_image(url=randgif))
-    await update_quest(inter.user, "punch", used_user=user)
-
-@app_commands.context_menu( name="Предложить секс", )
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-@app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.check(check)
-async def sexCM(inter: discord.Interaction, user: discord.User):
-    return await sex.offer_sex(inter, user)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Fun(bot))
