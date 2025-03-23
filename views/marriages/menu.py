@@ -28,7 +28,7 @@ class DivorceView(discord.ui.View):
 
         await inter.response.edit_message(view=self, embed=None, content="Вы успешно развелись :(")
 
-        partner = await ext.get_or_fetch_user(inter.client, marriage.partner_id)
+        partner = await ext.get_or_fetch_user(inter.client, marriage.partner_id if inter.user.id == marriage.user_id else marriage.user_id)
         if not partner: return
 
         await partner.send(f"**{inter.user.global_name}** развёлся с вами")
