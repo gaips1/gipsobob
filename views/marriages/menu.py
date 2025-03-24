@@ -41,10 +41,6 @@ class MarriageMenuView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Обновить информацию", style=discord.ButtonStyle.blurple, emoji="🔄")
-    async def update_mg_info(self, inter: discord.Interaction, button: discord.ui.Button):
-        await inter.response.edit_message(embed=await get_info(inter.user.id), view=self)
-
     @discord.ui.button(label="Развестись", style=discord.ButtonStyle.danger, emoji="🖤")
     async def divorce_mg(self, inter: discord.Interaction, button: discord.ui.Button):
         embed = discord.Embed(

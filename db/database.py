@@ -7,12 +7,6 @@ class DatabaseManager:
         self.database_url = database_url
         self.logger = logging.getLogger("database.manager")
         self.pool: Optional[asyncpg.Pool] = None
-        
-        self.users = None
-        self.sbp = None
-        self.dl = None
-        self.ga = None
-        self.quests = None
 
     async def connect(self):
         self.pool = await asyncpg.create_pool(self.database_url, max_size=50)
@@ -24,6 +18,7 @@ class DatabaseManager:
         from .models.ga import GiveAwaysManager
         from .models.quests import QuestsManager
         from .models.marriages import MarriagesManager
+        from .models.harems import HaremsManager
 
         self.users = UserManager()
         self.sbp = SBPManager()
@@ -31,7 +26,8 @@ class DatabaseManager:
         self.ga = GiveAwaysManager()
         self.quests = QuestsManager()
         self.marriages = MarriagesManager()
-        
+        self.harems = HaremsManager()
+
     async def disconnect(self):
         if self.pool:
             await self.pool.close()

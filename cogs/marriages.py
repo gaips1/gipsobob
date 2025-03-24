@@ -23,6 +23,7 @@ class MG(commands.Cog):
 
         marriage = await db.marriages.get_marriage(inter.user.id)
         if marriage: return await inter.response.send_message("Ты чё, изменщик? Куснись.", ephemeral=True)
+        if await db.marriages.get_marriage(user.id): return await inter.response.send_message("Этот пользователь уже состоит в браке.", ephemeral=True)
 
         embed = discord.Embed(
             title="Предложение брака",
@@ -50,7 +51,7 @@ class MG(commands.Cog):
         marriages = await db.marriages.get_marriages()
         if not marriages: return await inter.response.send_message("Нет ни одного брака", ephemeral=True)
         
-        marriages.sort(key=lambda x: x.created_at, reverse=True)
+        marriages.sort(key=lambda x: x.created_at)
         marriages = marriages[:10]
         
         description = ""

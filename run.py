@@ -37,7 +37,8 @@ async def on_ready():
     await bot.load_extension("cogs.giveaways")
     await bot.load_extension("cogs.quests")
     await bot.load_extension("cogs.marriages")
-
+    await bot.load_extension("cogs.harems")
+    
     # DEPRECATED await bot.load_extension("cogs.farm") DEPRECATED
 
     await bot.tree.sync()
