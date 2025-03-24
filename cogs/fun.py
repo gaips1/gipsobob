@@ -234,7 +234,16 @@ class Fun(commands.Cog):
         with open("views/fun/dies.json", "r", encoding="utf-8") as f:
             choices = json.load(f)
 
-        await inter.response.send_message(f"Вы {random.choice(choices)}. Поздравляю со смертью!", ephemeral=True)
+        async def button_callback(interaction: discord.Interaction):
+            await interaction.response.edit_message(content=f"Вы {random.choice(choices)}. Поздравляю со смертью!")
+            return
+
+        view = discord.ui.View()
+        button = discord.ui.Button(label="KYS", style=discord.ButtonStyle.danger, emoji="💀")
+        button.callback = button_callback
+        view.add_item(button)
+
+        await inter.response.send_message(f"Вы {random.choice(choices)}. Поздравляю со смертью!", ephemeral=True, view=view)
 
     @app_commands.command(description="Сделать футджоб пользователю", )
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
