@@ -30,8 +30,10 @@ class Harems(commands.Cog):
     async def harem(self, inter: discord.Interaction):
         harem = await db.harems.get_user_harem(inter.user.id) or await db.harems.get_harem(inter.user.id)
         if harem:
+            usr = await ext.get_or_fetch_user(self.bot, harem.user_id)
+
             embed = discord.Embed(
-                title=f"Гарем пользователя <@{harem.user_id}>",
+                title=f"Гарем пользователя {usr.global_name}",
                 description=f"Пользователи гарема: {', '.join([f'<@{user}>' for user in harem.users]) if harem.users else 'Нету'}.\nГарем был создан <t:{harem.created_at}:R>",
                 color=discord.Color.random()
             )
