@@ -11,8 +11,6 @@ from db.models.quests import Quest
 import ext
 import tempfile
 
-MODE = "PROD"
-
 class Quests(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot: commands.Bot = bot
@@ -140,7 +138,7 @@ class Quests(commands.Cog):
     async def add_random_quest(self, inter: discord.Interaction, user: discord.User = None):
         if inter.user.id != 449882524697493515: return await inter.response.send_message("Недостаточно прав", ephemeral=True)
         await inter.response.send_message("Начинаю выдавать...", ephemeral=True)
-        await ext.add_random_quest(user, self.bot)
+        await ext.add_random_quest(user.id)
         await inter.edit_original_response(content="Успешно!")
 
     @tasks.loop(minutes=1)
@@ -157,16 +155,8 @@ class Quests(commands.Cog):
                     quests_by_user[quest.user_id].append(quest)
             
             for user_id, user_quests in quests_by_user.items():
-                user = self.bot.get_user(user_id)
-                if user is None:
-                    try:
-                        user = await self.bot.fetch_user(user_id)
-                    except discord.HTTPException:
-                        print(f"Не удалось получить пользователя {user_id}")
-                        continue
-                
                 for quest in user_quests:
-                    await ext.handle_quest_timeout(user, quest)
+                    await ext.handle_quest_timeout(user_id, quest)
                     
         except Exception as e:
             print(f"Ошибка при проверке истекших квестов: {e}")
@@ -191,7 +181,7 @@ class Quests(commands.Cog):
         wait_seconds = (target_time - now).total_seconds()
         await asyncio.sleep(wait_seconds)
 
-        await ext.add_random_quest(bot=self.bot)
+        await ext.add_random_quest()
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Quests(bot))

@@ -1,18 +1,19 @@
 import random
+import aiohttp
 import discord
 import inspect
 import os
 import json
 import asyncio
 import datetime
+from dotenv import load_dotenv
 import pytz
 from discord.ext import commands, tasks
 from db.database_instance import db
 from db.models.quests import Quest
 lock = asyncio.Lock()
 
-filename = inspect.getframeinfo(inspect.currentframe()).filename
-path = os.path.dirname(os.path.abspath(filename))
+load_dotenv()
 
 first_quest = {
     "name": "Начальный квест",
@@ -67,7 +68,26 @@ class turnoff2(discord.ui.View):
         await user.set_new_quests_notifications(False)
         await inter.response.edit_message(view=turnon2())
 
-async def check_first_quest(inter: discord.Interaction, user):
+async def send_message(user_id: int, message: str = None, embed: discord.Embed = None):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            f"https://discord.com/api/users/@me/channels",
+            headers={"Authorization": f"Bot {os.environ.get("TOKEN")}", "Content-Type": "application/json"},
+            json={"recipient_id": user_id}
+        ) as response:
+            js = await response.json()
+            channel_id = js.get("id")
+            if channel_id is None:
+                return
+
+        async with session.post(
+            f"https://discord.com/api/channels/{channel_id}/messages",
+            headers={"Authorization": f"Bot {os.environ.get("TOKEN")}", "Content-Type": "application/json"},
+            json={"content": message if message else None, "embeds": [embed.to_dict()] if embed else None}
+        ) as response:
+            return await response.json()
+
+async def check_first_quest(inter: discord.Interaction):
     quests = await db.quests.get_user_quests(inter.user.id)
     
     if any(quest.id == "first_q" for quest in quests):
@@ -104,17 +124,20 @@ async def check(inter: discord.Interaction):
     
     return True
 
-async def add_random_quest(user: discord.User = None, bot: commands.Bot = None):
-    with open(os.path.join(path, 'random_quests.json'), 'r', encoding="utf-8") as json_file:
+async def add_random_quest(user_id: int | None = None):
+
+    with open('random_quests.json', 'r', encoding="utf-8") as json_file:
         random_quests = json.load(json_file)
 
-    if user is not None:            
-        await add_quest_to_user(user, random_quests)
+    if user_id is not None:    
+        await add_quest_to_user(user_id, random_quests)
     else:
-        await add_quest_to_all_users(bot, random_quests)
+        for user in await db.users.get_users():
+            await add_quest_to_user(user.id, random_quests)
+            await asyncio.sleep(1)
 
-async def add_quest_to_user(user: discord.User, random_quests):
-    quests_count = await db.quests.get_active_quests_count(user.id)
+async def add_quest_to_user(user_id, random_quests):
+    quests_count = await db.quests.get_active_quests_count(user_id)
     if quests_count >= 5:
         return
 
@@ -122,31 +145,21 @@ async def add_quest_to_user(user: discord.User, random_quests):
     rq["ends"] = await calculate_end_time(rq["ends"])
     rq["users"] = []
     rq["is_users_required"] = rq.get("users_required", 0)
-    rq["user_id"] = user.id
+    rq["user_id"] = user_id
     rq["type"] = "active"
 
     await db.quests.create_quest(rq)
 
-    user_data = await db.users.get_user(user.id)
+    user_data = await db.users.get_user(user_id)
     if user_data.new_quests_notifications:
-        await send_new_quest_notification(user, rq)
-
-async def add_quest_to_all_users(bot: commands.Bot, random_quests):
-    users = await db._fetch("SELECT id FROM users")
-    for user in users:
-        user_obj = await get_or_fetch_user(bot, user["id"])
-        await add_quest_to_user(user_obj, random_quests)
-        await asyncio.sleep(0.5)
-
-async def send_new_quest_notification(user: discord.User, quest: dict):
-    try:
-        await user.send(embed=discord.Embed(
-            title="Новый квест!",
-            description=f"Вам был добавлен новый квест - {quest['name']}\nПодробнее в **/quests**",
-            color=discord.Color.random()
-        ), view=turnoff2())
-    except Exception as e:
-        print(f"Ошибка отправки сообщения пользователю {user.id}: {e}")
+        try:
+            await send_message(user_id, embed=discord.Embed(
+                title="Новый квест!",
+                description=f"Вам был добавлен новый квест - {rq['name']}\nПодробнее в **/quests**",
+                color=discord.Color.random()
+            ))
+        except Exception as e:
+            print(f"Ошибка отправки сообщения пользователю {user_id}: {e}")
 
 async def calculate_end_time(end_data):
     if end_data is None:
@@ -159,19 +172,19 @@ async def calculate_end_time(end_data):
     time_delta = datetime.timedelta(days=amount) if unit == "d" else datetime.timedelta(hours=amount)
     return int((datetime.datetime.now(pytz.timezone('Europe/Moscow')) + time_delta).timestamp())
 
-async def handle_quest_timeout(user: discord.User, quest: Quest):
+async def handle_quest_timeout(user_id: int, quest: Quest):
     async with lock:
         if quest.type == "active":
-            user_data = await db.users.get_user(user.id)
+            user_data = await db.users.get_user(user_id)
             if user_data.ended_quests_notifications:
                 try:
-                    await user.send(embed=discord.Embed(
+                    await send_message(user_id, embed=discord.Embed(
                         title=f"Квест '{quest.name}' истёк",
                         description="Увы, время выполнения квеста истекло.",
                         color=discord.Color.random()
                     ), view=turnoff1())
                 except:
-                    print(f"Ошибка отправки сообщения пользователю {user.id}")
+                    print(f"Ошибка отправки сообщения пользователю {user_id}")
 
             await quest.mark_as_expired()
 
