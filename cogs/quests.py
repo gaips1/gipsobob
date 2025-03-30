@@ -156,8 +156,14 @@ class Quests(commands.Cog):
             
             for user_id, user_quests in quests_by_user.items():
                 for quest in user_quests:
-                    await ext.handle_quest_timeout(user_id, quest)
-                    
+                    if quest.type == "active":
+                        user = await ext.get_or_fetch_user(user_id)
+                        await user.send(embed=discord.Embed(
+                            title=f"Квест '{quest.name}' истёк",
+                            description="Увы, время выполнения квеста истекло.",
+                            color=discord.Color.random()
+                        ), view=ext.turnoff1())
+                        
         except Exception as e:
             print(f"Ошибка при проверке истекших квестов: {e}")
 

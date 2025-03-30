@@ -9,14 +9,13 @@ from ext import check, turnoff1, turnon1, get_or_fetch_user
 import os
 import random
 from db.database_instance import db
+from bot_instance import bot
 
 load_dotenv()
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-
-bot = commands.Bot(intents=intents, help_command=None, command_prefix="$")
 
 @bot.tree.error
 async def on_command_error(ctx: discord.Interaction, error):

@@ -8,10 +8,8 @@ import asyncio
 import datetime
 from dotenv import load_dotenv
 import pytz
-from discord.ext import commands, tasks
 from db.database_instance import db
-from db.models.quests import Quest
-lock = asyncio.Lock()
+from bot_instance import bot
 
 load_dotenv()
 
@@ -68,25 +66,6 @@ class turnoff2(discord.ui.View):
         await user.set_new_quests_notifications(False)
         await inter.response.edit_message(view=turnon2())
 
-async def send_message(user_id: int, message: str = None, embed: discord.Embed = None):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            f"https://discord.com/api/users/@me/channels",
-            headers={"Authorization": f"Bot {os.environ.get("TOKEN")}", "Content-Type": "application/json"},
-            json={"recipient_id": user_id}
-        ) as response:
-            js = await response.json()
-            channel_id = js.get("id")
-            if channel_id is None:
-                return
-
-        async with session.post(
-            f"https://discord.com/api/channels/{channel_id}/messages",
-            headers={"Authorization": f"Bot {os.environ.get("TOKEN")}", "Content-Type": "application/json"},
-            json={"content": message if message else None, "embeds": [embed.to_dict()] if embed else None}
-        ) as response:
-            return await response.json()
-
 async def check_first_quest(inter: discord.Interaction):
     quests = await db.quests.get_user_quests(inter.user.id)
     
@@ -125,7 +104,6 @@ async def check(inter: discord.Interaction):
     return True
 
 async def add_random_quest(user_id: int | None = None):
-
     with open('random_quests.json', 'r', encoding="utf-8") as json_file:
         random_quests = json.load(json_file)
 
@@ -153,11 +131,13 @@ async def add_quest_to_user(user_id, random_quests):
     user_data = await db.users.get_user(user_id)
     if user_data.new_quests_notifications:
         try:
-            await send_message(user_id, embed=discord.Embed(
+            user = await get_or_fetch_user(user_id)
+
+            await user.send(embed=discord.Embed(
                 title="Новый квест!",
                 description=f"Вам был добавлен новый квест - {rq['name']}\nПодробнее в **/quests**",
                 color=discord.Color.random()
-            ))
+            ), view=turnoff2())
         except Exception as e:
             print(f"Ошибка отправки сообщения пользователю {user_id}: {e}")
 
@@ -172,23 +152,7 @@ async def calculate_end_time(end_data):
     time_delta = datetime.timedelta(days=amount) if unit == "d" else datetime.timedelta(hours=amount)
     return int((datetime.datetime.now(pytz.timezone('Europe/Moscow')) + time_delta).timestamp())
 
-async def handle_quest_timeout(user_id: int, quest: Quest):
-    async with lock:
-        if quest.type == "active":
-            user_data = await db.users.get_user(user_id)
-            if user_data.ended_quests_notifications:
-                try:
-                    await send_message(user_id, embed=discord.Embed(
-                        title=f"Квест '{quest.name}' истёк",
-                        description="Увы, время выполнения квеста истекло.",
-                        color=discord.Color.random()
-                    ), view=turnoff1())
-                except:
-                    print(f"Ошибка отправки сообщения пользователю {user_id}")
-
-            await quest.mark_as_expired()
-
-async def get_or_fetch_user(bot: commands.Bot, id: str | int):
+async def get_or_fetch_user(id: str | int):
     user = bot.get_user(id)
     if user is None:
         user = await bot.fetch_user(id)
