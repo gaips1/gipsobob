@@ -431,7 +431,7 @@ class Farm(commands.Cog):
                     if datetime.fromisoformat(user[4]) <= datetime.now(pytz.timezone('Europe/Moscow')):
                         await cursor.execute("UPDATE farms SET overheat = 1 WHERE id =?", (user[0],))
                         if user[5] == 2:
-                            usr = await ext.get_or_fetch_user(bot=self.bot, id=user[0])
+                            usr = await ext.get_or_fetch_user(id=user[0])
                             await usr.send("Видеокарты на твоей ферме перегрелись!\nСкорее перезапусти сервера!")
 
                         await db.commit()
@@ -451,7 +451,7 @@ class Farm(commands.Cog):
                     if datetime.fromisoformat(booster["ends"]) <= datetime.now():
                         await cursor.execute("UPDATE farms SET booster = '{}' WHERE id =?", (user[0],))
                         await db.commit()
-                        usr = await ext.get_or_fetch_user(bot=self.bot, id=user[0])
+                        usr = await ext.get_or_fetch_user(id=user[0])
                         await usr.send(f"Твой бустер '**{booster["name"]}**' закончился!")
 
     @tasks.loop(hours=48)
@@ -476,7 +476,7 @@ class Farm(commands.Cog):
                     await cursor.execute("UPDATE farms SET cards = ? WHERE id =?", (json.dumps(cards), user[0],))
                     await db.commit()
                     try:
-                        usr = await ext.get_or_fetch_user(bot=self.bot, id=user[0])
+                        usr = await ext.get_or_fetch_user(id=user[0])
                         await usr.send(f"Твоя видеокарта '**{rc["name"]}**' сгорела!")
                     except:
                         continue

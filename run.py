@@ -80,7 +80,7 @@ async def say_to_all(inter: discord.Interaction, what:str):
 
     users = await db.users.get_users()
     for user in users:
-        discord_user = await get_or_fetch_user(bot, user.id)
+        discord_user = await get_or_fetch_user(user.id)
         if discord_user:
             try:
                 await discord_user.send(what)
