@@ -37,10 +37,12 @@ class Quest(BaseModel):
         if self.progress >= self.progress_max:
             self.type = "completed"
 
+        self.ends = int(datetime.datetime.now(tz=pytz.timezone('Europe/Moscow')).timestamp())
+
         await db._execute(
-            """UPDATE quests SET progress = $1, users = $2, type = $3 
-            WHERE id = $4 AND user_id = $5""",
-            self.progress, self.users, self.type, self.id, self.user_id
+            """UPDATE quests SET progress = $1, users = $2, type = $3, ends = $4
+            WHERE id = $5 AND user_id = $6""",
+            self.progress, self.users, self.type, self.ends, self.id, self.user_id
         )
         return True
 
