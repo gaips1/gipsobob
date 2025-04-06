@@ -1,10 +1,7 @@
 import asyncio
 import discord
-from discord.ext import commands
 from discord import app_commands
-import discord.ext.commands
 from dotenv import load_dotenv
-import discord.ext
 from ext import check, turnoff1, turnon1, get_or_fetch_user
 import os
 import random

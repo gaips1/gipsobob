@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 import os
+from typing import Dict, List
 from discord.ext import commands, tasks
 import discord
 import asyncio
-import json
 from discord import app_commands
 import pytz
 from db.database_instance import db
@@ -143,29 +143,34 @@ class Quests(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def check_expired_quests(self):
-        try:
-            quests = await db.quests.get_quests("active")
-            now = datetime.now(pytz.timezone('Europe/Moscow'))
-            
-            quests_by_user = {}
-            for quest in quests:
-                if quest.ends and now >= quest.datetime:
-                    if quest.user_id not in quests_by_user:
-                        quests_by_user[quest.user_id] = []
-                    quests_by_user[quest.user_id].append(quest)
-            
-            for user_id, user_quests in quests_by_user.items():
-                for quest in user_quests:
-                    if quest.type == "active":
-                        user = await ext.get_or_fetch_user(user_id)
-                        await user.send(embed=discord.Embed(
-                            title=f"Квест '{quest.name}' истёк",
-                            description="Увы, время выполнения квеста истекло.",
-                            color=discord.Color.random()
-                        ), view=ext.turnoff1())
-                        
-        except Exception as e:
-            print(f"Ошибка при проверке истекших квестов: {e}")
+        quests = await db.quests.get_quests("active")
+        now = datetime.now(pytz.timezone('Europe/Moscow'))
+        
+        quests_by_user: Dict[str, List[Quest]] = dict()
+
+        for quest in quests:
+            if quest.ends and now >= quest.datetime:
+                if quest.user_id not in quests_by_user:
+                    quests_by_user[quest.user_id] = []
+                quests_by_user[quest.user_id].append(quest)
+        
+        for user_id, user_quests in quests_by_user.items():
+            for quest in user_quests:
+                if quest.type == "active":
+                    try:
+                        db_user = await db.users.get_user(user_id)
+
+                        await quest.mark_as_expired()
+
+                        if db_user.ended_quests_notifications:
+                            user = await ext.get_or_fetch_user(user_id)
+                            await user.send(embed=discord.Embed(
+                                title=f"Квест '{quest.name}' истёк",
+                                description="Увы, время выполнения квеста истекло.",
+                                color=discord.Color.random()
+                            ), view=ext.turnoff1())
+                    except:
+                        break
 
     @tasks.loop()
     async def add_quest(self):
