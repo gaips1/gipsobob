@@ -3,6 +3,7 @@ import pytz
 from typing import Literal, Optional, List
 from pydantic import BaseModel
 from ..database_instance import db
+from pydantic import Field
 
 class Quest(BaseModel):
     id: str
@@ -16,7 +17,7 @@ class Quest(BaseModel):
     ends: int | None
     is_users_required: int
     type: Literal["active", "expired", "completed"]
-    users: List[int] = []
+    users: List[int] = Field(default_factory=list)
 
     @property
     def datetime(self):
