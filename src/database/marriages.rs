@@ -5,6 +5,7 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(schema_name = "gipsobob", table_name = "marriages")]
 pub struct Model {
+    #[sea_orm(primary_key, auto_increment = false)]
     pub user_id: i64,
     pub partner_id: i64,
     pub created_at: i64,
