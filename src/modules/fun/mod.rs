@@ -1,7 +1,11 @@
-use poise::CreateReply;
+use poise::serenity_prelude as serenity;
+use poise::{CreateReply};
 use rand::prelude::*;
+use tokio::fs;
 use tokio::time::{sleep, Duration};
+use std::sync::OnceLock;
 
+use crate::buttons::handle_button;
 use crate::types::*;
 
 /// Да или нет
@@ -34,7 +38,85 @@ async fn russian_roulette(ctx: Context<'_>) -> Result<(), Error> {
     sleep(Duration::from_millis(1_500)).await;
     msg.edit(ctx, CreateReply::default().content("Раскручиваю барабан..")).await?;
     sleep(Duration::from_millis(1_500)).await;
-    msg.edit(ctx, CreateReply::default().content(if rand::random_bool(0.25) { "Бум! Тебе разорвало лицо" } else { "Повезло, ты остался жив" })).await?;
+    msg.edit(ctx, CreateReply::default().content(if rand::random_bool(0.167) { "Бум! Тебе разорвало лицо" } else { "Повезло, ты остался жив" })).await?;
+    Ok(())
+}
+
+/// Кинуть кости
+#[poise::command(slash_command, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+async fn kosti(ctx: Context<'_>) -> Result<(), Error> {
+    let msg = ctx.say("Кидаю...").await?;
+    sleep(Duration::from_millis(2_500)).await;
+    msg.edit(ctx, CreateReply::default().content(format!("Выпало число {}", rand::random_range(1..=6)))).await?;
+    Ok(())
+}
+
+/// Слава узбии!
+#[poise::command(slash_command, rename = "слава_узбии", install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+async fn slava_uzbii(ctx: Context<'_>) -> Result<(), Error> {
+    ctx.send(
+        CreateReply::default()
+            .embed(
+                serenity::CreateEmbed::default()
+                    .title("Слава узбии!")
+                    .color(serenity::colours::branding::RED)
+            )
+    ).await?;
+    Ok(())
+}
+
+static KYS_LIST: OnceLock<Vec<String>> = OnceLock::new();
+fn get_kys_list() -> &'static [String] {
+    KYS_LIST.get_or_init(|| {
+        let data = include_str!("kys.json");
+        serde_json::from_str(data).expect("Failed to parse kys.json")
+    })
+}
+/// KEEP YOURSELF SAFE
+#[poise::command(slash_command, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+async fn kys(ctx: Context<'_>) -> Result<(), Error> {
+    let list = get_kys_list();
+    let choice = {
+        let mut rng = rand::rng();
+        list.choose(&mut rng).unwrap()
+    };
+
+    let ctx_id = ctx.id();
+    let button_id = format!("{}kys_btn", ctx_id);
+
+    let make_components = |btn_id: &str| {
+        vec![serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new(btn_id)
+                .label("KYS")
+                .emoji('☠')
+                .style(serenity::ButtonStyle::Danger)
+        ])]
+    };
+
+    ctx.send(
+        CreateReply::default()
+            .content(format!("Вы {}. Поздравляю со смертью!", choice))
+            .components(make_components(&button_id))
+            .ephemeral(true)
+    ).await?;
+
+    let filter_id = button_id.clone();
+    let _ = handle_button(ctx, &filter_id, 600,
+        |press| {
+            async move {
+                let choice = {
+                    let mut rng = rand::rng();
+                    list.choose(&mut rng).unwrap()
+                };
+                let button_id = format!("{}kys_btn", ctx_id);
+                let _ = press.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
+                    serenity::CreateInteractionResponseMessage::new()
+                        .content(format!("Вы {}. Поздравляю со смертью!", choice))
+                        .components(make_components(&button_id))
+                )).await;
+            }
+        }
+    ).await;
     Ok(())
 }
 
@@ -42,6 +124,9 @@ pub fn commands() -> Vec<poise::Command<Data, Error>> {
     vec![
         yes_or_no(),
         monetka(),
-        russian_roulette()
+        russian_roulette(),
+        kosti(),
+        slava_uzbii(),
+        kys()
     ]
 }

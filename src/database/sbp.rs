@@ -5,7 +5,7 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(schema_name = "gipsobob", table_name = "sbp")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false, unique)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub id: i64,
     #[sea_orm(column_type = "Decimal(Some((20, 2)))")]
     pub balance: Decimal,

@@ -843,6 +843,7 @@ dependencies = [
  "pretty_env_logger",
  "rand 0.10.1",
  "sea-orm",
+ "serde_json",
  "tokio",
 ]
 
