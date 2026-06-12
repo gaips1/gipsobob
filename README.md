@@ -1,1 +1,7 @@
-структура - feature-based structure
+мой лучший бот.  
+на serenity + poise c поддержкой user install команд  
+сделано с ❤️  
+  
+полностью переписан с раста на Rust.  
+  
+![image](https://github.com/gaips1/gipsobob/assets/50048569/2deec384-09ea-4786-b224-126b939046d2)
