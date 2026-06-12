@@ -2,6 +2,7 @@
 
 pub use super::dl::Entity as Dl;
 pub use super::dl_monsters::Entity as DlMonsters;
+pub use super::giveaway_participants::Entity as GiveawayParticipants;
 pub use super::giveaways::Entity as Giveaways;
 pub use super::harems::Entity as Harems;
 pub use super::marriages::Entity as Marriages;

@@ -4,6 +4,7 @@ pub mod prelude;
 
 pub mod dl;
 pub mod dl_monsters;
+pub mod giveaway_participants;
 pub mod giveaways;
 pub mod harems;
 pub mod marriages;

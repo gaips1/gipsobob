@@ -3,29 +3,24 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(schema_name = "gipsobob", table_name = "quests")]
+#[sea_orm(schema_name = "gipsobob", table_name = "giveaway_participants")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false, column_type = "Text")]
-    pub id: String,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub giveaway_id: i64,
+    #[sea_orm(primary_key, auto_increment = false)]
     pub user_id: i64,
-    #[sea_orm(column_type = "Text")]
-    pub name: String,
-    #[sea_orm(column_type = "Text")]
-    pub description: String,
-    #[sea_orm(column_type = "Text")]
-    pub action_type: String,
-    pub reward: i32,
-    pub progress: i32,
-    pub progress_max: i32,
-    pub ends: Option<i32>,
-    pub is_users_required: i32,
-    #[sea_orm(column_type = "Text")]
-    pub r#type: String,
-    pub users: Option<Vec<i64>>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::giveaways::Entity",
+        from = "Column::GiveawayId",
+        to = "super::giveaways::Column::Id",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    Giveaways,
     #[sea_orm(
         belongs_to = "super::users::Entity",
         from = "Column::UserId",
@@ -34,6 +29,12 @@ pub enum Relation {
         on_delete = "NoAction"
     )]
     Users,
+}
+
+impl Related<super::giveaways::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Giveaways.def()
+    }
 }
 
 impl Related<super::users::Entity> for Entity {

@@ -10,9 +10,58 @@ pub struct Model {
     pub is_banned: bool,
     pub ended_quests_notifications: bool,
     pub new_quests_notifications: bool,
+    pub harem_id: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::giveaway_participants::Entity")]
+    GiveawayParticipants,
+    #[sea_orm(
+        belongs_to = "super::harems::Entity",
+        from = "Column::HaremId",
+        to = "super::harems::Column::Id",
+        on_update = "NoAction",
+        on_delete = "SetNull"
+    )]
+    Harems,
+    #[sea_orm(has_many = "super::quests::Entity")]
+    Quests,
+    #[sea_orm(has_one = "super::sbp::Entity")]
+    Sbp,
+}
+
+impl Related<super::giveaway_participants::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::GiveawayParticipants.def()
+    }
+}
+
+impl Related<super::harems::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Harems.def()
+    }
+}
+
+impl Related<super::quests::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Quests.def()
+    }
+}
+
+impl Related<super::sbp::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Sbp.def()
+    }
+}
+
+impl Related<super::giveaways::Entity> for Entity {
+    fn to() -> RelationDef {
+        super::giveaway_participants::Relation::Giveaways.def()
+    }
+    fn via() -> Option<RelationDef> {
+        Some(super::giveaway_participants::Relation::Users.def().rev())
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
