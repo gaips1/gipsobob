@@ -1,15 +1,15 @@
 mod types;
 mod modules;
 mod database;
+mod checks;
 
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait, QuerySelect};
 use types::*;
 use poise::serenity_prelude as serenity;
-use database::{prelude::*, users};
 
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
+    pretty_env_logger::init();
 
     let token = std::env::var("DISCORD_TOKEN").expect("missing DISCORD_TOKEN");
     let intents = serenity::GatewayIntents::all();
@@ -17,43 +17,7 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: modules::all(),
-            command_check: Some(|ctx| {
-                Box::pin(async move {
-                    let db = &ctx.data().db;
-                    let user_id = ctx.author().id;
-
-                    let user_is_banned = Users::find_by_id(user_id)
-                        .select_only()
-                        .column(users::Column::IsBanned)
-                        .into_tuple::<bool>()
-                        .one(db)
-                        .await;
-                    
-                    match user_is_banned {
-                        Ok(Some(is_banned)) => {
-                            if is_banned {
-                                let _ = ctx.say("Вы заблокированы в боте.").await;
-                                return Ok(false);
-                            }
-                            
-                            return Ok(true);
-                        }
-                        Ok(None) => {
-                            let new_user = users::ActiveModel {
-                                id: Set(user_id.into()),
-                                ..Default::default()
-                            };
-                            let _ = new_user.insert(db).await;
-                            return Ok(true)
-                        }
-                        Err(e) => {
-                            let _ = ctx.say("Ошибка при обращении к бд.").await;
-                            println!("{:#}", e);
-                            return Ok(false);
-                        }
-                    }
-                })
-            }),
+            command_check: Some(|ctx| Box::pin(checks::global_check(ctx))),
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
