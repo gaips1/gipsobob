@@ -1,11 +1,10 @@
 use poise::serenity_prelude as serenity;
 use poise::{CreateReply};
 use rand::prelude::*;
-use tokio::fs;
+pub mod buttons;
 use tokio::time::{sleep, Duration};
 use std::sync::OnceLock;
 
-use crate::buttons::handle_button;
 use crate::types::*;
 
 /// Да или нет
@@ -66,7 +65,7 @@ async fn slava_uzbii(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 static KYS_LIST: OnceLock<Vec<String>> = OnceLock::new();
-fn get_kys_list() -> &'static [String] {
+pub fn get_kys_list() -> &'static [String] {
     KYS_LIST.get_or_init(|| {
         let data = include_str!("kys.json");
         serde_json::from_str(data).expect("Failed to parse kys.json")
@@ -81,42 +80,20 @@ async fn kys(ctx: Context<'_>) -> Result<(), Error> {
         list.choose(&mut rng).unwrap()
     };
 
-    let ctx_id = ctx.id();
-    let button_id = format!("{}kys_btn", ctx_id);
-
-    let make_components = |btn_id: &str| {
-        vec![serenity::CreateActionRow::Buttons(vec![
-            serenity::CreateButton::new(btn_id)
-                .label("KYS")
-                .emoji('☠')
-                .style(serenity::ButtonStyle::Danger)
-        ])]
-    };
-
     ctx.send(
         CreateReply::default()
             .content(format!("Вы {}. Поздравляю со смертью!", choice))
-            .components(make_components(&button_id))
+            .components(
+                vec![serenity::CreateActionRow::Buttons(vec![
+                    serenity::CreateButton::new("kys_btn")
+                        .label("KYS")
+                        .emoji('☠')
+                        .style(serenity::ButtonStyle::Danger)
+                ])]
+            )
             .ephemeral(true)
     ).await?;
 
-    let filter_id = button_id.clone();
-    let _ = handle_button(ctx, &filter_id, 600,
-        |press| {
-            async move {
-                let choice = {
-                    let mut rng = rand::rng();
-                    list.choose(&mut rng).unwrap()
-                };
-                let button_id = format!("{}kys_btn", ctx_id);
-                let _ = press.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
-                    serenity::CreateInteractionResponseMessage::new()
-                        .content(format!("Вы {}. Поздравляю со смертью!", choice))
-                        .components(make_components(&button_id))
-                )).await;
-            }
-        }
-    ).await;
     Ok(())
 }
 

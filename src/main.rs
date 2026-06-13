@@ -7,6 +7,8 @@ mod buttons;
 use types::*;
 use poise::serenity_prelude as serenity;
 
+use modules::fun::buttons::handle_kys_button;
+
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
@@ -18,6 +20,9 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: modules::all(),
+            event_handler: |ctx, event, _framework, _data| {
+                Box::pin(on_event(ctx, event))
+            },
             command_check: Some(|ctx| Box::pin(checks::global_check(ctx))),
             ..Default::default()
         })
@@ -48,4 +53,28 @@ async fn main() {
     } else {
         client.unwrap().start().await.unwrap();
     }
+}
+
+async fn on_event(
+    ctx: &serenity::Context,
+    event: &serenity::FullEvent,
+) -> Result<(), Error> {
+    if let serenity::FullEvent::InteractionCreate { interaction } = event {
+        if let serenity::Interaction::Component(component) = interaction {
+            if matches!(component.data.kind, serenity::ComponentInteractionDataKind::Button) {
+                match component.data.custom_id.as_str() {
+                    "kys_btn" => {
+                        handle_kys_button(ctx, component).await?
+                    }
+
+                    _ => {
+                        component
+                            .create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
+                            .await?;
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
 }
