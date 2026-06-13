@@ -1,7 +1,6 @@
 use poise::serenity_prelude as serenity;
 use poise::{CreateReply};
 use rand::prelude::*;
-pub mod buttons;
 use tokio::time::{sleep, Duration};
 use std::sync::OnceLock;
 
@@ -94,6 +93,32 @@ async fn kys(ctx: Context<'_>) -> Result<(), Error> {
             .ephemeral(true)
     ).await?;
 
+    Ok(())
+}
+
+pub async fn handle_kys_button(
+    ctx: &serenity::Context,
+    interaction: &serenity::ComponentInteraction,
+) -> Result<(), Error> {
+    let list = get_kys_list();
+
+    let choice = {
+        let mut rng = rand::rng();
+        list.choose(&mut rng).unwrap()
+    };
+
+    interaction.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
+        serenity::CreateInteractionResponseMessage::new()
+            .content(format!("Вы {}. Поздравляю со смертью!", choice))
+            .components(
+                vec![serenity::CreateActionRow::Buttons(vec![
+                    serenity::CreateButton::new("kys_btn")
+                        .label("KYS")
+                        .emoji('☠')
+                        .style(serenity::ButtonStyle::Danger)
+                ])]
+            )
+    )).await?;
     Ok(())
 }
 

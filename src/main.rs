@@ -7,7 +7,8 @@ mod buttons;
 use types::*;
 use poise::serenity_prelude as serenity;
 
-use modules::fun::buttons::handle_kys_button;
+// глобальные обработчики кнопок
+use modules::fun::handle_kys_button;
 
 #[tokio::main]
 async fn main() {
