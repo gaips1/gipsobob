@@ -23,12 +23,12 @@ pub async fn sex(
         return Ok(());
     }
 
-    // if user.id == ctx.author().id {
-    //     ctx.send(CreateReply::default().content("Ты чё ебать себя собираешься?").ephemeral(true)).await?;
-    //     return Ok(());
-    // }
+    if user.id == ctx.author().id {
+        ctx.send(CreateReply::default().content("Ты чё ебать себя собираешься?").ephemeral(true)).await?;
+        return Ok(());
+    }
 
-    let buttons = vec![serenity::CreateActionRow::Buttons(vec![
+    let mut buttons = vec![serenity::CreateActionRow::Buttons(vec![
         serenity::CreateButton::new(format!("{}:sex:yes", ctx.id()))
             .label("Да")
             .style(serenity::ButtonStyle::Success),
@@ -46,15 +46,24 @@ pub async fn sex(
         ))
         .colour(serenity::colours::branding::GREEN);
 
-    ctx.send(
+    let msg = ctx.send(
         CreateReply::default()
             .embed(embed)
             .components(buttons.clone())
     ).await?;
 
-    handle_buttons(ctx, format!("{}:sex:", ctx.id()).as_str(), 300, move |press, relative_id| {
-        let user = user.clone();
-        let mut buttons = buttons.clone();
+    for row in &mut buttons {
+        if let serenity::CreateActionRow::Buttons(btns) = row {
+            for button in btns {
+                *button = button.clone().disabled(true);
+            }
+        }
+    }
+
+    let press_user = user.clone();
+    handle_buttons(ctx, format!("{}:sex:", ctx.id()).as_str(), 5, move |press, relative_id| {
+        let user = press_user.clone();
+        let buttons = buttons.clone();
 
         async move {
             if press.user.id != user.id {
@@ -64,14 +73,6 @@ pub async fn sex(
                         .ephemeral(true)
                 )).await?;
                 return Ok(false);
-            }
-
-            for row in &mut buttons {
-                if let serenity::CreateActionRow::Buttons(btns) = row {
-                    for button in btns {
-                        *button = button.clone().disabled(true);
-                    }
-                }
             }
 
             if relative_id == "yes" {
@@ -111,6 +112,23 @@ pub async fn sex(
                 ).await?;
             }
             Ok(true)
+        }
+    }, move || {
+        async move {
+            let embed = serenity::CreateEmbed::default()
+                .title(format!(
+                    "{} не успел согласиться на предложение секса от {}",
+                    user.global_name.as_deref().unwrap_or_else(|| &user.name),
+                    ctx.author().global_name.as_deref().unwrap_or_else(|| &ctx.author().name)
+                ))
+                .colour(serenity::colours::branding::RED);
+
+            msg.edit(ctx,
+                CreateReply::default()
+                    .components(vec![])
+                    .embed(embed)
+            ).await?;
+            Ok(())  
         }
     }).await?;
 
