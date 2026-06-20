@@ -8,7 +8,7 @@ use types::*;
 use poise::serenity_prelude as serenity;
 
 // глобальные обработчики кнопок
-use modules::fun::handle_kys_button;
+use modules::fun::kys::handle_kys_button;
 
 #[tokio::main]
 async fn main() {
@@ -68,11 +68,7 @@ async fn on_event(
                         handle_kys_button(ctx, component).await?
                     }
 
-                    _ => {
-                        component
-                            .create_response(ctx, serenity::CreateInteractionResponse::Acknowledge)
-                            .await?;
-                    }
+                    _ => { }
                 }
             }
         }
