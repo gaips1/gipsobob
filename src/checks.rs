@@ -1,9 +1,10 @@
 use poise::CreateReply;
-use sea_orm::{ColumnTrait, PaginatorTrait, QueryFilter};
+use sea_orm::{ColumnTrait, QueryFilter};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait, QuerySelect};
 use poise::serenity_prelude as serenity;
 use crate::types::*;
 use crate::database::{prelude::*, users, sbp_users};
+use sea_orm::SelectExt;
 
 pub async fn global_check(ctx: Context<'_>) -> Result<bool, Error> {
     let db = &ctx.data().db;

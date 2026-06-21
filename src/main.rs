@@ -10,7 +10,7 @@ use poise::serenity_prelude as serenity;
 // глобальные обработчики кнопок
 use modules::fun::kys::handle_kys_button;
 use modules::sbp::register::sbp_register;
-use modules::sbp::handle_change_notifications_button;
+use modules::sbp::account::handle_change_notifications_button;
 
 #[tokio::main]
 async fn main() {
