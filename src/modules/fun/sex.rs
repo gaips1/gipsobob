@@ -13,7 +13,7 @@ const GIFS: [&str; 5] = [
 ];
 
 /// Предложить секс пользователю
-#[poise::command(slash_command, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+#[poise::command(slash_command, context_menu_command = "Предложить секс", install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
 pub async fn sex(
     ctx: Context<'_>,
     #[description = "Кому предлагается секс"] user: serenity::User,
@@ -61,7 +61,7 @@ pub async fn sex(
     }
 
     let press_user = user.clone();
-    handle_buttons(ctx, format!("{}:sex:", ctx.id()).as_str(), 5, move |press, relative_id| {
+    handle_buttons(ctx, format!("{}:sex:", ctx.id()).as_str(), 300, move |press, relative_id| {
         let user = press_user.clone();
         let buttons = buttons.clone();
 
