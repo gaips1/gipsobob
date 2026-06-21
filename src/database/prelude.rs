@@ -7,6 +7,6 @@ pub use super::giveaways::Entity as Giveaways;
 pub use super::harems::Entity as Harems;
 pub use super::marriages::Entity as Marriages;
 pub use super::quests::Entity as Quests;
-pub use super::sbp::Entity as Sbp;
 pub use super::sbp_invites::Entity as SbpInvites;
+pub use super::sbp_users::Entity as SbpUsers;
 pub use super::users::Entity as Users;

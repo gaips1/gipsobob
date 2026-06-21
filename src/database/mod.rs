@@ -9,6 +9,6 @@ pub mod giveaways;
 pub mod harems;
 pub mod marriages;
 pub mod quests;
-pub mod sbp;
 pub mod sbp_invites;
+pub mod sbp_users;
 pub mod users;

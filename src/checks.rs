@@ -1,8 +1,9 @@
 use poise::CreateReply;
 use sea_orm::{ColumnTrait, PaginatorTrait, QueryFilter};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait, QuerySelect};
+use poise::serenity_prelude as serenity;
 use crate::types::*;
-use crate::database::{prelude::*, users, sbp};
+use crate::database::{prelude::*, users, sbp_users};
 
 pub async fn global_check(ctx: Context<'_>) -> Result<bool, Error> {
     let db = &ctx.data().db;
@@ -29,11 +30,10 @@ pub async fn global_check(ctx: Context<'_>) -> Result<bool, Error> {
             Ok(true)
         }
         Ok(None) => {
-            let new_user = users::ActiveModel {
+            let _ = users::ActiveModel {
                 id: Set(user_id.into()),
                 ..Default::default()
-            };
-            let _ = new_user.insert(db).await;
+            }.insert(db).await;
             Ok(true)
         }
         Err(e) => {
@@ -52,19 +52,27 @@ pub async fn sbp_check(ctx: Context<'_>) -> Result<bool, Error> {
     let db = &ctx.data().db;
     let user_id = ctx.author().id;
 
-    let is_sbp_user_exists = Sbp::find()
+    let is_sbp_user_exists = SbpUsers::find()
         .select_only()
-        .filter(sbp::Column::Id.eq::<u64>(user_id.into()))
+        .filter(sbp_users::Column::Id.eq::<u64>(user_id.into()))
         .exists(db)
         .await;
 
     match is_sbp_user_exists {
         Ok(is_exists) => {
             if !is_exists {
+                let buttons = vec![serenity::CreateActionRow::Buttons(vec![
+                        serenity::CreateButton::new("sbp_register_btn")
+                            .label("Зарегистрироваться в СБП")
+                            .style(serenity::ButtonStyle::Success)
+                    ]
+                )];
+
                 let _ = ctx.send(
                     CreateReply::default()
-                        .content("Вы не зарегистрированы в Системе Быстрых Платежей! Сделайте это, написав **/reg**.")
+                        .content("Вы не зарегистрированы в Системе Быстрых Платежей! Сделайте это, нажав кнопку ниже.")
                         .ephemeral(true)
+                        .components(buttons)
                 ).await;
                 return Ok(false);
             }

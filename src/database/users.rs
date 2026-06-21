@@ -27,8 +27,8 @@ pub enum Relation {
     Harems,
     #[sea_orm(has_many = "super::quests::Entity")]
     Quests,
-    #[sea_orm(has_one = "super::sbp::Entity")]
-    Sbp,
+    #[sea_orm(has_one = "super::sbp_users::Entity")]
+    SbpUsers,
 }
 
 impl Related<super::giveaway_participants::Entity> for Entity {
@@ -49,9 +49,9 @@ impl Related<super::quests::Entity> for Entity {
     }
 }
 
-impl Related<super::sbp::Entity> for Entity {
+impl Related<super::sbp_users::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Sbp.def()
+        Relation::SbpUsers.def()
     }
 }
 

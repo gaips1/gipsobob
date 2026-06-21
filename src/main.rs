@@ -9,6 +9,8 @@ use poise::serenity_prelude as serenity;
 
 // глобальные обработчики кнопок
 use modules::fun::kys::handle_kys_button;
+use modules::sbp::register::sbp_register;
+use modules::sbp::handle_change_notifications_button;
 
 #[tokio::main]
 async fn main() {
@@ -21,8 +23,8 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: modules::all(),
-            event_handler: |ctx, event, _framework, _data| {
-                Box::pin(on_event(ctx, event))
+            event_handler: |ctx, event, framework, data| {
+                Box::pin(on_event(ctx, event, framework, data))
             },
             command_check: Some(|ctx| Box::pin(checks::global_check(ctx))),
             ..Default::default()
@@ -56,9 +58,11 @@ async fn main() {
     }
 }
 
-async fn on_event(
+async fn on_event<'a>(
     ctx: &serenity::Context,
     event: &serenity::FullEvent,
+    _framework: poise::FrameworkContext<'a, Data, Error>,
+    data: &'a Data
 ) -> Result<(), Error> {
     if let serenity::FullEvent::InteractionCreate { interaction } = event {
         if let serenity::Interaction::Component(component) = interaction {
@@ -66,6 +70,14 @@ async fn on_event(
                 match component.data.custom_id.as_str() {
                     "kys_btn" => {
                         handle_kys_button(ctx, component).await?
+                    }
+
+                    "sbp_register_btn" => {
+                        sbp_register(ctx, component, data).await?
+                    }
+
+                    "sbp_notifications_change" => {
+                        handle_change_notifications_button(ctx, component, data).await?
                     }
 
                     _ => { }
