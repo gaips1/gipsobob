@@ -25,7 +25,7 @@ pub async fn invite(
             .label("Принять приглашение")
     ])];
 
-    let msg = ctx.send(CreateReply::default().embed(embed).components(buttons)).await?;
+    let msg = ctx.send(CreateReply::default().embed(embed.clone()).components(buttons)).await?;
 
     handle_button(ctx, &ctx.id().to_string(), 3600,
         move |press| {
@@ -119,11 +119,11 @@ pub async fn invite(
         }, move || {
             async move {
                 let buttons = vec![serenity::CreateActionRow::Buttons(vec![
-                    serenity::CreateButton::new("")
+                    serenity::CreateButton::new("disabled")
                         .label("Приглашение истекло")
                         .disabled(true)
                 ])];
-                msg.edit(ctx, CreateReply::default().components(buttons)).await?;
+                msg.edit(ctx, CreateReply::default().components(buttons).embed(embed)).await?;
                 return Ok(());
             }
         })
