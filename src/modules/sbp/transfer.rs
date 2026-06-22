@@ -1,8 +1,8 @@
 use poise::{serenity_prelude as serenity};
 use poise::serenity_prelude::utils::CreateQuickModal;
-use sea_orm::ActiveValue::Set;
+use sea_orm::sea_query::Expr;
 use sea_orm::sqlx::types::Decimal;
-use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, QuerySelect};
+use sea_orm::{ColumnTrait, DbErr, EntityTrait, ExprTrait, QueryFilter, QuerySelect};
 use sea_orm::TransactionTrait;
 use pretty_decimal::PrettyDecimal;
 
@@ -74,26 +74,31 @@ async fn transfer(
         return Ok(());
     };
 
-    let author_id = ctx.author().id.into();
-    let user_id = user.id.into();
+    let author_id: u64 = ctx.author().id.into();
+    let user_id: u64 = user.id.into();
     db.transaction::<_, (), DbErr>(|txn| {
         Box::pin(async move {
-            let _ = sbp_users::ActiveModel {
-                id: Set(author_id),
-                balance: Set(author_balance - amount),
-                ..Default::default()
-            }.update(txn).await?;
+            let _ = sbp_users::Entity::update_many()
+                .col_expr(
+                    sbp_users::Column::Balance, 
+                    Expr::col(sbp_users::Column::Balance).sub(amount)
+                )
+                .filter(sbp_users::Column::Id.eq(author_id))
+                .exec(txn)
+                .await?;
 
-            let _ = sbp_users::ActiveModel {
-                id: Set(user_id),
-                balance: Set(Decimal::from(user_sbp.0) + amount),
-                ..Default::default()
-            }.update(txn).await?;
+            let _ = sbp_users::Entity::update_many()
+                .col_expr(
+                    sbp_users::Column::Balance, 
+                    Expr::col(sbp_users::Column::Balance).add(amount)
+                )
+                .filter(sbp_users::Column::Id.eq(user_id))
+                .exec(txn)
+                .await?;
 
             Ok(())
         })
-    })
-    .await?;
+    }).await?;
 
     let _ = ctx.say(format!(
         "Успешно перевёл {} бебр {}",
