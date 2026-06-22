@@ -102,30 +102,17 @@ pub async fn transfer(
     )).await;
 
     if user_sbp.1 {
-        let embed: serenity::CreateEmbed = match comment {
-            Some(c) => {
-                serenity::CreateEmbed::default()
-                    .title(format!(
-                        "Получен перевод от {} суммой {} бебр.",
-                        ctx.author().global_name.as_deref().unwrap_or_else(|| &ctx.author().name),
-                        PrettyDecimal::comma3dot(amount),
-                    ))
-                    .colour(serenity::colours::branding::GREEN)
-                    .description(format!(
-                        "Комментарий от отправителя: ```{}```", c
-                    ))
-            }
+        let mut embed = serenity::CreateEmbed::default()
+            .title(format!(
+                "Получен перевод от {} суммой {} бебр.",
+                ctx.author().global_name.as_deref().unwrap_or_else(|| &ctx.author().name),
+                PrettyDecimal::comma3dot(amount)
+            ))
+            .colour(serenity::colours::branding::GREEN);
 
-            None => {
-                serenity::CreateEmbed::default()
-                    .title(format!(
-                        "Получен перевод от {} суммой {} бебр.",
-                        ctx.author().global_name.as_deref().unwrap_or_else(|| &ctx.author().name),
-                        PrettyDecimal::comma3dot(amount),
-                    ))
-                    .colour(serenity::colours::branding::GREEN)
-            }
-        };
+        if let Some(c) = comment {
+            embed = embed.description(format!("Комментарий от отправителя: ```{c}```"));
+        }
 
         let _ = user.dm(&ctx, serenity::CreateMessage::default().embed(embed)).await;
     }
