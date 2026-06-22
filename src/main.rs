@@ -5,7 +5,7 @@ mod checks;
 mod buttons;
 
 use types::*;
-use poise::serenity_prelude as serenity;
+use poise::{CreateReply, serenity_prelude as serenity};
 
 // глобальные обработчики кнопок
 use modules::fun::kys::handle_kys_button;
@@ -23,6 +23,7 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: modules::all(),
+            on_error: |err| Box::pin(on_error(err)),
             event_handler: |ctx, event, framework, data| {
                 Box::pin(on_event(ctx, event, framework, data))
             },
@@ -86,4 +87,11 @@ async fn on_event<'a>(
         }
     }
     Ok(())
+}
+
+async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
+    log::error!("{:?}", error);
+    if let Some(ctx) = error.ctx() {
+        let _ = ctx.send(CreateReply::default().content("Произошла ошибка при выполнении команды.").ephemeral(true)).await;
+    }
 }
