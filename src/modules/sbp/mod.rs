@@ -9,6 +9,7 @@ pub const USER_UNATHORIZED_ERROR: &str = "Пользователь не заре
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
     vec![
         account::account(),
-        transfer::transfer()
+        transfer::transfer_slash_command(),
+        transfer::transfer_context_menu_command()
     ]
 }

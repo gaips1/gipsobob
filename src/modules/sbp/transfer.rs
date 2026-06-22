@@ -1,28 +1,28 @@
-use poise::serenity_prelude as serenity;
+use poise::{serenity_prelude as serenity};
+use poise::serenity_prelude::utils::CreateQuickModal;
 use sea_orm::ActiveValue::Set;
 use sea_orm::sqlx::types::Decimal;
 use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, QuerySelect};
 use sea_orm::TransactionTrait;
 use pretty_decimal::PrettyDecimal;
+
 use crate::checks::sbp_check;
 use crate::database::{sbp_users};
 use crate::modules::sbp::USER_UNATHORIZED_ERROR;
 use crate::types::*;
 
-/// Отправить бебры пользователю с помощью СБП
-#[poise::command(slash_command, ephemeral, check = "sbp_check", install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
-pub async fn transfer(
+async fn transfer(
     ctx: Context<'_>,
-    #[description = "Кому переводим"] user: serenity::User,
-    #[description = "Сумма в бебрах"] amount: f64,
-    #[description = "Комментарий к переводу"] comment: Option<String>
+    user: serenity::User,
+    amount: f64,
+    comment: Option<String>
 ) -> Result<(), Error> {
     let db = &ctx.data().db;
 
     let amount = match Decimal::try_from(amount) {
         Ok(d) => d.round_dp(2),
         Err(_) => {
-            ctx.say("Указана некорректная сумма!").await?;
+            ctx.say("Указана некорректная сумма").await?;
             return Ok(());
         }
     };
@@ -115,6 +115,76 @@ pub async fn transfer(
         }
 
         let _ = user.dm(&ctx, serenity::CreateMessage::default().embed(embed)).await;
+    }
+
+    Ok(())
+}
+
+/// Отправить бебры пользователю с помощью СБП
+#[poise::command(slash_command, ephemeral, rename = "transfer", check = "sbp_check", install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+pub async fn transfer_slash_command(
+    ctx: Context<'_>,
+    #[description = "Кому переводить"] user: serenity::User,
+    #[description = "Сумма в бебрах"] amount: f64,
+    #[description = "Комментарий к переводу"] comment: Option<String>
+) -> Result<(), Error> {
+    transfer(ctx, user, amount, comment).await?;
+    Ok(())
+}
+
+/// Отправить бебры пользователю с помощью СБП
+#[poise::command(context_menu_command = "Перевод бебр", ephemeral, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+pub async fn transfer_context_menu_command(
+    ctx: Context<'_>,
+    #[description = "Кому переводить"] user: serenity::User,
+) -> Result<(), Error> {
+    let poise::Context::Application(app_ctx) = ctx else {
+        return Ok(());
+    };
+
+    let modal = CreateQuickModal::new(
+        format!(
+            "Перевод бебр пользователю {}",
+            user.global_name.as_deref().unwrap_or_else(|| &user.name)
+        ))
+        .timeout(std::time::Duration::from_secs(300))
+        .field(
+            serenity::CreateInputText::new(
+                serenity::InputTextStyle::Short,
+                "Сумма перевода",
+                ""
+            )
+        )
+        .field(
+            serenity::CreateInputText::new(
+                serenity::InputTextStyle::Short,
+                "Комментарий к переводу",
+                ""
+            ).max_length(50).required(false)
+        );
+
+
+    let response = app_ctx.interaction.quick_modal(ctx.serenity_context(), modal).await?;
+    app_ctx.has_sent_initial_response.store(true, std::sync::atomic::Ordering::SeqCst);
+
+    if let Some(response) = response {
+        let Ok(amount) = response.inputs[0].parse::<f64>() else {
+            response.interaction.create_response(
+                ctx.serenity_context(),
+                serenity::CreateInteractionResponse::Acknowledge
+            ).await?;
+            ctx.say("Введите корректное число").await?;
+            return Ok(());
+        };
+
+        let comment: Option<String> = Some(response.inputs[1].clone())
+            .filter(|s| !s.is_empty());
+
+        response.interaction.create_response(
+            ctx.serenity_context(),
+            serenity::CreateInteractionResponse::Acknowledge
+        ).await?;
+        transfer(ctx, user, amount, comment).await?;
     }
 
     Ok(())
