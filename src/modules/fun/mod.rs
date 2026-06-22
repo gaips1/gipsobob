@@ -226,10 +226,10 @@ pub async fn cumshot(
 }
 
 /// Отсосать пользователю
-#[poise::command(slash_command, context_menu_command = "Минет", name_localized("ru", "минет"),  install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+#[poise::command(slash_command, context_menu_command = "Отсосать", name_localized("ru", "отсосать"),  install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
 pub async fn blowjob(
     ctx: Context<'_>,
-    #[description = "Кому делать минет"] user: serenity::User,
+    #[description = "Кому сосать"] user: serenity::User,
 ) -> Result<(), Error> {
     if user.bot {
         ctx.send(CreateReply::default().content("Роботофил!").ephemeral(true)).await?;

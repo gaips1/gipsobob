@@ -1,6 +1,7 @@
 pub mod register;
 pub mod account;
 mod transfer;
+mod invite;
 
 use crate::types::*;
 
@@ -9,7 +10,9 @@ pub const USER_UNATHORIZED_ERROR: &str = "Пользователь не заре
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
     vec![
         account::account(),
+        register::reg(),
         transfer::transfer_slash_command(),
-        transfer::transfer_context_menu_command()
+        transfer::transfer_context_menu_command(),
+        invite::invite()
     ]
 }

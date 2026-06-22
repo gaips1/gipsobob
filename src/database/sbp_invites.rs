@@ -7,10 +7,28 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub user_id: i64,
+    #[sea_orm(primary_key, auto_increment = false)]
     pub invited_user_id: i64,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::sbp_users::Entity",
+        from = "Column::InvitedUserId",
+        to = "super::sbp_users::Column::Id",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    SbpUsers2,
+    #[sea_orm(
+        belongs_to = "super::sbp_users::Entity",
+        from = "Column::UserId",
+        to = "super::sbp_users::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    SbpUsers1,
+}
 
 impl ActiveModelBehavior for ActiveModel {}

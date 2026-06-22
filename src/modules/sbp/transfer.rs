@@ -74,11 +74,11 @@ async fn transfer(
         return Ok(());
     };
 
-    let author_id: u64 = ctx.author().id.into();
-    let user_id: u64 = user.id.into();
+    let author_id: i64 = ctx.author().id.into();
+    let user_id: i64 = user.id.into();
     db.transaction::<_, (), DbErr>(|txn| {
         Box::pin(async move {
-            let _ = sbp_users::Entity::update_many()
+            sbp_users::Entity::update_many()
                 .col_expr(
                     sbp_users::Column::Balance, 
                     Expr::col(sbp_users::Column::Balance).sub(amount)
@@ -87,7 +87,7 @@ async fn transfer(
                 .exec(txn)
                 .await?;
 
-            let _ = sbp_users::Entity::update_many()
+            sbp_users::Entity::update_many()
                 .col_expr(
                     sbp_users::Column::Balance, 
                     Expr::col(sbp_users::Column::Balance).add(amount)
@@ -138,7 +138,7 @@ pub async fn transfer_slash_command(
 }
 
 /// Отправить бебры пользователю с помощью СБП
-#[poise::command(context_menu_command = "Перевод бебр", ephemeral, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+#[poise::command(context_menu_command = "Перевод бебр", check = "sbp_check", ephemeral, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
 pub async fn transfer_context_menu_command(
     ctx: Context<'_>,
     #[description = "Кому переводить"] user: serenity::User,
