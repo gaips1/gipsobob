@@ -4,6 +4,7 @@ mod database;
 mod checks;
 mod buttons;
 
+use sqlx::postgres::PgPoolOptions;
 use types::*;
 use poise::{CreateReply, serenity_prelude as serenity};
 
@@ -32,9 +33,13 @@ async fn main() {
         })
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
-                let db: sea_orm::DatabaseConnection = sea_orm::Database
-                    ::connect(std::env::var("DATABASE_URL")
-                    .expect("env DATABASE_URL not set"))
+                let pool = PgPoolOptions::new()
+                    .max_connections(15)
+                    .connect(
+                        std::env::var("DATABASE_URL")
+                            .expect("env DATABASE_URL not set")
+                            .as_str()
+                        )
                     .await
                     .expect("Cannot connect to db");
 
@@ -43,7 +48,7 @@ async fn main() {
                 ctx.online();
                 ctx.set_activity(Some(serenity::ActivityData::playing("Visual Studio Code")));
 
-                Ok(Data{ db })
+                Ok(Data{ pool })
             })
         })
         .build();
@@ -90,8 +95,16 @@ async fn on_event<'a>(
 }
 
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
+    if let poise::FrameworkError::CommandCheckFailed { error: None, .. } = error {
+        return;
+    }
+
     log::error!("{:?}", error);
     if let Some(ctx) = error.ctx() {
-        let _ = ctx.send(CreateReply::default().content("Произошла ошибка при выполнении команды.").ephemeral(true)).await;
+        let _ = ctx.send(
+            CreateReply::default()
+                .content("Произошла ошибка при выполнении команды.")
+                .ephemeral(true)
+        ).await;
     }
 }

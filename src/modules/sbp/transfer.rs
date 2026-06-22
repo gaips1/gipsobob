@@ -1,13 +1,9 @@
 use poise::{serenity_prelude as serenity};
 use poise::serenity_prelude::utils::CreateQuickModal;
-use sea_orm::sea_query::Expr;
-use sea_orm::sqlx::types::Decimal;
-use sea_orm::{ColumnTrait, DbErr, EntityTrait, ExprTrait, QueryFilter, QuerySelect};
-use sea_orm::TransactionTrait;
 use pretty_decimal::PrettyDecimal;
+use rust_decimal::Decimal;
 
 use crate::checks::sbp_check;
-use crate::database::{sbp_users};
 use crate::modules::sbp::USER_UNATHORIZED_ERROR;
 use crate::types::*;
 
@@ -17,7 +13,7 @@ async fn transfer(
     amount: f64,
     comment: Option<String>
 ) -> Result<(), Error> {
-    let db = &ctx.data().db;
+    let pool = &ctx.data().pool;
 
     let amount = match Decimal::try_from(amount) {
         Ok(d) => d.round_dp(2),
@@ -49,24 +45,25 @@ async fn transfer(
         }
     }
 
-    let author_balance: Decimal = sbp_users::Entity::find_by_id::<i64>(ctx.author().id.into())
-        .select_only()
-        .column(sbp_users::Column::Balance)
-        .into_tuple()
-        .one(db)
-        .await?
-        .unwrap();
+    let mut tx = pool.begin().await?;
+
+    let author_balance: Decimal = sqlx::query_scalar(
+        "SELECT balance FROM sbp_users WHERE id = $1 FOR UPDATE"
+    )
+        .bind::<i64>(ctx.author().id.into())
+        .fetch_one(&mut *tx)
+        .await?;
 
     if author_balance < amount {
         ctx.say("У вас не хватает денег").await?;
         return Ok(());
     }
 
-    let user_sbp: Option<(Decimal, bool)> = sbp_users::Entity::find_by_id::<i64>(user.id.into())
-        .select_only()
-        .columns([sbp_users::Column::Balance, sbp_users::Column::Notifications])
-        .into_tuple()
-        .one(db)
+    let user_sbp: Option<(Decimal, bool)> = sqlx::query_as(
+        "SELECT balance, notifications FROM sbp_users WHERE id = $1 FOR UPDATE"
+    )
+        .bind::<i64>(user.id.into())
+        .fetch_optional(&mut *tx)
         .await?;
 
     let Some(user_sbp) = user_sbp else {
@@ -74,31 +71,23 @@ async fn transfer(
         return Ok(());
     };
 
-    let author_id: i64 = ctx.author().id.into();
-    let user_id: i64 = user.id.into();
-    db.transaction::<_, (), DbErr>(|txn| {
-        Box::pin(async move {
-            sbp_users::Entity::update_many()
-                .col_expr(
-                    sbp_users::Column::Balance, 
-                    Expr::col(sbp_users::Column::Balance).sub(amount)
-                )
-                .filter(sbp_users::Column::Id.eq(author_id))
-                .exec(txn)
-                .await?;
+    sqlx::query(
+        "UPDATE sbp_users SET balance = balance - $1 WHERE id = $2"
+    )
+        .bind(amount)
+        .bind::<i64>(ctx.author().id.into())
+        .execute(&mut *tx)
+        .await?;
 
-            sbp_users::Entity::update_many()
-                .col_expr(
-                    sbp_users::Column::Balance, 
-                    Expr::col(sbp_users::Column::Balance).add(amount)
-                )
-                .filter(sbp_users::Column::Id.eq(user_id))
-                .exec(txn)
-                .await?;
+    sqlx::query(
+        "UPDATE sbp_users SET balance = balance + $1 WHERE id = $2"
+    )
+        .bind(amount)
+        .bind::<i64>(user.id.into())
+        .execute(&mut *tx)
+        .await?;
 
-            Ok(())
-        })
-    }).await?;
+    tx.commit().await?;
 
     let _ = ctx.say(format!(
         "Успешно перевёл {} бебр {}",

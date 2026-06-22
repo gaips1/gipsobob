@@ -1,14 +1,9 @@
 use poise::serenity_prelude::Mentionable;
 use poise::{serenity_prelude as serenity};
-use sea_orm::ActiveValue::Set;
-use sea_orm::sea_query::Expr;
-use sea_orm::{ColumnTrait, DbErr, EntityTrait, ExprTrait, QueryFilter, QuerySelect, SelectExt};
-use sea_orm::TransactionTrait;
 use poise::{CreateReply};
 
 use crate::buttons::handle_button;
 use crate::checks::sbp_check;
-use crate::database::{sbp_invites, sbp_users};
 use crate::types::*;
 
 /// Пригласить друзей в СБП и получить бебры
@@ -30,13 +25,11 @@ pub async fn invite(
     handle_button(ctx, &ctx.id().to_string(), 3600,
         move |press| {
             async move {
-                let db = &ctx.data().db;
+                let pool = &ctx.data().pool;
 
-                let is_sbp_user_exists = sbp_users::Entity::find()
-                    .select_only()
-                    .filter(sbp_users::Column::Id.eq::<u64>(press.user.id.into()))
-                    .exists(db)
-                    .await?;
+                let is_sbp_user_exists: bool = sqlx::query_scalar(
+                    "SELECT EXISTS (SELECT 1 FROM users WHERE id = $1)"
+                ).bind::<i64>(press.user.id.into()).fetch_one(pool).await?;
 
                 if is_sbp_user_exists {
                     press.create_response(&ctx, serenity::CreateInteractionResponse::Message(
@@ -47,40 +40,32 @@ pub async fn invite(
                     return Ok(false);
                 }
 
-                let author_id = ctx.author().id.into();
-                let invited_id = press.user.id.into();
-                db.transaction::<_, (), DbErr>(|txn| {
-                    Box::pin(async move {
-                        let model = sbp_users::ActiveModel {
-                            id: Set(invited_id),
-                            ..Default::default()
-                        };
+                let mut tx = pool.begin().await?;
 
-                        sbp_users::Entity::insert(model)
-                            .exec_without_returning(txn)
-                            .await?;
+                sqlx::query(
+                    "INSERT INTO sbp_users (id) VALUES ($1)"
+                )
+                    .bind::<i64>(press.user.id.into())
+                    .execute(&mut *tx)
+                    .await?;
+                
+                sqlx::query(
+                    "INSERT INTO sbp_invites (user_id, invited_user_id) VALUES ($1, $2)"
+                )
+                    .bind::<i64>(ctx.author().id.into())
+                    .bind::<i64>(press.user.id.into())
+                    .execute(&mut *tx)
+                    .await?;
 
-                        let model = sbp_invites::ActiveModel {
-                            user_id: Set(author_id),
-                            invited_user_id: Set(invited_id),
-                        };
+                sqlx::query(
+                    "UPDATE sbp_users SET balance = balance + $1 WHERE id = $2"
+                )
+                    .bind(200)
+                    .bind::<i64>(ctx.author().id.into())
+                    .execute(&mut *tx)
+                    .await?;
 
-                        sbp_invites::Entity::insert(model)
-                            .exec_without_returning(txn)
-                            .await?;
-
-                        sbp_users::Entity::update_many()
-                            .col_expr(
-                                sbp_users::Column::Balance, 
-                                Expr::col(sbp_users::Column::Balance).add(200)
-                            )
-                            .filter(sbp_users::Column::Id.eq(author_id))
-                            .exec(txn)
-                            .await?;
-
-                        Ok(())
-                    })
-                }).await?;
+                tx.commit().await?;
 
                 let embed = serenity::CreateEmbed::default()
                     .title("Приглашение принято")
@@ -97,13 +82,9 @@ pub async fn invite(
                         .ephemeral(true)
                 )).await?;
 
-                let author_notifications: bool = sbp_users::Entity::find_by_id::<i64>(ctx.author().id.into())
-                    .select_only()
-                    .column(sbp_users::Column::Notifications)
-                    .into_tuple()
-                    .one(db)
-                    .await?
-                    .unwrap();
+                let author_notifications: bool = sqlx::query_scalar(
+                    "SELECT notifications FROM sbp_users WHERE id = $1"
+                ).bind::<i64>(ctx.author().id.into()).fetch_one(pool).await?;
 
                 if author_notifications {
                     ctx.author().dm(ctx, serenity::CreateMessage::default()

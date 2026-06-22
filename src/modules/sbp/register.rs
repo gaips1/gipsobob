@@ -1,20 +1,14 @@
-use crate::{database::sbp_users, types::*};
+use crate::{types::*};
 use poise::serenity_prelude as serenity;
-use sea_orm::{ActiveValue::Set, EntityTrait, SqlErr};
 
 pub async fn sbp_register(
     ctx: &serenity::Context,
     interaction: &serenity::ComponentInteraction,
     data: &Data
 ) -> Result<(), Error> {
-    let model = sbp_users::ActiveModel {
-        id: Set(interaction.user.id.into()),
-        ..Default::default()
-    };
-
-    let sbp_user = sbp_users::Entity::insert(model)
-        .exec_without_returning(&data.db)
-        .await;
+    let sbp_user = sqlx::query(
+        "INSERT INTO sbp_users (id) VALUES ($1)"
+    ).bind::<i64>(interaction.user.id.into()).execute(&data.pool).await;
 
     match sbp_user {
         Ok(_) => {
@@ -27,21 +21,24 @@ pub async fn sbp_register(
         }
 
         Err(err) => {
-            if let Some(SqlErr::UniqueConstraintViolation(_)) = err.sql_err() {
-                interaction.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Вы уже зарегистрированы в СБП")
-                        .ephemeral(true)
-                        .components(vec![])
-                )).await?;
-            } else {
-                interaction.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Произошла неизвестная ошибка при регистрации")
-                        .ephemeral(true)
-                        .components(vec![])
-                )).await?;
+            if let Some(db_err) = err.as_database_error() {
+                if db_err.is_unique_violation() {
+                   interaction.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Вы уже зарегистрированы в СБП")
+                            .ephemeral(true)
+                            .components(vec![])
+                    )).await?; 
+                    return Ok(());
+                }
+                
             }
+            interaction.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
+                serenity::CreateInteractionResponseMessage::default()
+                    .content("Произошла неизвестная ошибка при регистрации")
+                    .ephemeral(true)
+                    .components(vec![])
+            )).await?;
         }
     }
 
@@ -51,14 +48,9 @@ pub async fn sbp_register(
 /// Регистрация в СБП
 #[poise::command(slash_command, ephemeral, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
 pub async fn reg(ctx: Context<'_>) -> Result<(), Error> {
-    let model = sbp_users::ActiveModel {
-        id: Set(ctx.author().id.into()),
-        ..Default::default()
-    };
-
-    let sbp_user = sbp_users::Entity::insert(model)
-        .exec_without_returning(&ctx.data().db)
-        .await;
+    let sbp_user = sqlx::query(
+        "INSERT INTO sbp_users (id) VALUES ($1)"
+    ).bind::<i64>(ctx.author().id.into()).execute(&ctx.data().pool).await;
 
     match sbp_user {
         Ok(_) => {
@@ -66,12 +58,14 @@ pub async fn reg(ctx: Context<'_>) -> Result<(), Error> {
         }
 
         Err(err) => {
-            if let Some(SqlErr::UniqueConstraintViolation(_)) = err.sql_err() {
-                ctx.say("Вы уже зарегистрированы в СБП").await?;
-            } else {
-                log::error!("{:?}", err);
-                ctx.say("Произошла неизвестная ошибка при регистрации").await?;
+            if let Some(db_err) = err.as_database_error() {
+                if db_err.is_unique_violation() {
+                    ctx.say("Вы уже зарегистрированы в СБП").await?;
+                    return Ok(());
+                }
+                
             }
+            ctx.say("Произошла неизвестная ошибка при регистрации").await?;
         }
     }
 

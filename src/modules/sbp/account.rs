@@ -1,33 +1,30 @@
 use poise::serenity_prelude as serenity;
 use poise::{CreateReply};
-use sea_orm::ActiveValue::Set;
-use sea_orm::sqlx::types::Decimal;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, JoinType, QuerySelect, RelationTrait};
 use pretty_decimal::PrettyDecimal;
+use rust_decimal::Decimal;
 
 use crate::checks::sbp_check;
-use crate::database;
 use crate::types::*;
 use crate::modules::sbp::register::sbp_register;
 
 /// Твой личный кабинет Системы Быстрых Платежей 
 #[poise::command(slash_command, check = "sbp_check", install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
 pub async fn account(ctx: Context<'_>) -> Result<(), Error> {
-    let db = &ctx.data().db;
+    let pool = &ctx.data().pool;
 
-    let user: (Decimal, bool, i64) = database::sbp_users::Entity::find_by_id::<i64>(ctx.author().id.into())
-        .select_only()
-        .columns([database::sbp_users::Column::Balance, database::sbp_users::Column::Notifications])
-        .column_as(database::sbp_invites::Column::UserId.count(), "invite_count")
-        .join_rev(
-            JoinType::LeftJoin,
-            database::sbp_invites::Relation::SbpUsers1.def()
-        )
-        .group_by(database::sbp_users::Column::Id)
-        .into_tuple()
-        .one(db)
-        .await?
-        .unwrap();
+    let user: (Decimal, bool, i64) = sqlx::query_as(
+        "SELECT \
+            u.balance, \
+            u.notifications, \
+            COUNT(i.user_id) \
+        FROM sbp_users u \
+        LEFT JOIN sbp_invites i ON i.user_id = u.id \
+        WHERE u.id = $1 \
+        GROUP BY u.id;"
+    )
+        .bind::<i64>(ctx.author().id.into())
+        .fetch_one(pool)
+        .await?;
 
     let embed = serenity::CreateEmbed::default()
         .title(format!("Личный кабинет: {}", ctx.author().global_name.as_deref().unwrap_or_else(|| &ctx.author().name)))
@@ -58,33 +55,34 @@ pub async fn handle_change_notifications_button(
     interaction: &serenity::ComponentInteraction,
     data: &Data
 ) -> Result<(), Error> {
-    let user_notifications: Option<bool> = database::sbp_users::Entity::find_by_id::<i64>(interaction.user.id.into())
-        .select_only()
-        .column(database::sbp_users::Column::Notifications)
-        .into_tuple()
-        .one(&data.db)
+    let new_notifications: Option<bool> = sqlx::query_scalar(
+        "UPDATE sbp_users SET notifications = NOT notifications WHERE id = $1 RETURNING notifications"
+    )
+        .bind::<i64>(interaction.user.id.into())
+        .fetch_optional(&data.pool)
         .await?;
 
-    let Some(user_notifications) = user_notifications else {
+    let Some(new_notifications) = new_notifications else {
         return sbp_register(ctx, interaction, data).await;
     };
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
-        if !user_notifications {
-            serenity::CreateButton::new("sbp_notifications_change").label("Выключить уведомления").emoji('✖').style(serenity::ButtonStyle::Danger)
+        if new_notifications {
+            serenity::CreateButton::new("sbp_notifications_change")
+                .label("Выключить уведомления")
+                .emoji('✖')
+                .style(serenity::ButtonStyle::Danger)
         } else {
-            serenity::CreateButton::new("sbp_notifications_change").label("Включить уведомления").emoji('✅').style(serenity::ButtonStyle::Success)
+            serenity::CreateButton::new("sbp_notifications_change")
+                .label("Включить уведомления")
+                .emoji('✅')
+                .style(serenity::ButtonStyle::Success)
         }
     ])];
-
-    database::sbp_users::ActiveModel {
-        id: Set(interaction.user.id.into()),
-        notifications: Set(!user_notifications),
-        ..Default::default()
-    }.update_without_returning(&data.db).await?;
 
     interaction.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
         serenity::CreateInteractionResponseMessage::default().components(buttons)
     )).await?;
+    
     Ok(())
 }
