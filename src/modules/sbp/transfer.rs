@@ -4,7 +4,7 @@ use pretty_decimal::PrettyDecimal;
 use rust_decimal::Decimal;
 
 use crate::checks::sbp_check;
-use crate::modules::sbp::USER_UNATHORIZED_ERROR;
+use crate::modules::sbp::USER_UNAUTHORIZED_ERROR;
 use crate::types::*;
 
 async fn transfer(
@@ -67,7 +67,7 @@ async fn transfer(
         .await?;
 
     let Some(user_sbp) = user_sbp else {
-        ctx.say(USER_UNATHORIZED_ERROR).await?;
+        ctx.say(USER_UNAUTHORIZED_ERROR).await?;
         return Ok(());
     };
 

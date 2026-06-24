@@ -5,7 +5,7 @@ mod invite;
 
 use crate::types::*;
 
-pub const USER_UNATHORIZED_ERROR: &str = "Пользователь не зарегистрирован в Системе Быстрых Платежей! Скажите ему, чтобы он сделал это, написав `/reg`.\n||Или же пригласите его, используя команду `/invite`||";
+pub const USER_UNAUTHORIZED_ERROR: &str = "Пользователь не зарегистрирован в Системе Быстрых Платежей! Скажите ему, чтобы он сделал это, написав `/reg`.\n||Или же пригласите его, используя команду `/invite`||";
 
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
     vec![
