@@ -2,6 +2,7 @@ use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::futures::StreamExt;
 use crate::types::*;
 use std::future::Future;
+use std::pin::Pin;
 
 /// Обработчик нажатий на одну кнопку по её айди.
 /// В on_click вернуть false, чтобы продолжить обработку нажатий,
@@ -25,11 +26,29 @@ where
         .stream();
 
     let mut is_broken = false;
-    while let Some(press) = stream.next().await {
-        let break_updates = on_click(press).await?;
-        if break_updates {
-            is_broken = true;
-            break;
+    let mut active_click: Option<Pin<Box<Fut>>> = None;
+
+    loop {
+        tokio::select! {
+            maybe_press = stream.next() => {
+                if let Some(press) = maybe_press {
+                    active_click = Some(Box::pin(on_click(press)));
+                } else {
+                    break;
+                }
+            }
+            res = async {
+                match &mut active_click {
+                    Some(fut) => fut.as_mut().await,
+                    None => std::future::pending().await,
+                }
+            } => {
+                active_click = None;
+                if res? {
+                    is_broken = true;
+                    break;
+                }
+            }
         }
     }
 
@@ -62,16 +81,34 @@ where
         .stream();
 
     let mut is_broken = false;
-    while let Some(press) = stream.next().await {
-        let relative_id = press.data.custom_id
-            .strip_prefix(prefix)
-            .unwrap_or(&press.data.custom_id)
-            .to_string();
+    let mut active_click: Option<Pin<Box<Fut>>> = None;
 
-        let break_updates = on_click(press, relative_id).await?;
-        if break_updates {
-            is_broken = true;
-            break;
+    loop {
+        tokio::select! {
+            maybe_press = stream.next() => {
+                if let Some(press) = maybe_press {
+                    let relative_id = press.data.custom_id
+                        .strip_prefix(prefix)
+                        .unwrap_or(&press.data.custom_id)
+                        .to_string();
+                        
+                    active_click = Some(Box::pin(on_click(press, relative_id)));
+                } else {
+                    break;
+                }
+            }
+            res = async {
+                match &mut active_click {
+                    Some(fut) => fut.as_mut().await,
+                    None => std::future::pending().await,
+                }
+            } => {
+                active_click = None;
+                if res? {
+                    is_broken = true;
+                    break;
+                }
+            }
         }
     }
 
