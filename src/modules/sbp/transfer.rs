@@ -156,8 +156,7 @@ pub async fn transfer_context_menu_command(
                 ""
             ).max_length(50).required(false)
         );
-
-
+        
     let response = app_ctx.interaction.quick_modal(ctx.serenity_context(), modal).await?;
     app_ctx.has_sent_initial_response.store(true, std::sync::atomic::Ordering::SeqCst);
 
