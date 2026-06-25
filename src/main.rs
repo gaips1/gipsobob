@@ -12,6 +12,7 @@ use poise::{CreateReply, serenity_prelude as serenity};
 use modules::fun::kys::handle_kys_button;
 use modules::sbp::register::sbp_register;
 use modules::sbp::account::handle_change_notifications_button;
+use modules::sbp::casino::{handle_guess_button, handle_slots_button};
 
 #[tokio::main]
 async fn main() {
@@ -84,6 +85,14 @@ async fn on_event<'a>(
 
                     "sbp_notifications_change" => {
                         handle_change_notifications_button(ctx, component, data).await?
+                    }
+
+                    "casino:slots" => {
+                        handle_slots_button(ctx, component, data).await?
+                    }
+
+                    "casino:guess" => {
+                        handle_guess_button(ctx, component, data).await?
                     }
 
                     _ => { }

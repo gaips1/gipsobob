@@ -3,6 +3,7 @@ pub mod account;
 mod transfer;
 mod invite;
 mod captcha;
+pub mod casino;
 
 use crate::types::*;
 
@@ -15,6 +16,7 @@ pub fn commands() -> Vec<poise::Command<Data, Error>> {
         transfer::transfer_slash_command(),
         transfer::transfer_context_menu_command(),
         invite::invite(),
-        captcha::captcha()
+        captcha::captcha(),
+        casino::casino()
     ]
 }

@@ -55,7 +55,7 @@ async fn transfer(
         .await?;
 
     if author_balance < amount {
-        ctx.say("У вас не хватает денег").await?;
+        ctx.say("У вас не хватает бебр").await?;
         return Ok(());
     }
 
@@ -92,14 +92,14 @@ async fn transfer(
     let _ = ctx.say(format!(
         "Успешно перевёл {} бебр {}",
         PrettyDecimal::comma3dot(amount), 
-        user.global_name.as_deref().unwrap_or_else(|| &user.name)
+        user.display_name()
     )).await;
 
     if user_sbp.1 {
         let mut embed = serenity::CreateEmbed::default()
             .title(format!(
                 "Получен перевод от {} суммой {} бебр.",
-                ctx.author().global_name.as_deref().unwrap_or_else(|| &ctx.author().name),
+                ctx.author().display_name(),
                 PrettyDecimal::comma3dot(amount)
             ))
             .colour(serenity::colours::branding::GREEN);
@@ -139,7 +139,7 @@ pub async fn transfer_context_menu_command(
     let modal = CreateQuickModal::new(
         format!(
             "Перевод бебр пользователю {}",
-            user.global_name.as_deref().unwrap_or_else(|| &user.name)
+            user.display_name()
         ))
         .timeout(std::time::Duration::from_secs(300))
         .field(
