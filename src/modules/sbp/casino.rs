@@ -1,0 +1,194 @@
+use poise::serenity_prelude as serenity;
+use poise::{CreateReply};
+use rand::seq::{IndexedRandom};
+use rust_decimal::Decimal;
+use rust_decimal::prelude::FromPrimitive;
+use tokio::time::sleep;
+
+use crate::checks::sbp_check;
+use crate::types::*;
+
+/// Казино "У Снюсоеда"
+#[poise::command(slash_command, check = "sbp_check", install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+pub async fn casino(ctx: Context<'_>) -> Result<(), Error> {
+    let embed = serenity::CreateEmbed::default()
+        .title("Добро пожаловать в казино!")
+        .description("**Выбирайте игру:**");
+
+    let buttons = vec![serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new("casino:slots").label("Слоты"),
+            serenity::CreateButton::new("casino:guess").label("Угадай число")
+    ])];
+
+    ctx.send(CreateReply::default().embed(embed).ephemeral(true).components(buttons)).await?;
+    Ok(())
+}
+
+pub async fn handle_slots_button(
+    ctx: &serenity::Context,
+    interaction: &serenity::ComponentInteraction,
+    data: &Data
+) -> Result<(), Error> {
+    let modal = serenity::CreateQuickModal::new("Слоты")
+        .timeout(std::time::Duration::from_secs(300))
+        .field(
+            serenity::CreateInputText::new(
+                serenity::InputTextStyle::Short,
+                "Ваша ставка:",
+                ""
+            ).max_length(20)
+        );
+    let response = interaction.quick_modal(ctx, modal).await?;
+    let Some(response) = response else {
+        return Ok(());
+    };
+
+    let stavka = response.inputs.first().map(|s| s.as_str()).unwrap_or("").parse::<u64>();
+    let Ok(stavka) = stavka else {
+        response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваша ставка не является числом")
+                    .ephemeral(true)
+            )
+        ).await?;
+        return Ok(());
+    };
+
+    if stavka < 300 {
+        response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Минимальная ставка 300 бебр")
+                    .ephemeral(true)
+            )
+        ).await?;
+        return Ok(());
+    }
+
+    let stavka: Decimal = stavka.into();
+
+    let emojis_pool = [
+        "7️⃣", "☢️", "#️⃣",
+        "🔥", "⚛️", "🦑", "🧪",
+    ];
+    let slots: [&str; 3] = {
+        let mut rng = rand::rng();
+        std::array::from_fn(|_| *emojis_pool.choose(&mut rng).unwrap())
+    };
+ 
+    let win: Option<Decimal> = if slots[0] == slots[1] && slots[1] == slots[2] {
+        Some(stavka * Decimal::from_f64(3.5).unwrap())
+    } else if slots[0] == slots[1] || slots[1] == slots[2] || slots[0] == slots[2] {
+        Some(stavka * Decimal::TWO)
+    } else {
+        None
+    };
+ 
+    let mut tx = data.pool.begin().await?;
+ 
+    let author_balance: Decimal = sqlx::query_scalar(
+        "SELECT balance FROM sbp_users WHERE id = $1 FOR UPDATE"
+    )
+        .bind::<i64>(interaction.user.id.into())
+        .fetch_one(&mut *tx)
+        .await?;
+ 
+    if author_balance < stavka {
+        tx.rollback().await?;
+        response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("У вас не хватает бебр")
+                    .ephemeral(true)
+            )
+        ).await?;
+        return Ok(());
+    }
+ 
+    let delta = match win {
+        Some(w) => w - stavka,
+        None    => -stavka,
+    };
+ 
+    sqlx::query(
+        "UPDATE sbp_users SET balance = balance + $1 WHERE id = $2"
+    )
+        .bind(delta)
+        .bind::<i64>(interaction.user.id.into())
+        .execute(&mut *tx)
+        .await?;
+ 
+    tx.commit().await?;
+ 
+    response.interaction.create_response(
+        ctx,
+        serenity::CreateInteractionResponse::Message(
+            serenity::CreateInteractionResponseMessage::new()
+                .embed(
+                    serenity::CreateEmbed::default()
+                        .title("Спасибо, ставка принята!")
+                        .description("Кручу барабан, подождите немного...")
+                        .colour(serenity::colours::branding::GREEN)
+                )
+                .ephemeral(true)
+        )
+    ).await?;
+ 
+    let mut revealed = String::new();
+    for emoji in &slots {
+        sleep(std::time::Duration::from_millis(3_000)).await;
+        revealed += emoji;
+ 
+        response.interaction.edit_response(
+            ctx,
+            serenity::EditInteractionResponse::new()
+                .embed(serenity::CreateEmbed::default().title(&revealed))
+        ).await?;
+    }
+ 
+    let full_slots = slots.concat();
+    match win {
+        Some(win) => {
+            response.interaction.edit_response(
+                ctx,
+                serenity::EditInteractionResponse::new()
+                    .embed(
+                        serenity::CreateEmbed::default()
+                            .title(format!("Вы выиграли! {full_slots}"))
+                            .description(format!("Ваша ставка: {stavka} бебр\nВыигрыш: {win} бебр"))
+                            .colour(serenity::colours::branding::GREEN)
+                    )
+            ).await?;
+        }
+        None => {
+            response.interaction.edit_response(
+                ctx,
+                serenity::EditInteractionResponse::new()
+                    .embed(
+                        serenity::CreateEmbed::default()
+                            .title(format!("Вы проиграли! {full_slots}"))
+                            .description(format!(
+                                "Вы могли бы выиграть {} бебр!",
+                                stavka * Decimal::from_f64(3.5).unwrap()
+                            ))
+                            .colour(serenity::colours::branding::FUCHSIA)
+                    )
+            ).await?;
+        }
+    }
+
+    Ok(())
+}
+
+pub async fn handle_guess_button(
+    ctx: &serenity::Context,
+    interaction: &serenity::ComponentInteraction,
+    data: &Data
+) -> Result<(), Error> {
+    // TODO
+    Ok(())
+}
