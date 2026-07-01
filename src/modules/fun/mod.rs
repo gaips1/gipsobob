@@ -1,4 +1,5 @@
 mod sex;
+mod rps;
 pub mod kys;
 
 use poise::serenity_prelude as serenity;
@@ -299,6 +300,7 @@ pub fn commands() -> Vec<poise::Command<Data, Error>> {
         blowjob(),
         footjob(),
 
+        rps::rps(),
         kys::kys(),
         sex::sex()
     ]

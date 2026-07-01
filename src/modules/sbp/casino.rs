@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use poise::serenity_prelude as serenity;
 use poise::{CreateReply};
 use rand::seq::{IndexedRandom};
@@ -36,7 +38,7 @@ pub async fn handle_slots_button(
                 serenity::InputTextStyle::Short,
                 "Ваша ставка:",
                 ""
-            ).max_length(20)
+            ).max_length(20).value("300")
         );
     let response = interaction.quick_modal(ctx, modal).await?;
     let Some(response) = response else {
@@ -67,9 +69,8 @@ pub async fn handle_slots_button(
         ).await?;
         return Ok(());
     }
-
+    
     let stavka: Decimal = stavka.into();
-
     let emojis_pool = [
         "7️⃣", "☢️", "#️⃣",
         "🔥", "⚛️", "🦑", "🧪",
@@ -87,17 +88,23 @@ pub async fn handle_slots_button(
         None
     };
  
-    let mut tx = data.pool.begin().await?;
- 
-    let author_balance: Decimal = sqlx::query_scalar(
-        "SELECT balance FROM sbp_users WHERE id = $1 FOR UPDATE"
+    let delta = match win {
+        Some(w) => w - stavka,
+        None    => -stavka,
+    };
+
+    let result = sqlx::query(
+        "UPDATE sbp_users
+         SET balance = balance + $1
+         WHERE id = $2 AND balance >= $3"
     )
+        .bind(delta)
         .bind::<i64>(interaction.user.id.into())
-        .fetch_one(&mut *tx)
+        .bind(stavka)
+        .execute(&data.pool)
         .await?;
- 
-    if author_balance < stavka {
-        tx.rollback().await?;
+
+    if result.rows_affected() == 0 {
         response.interaction.create_response(
             ctx,
             serenity::CreateInteractionResponse::Message(
@@ -107,22 +114,7 @@ pub async fn handle_slots_button(
             )
         ).await?;
         return Ok(());
-    }
- 
-    let delta = match win {
-        Some(w) => w - stavka,
-        None    => -stavka,
     };
- 
-    sqlx::query(
-        "UPDATE sbp_users SET balance = balance + $1 WHERE id = $2"
-    )
-        .bind(delta)
-        .bind::<i64>(interaction.user.id.into())
-        .execute(&mut *tx)
-        .await?;
- 
-    tx.commit().await?;
  
     response.interaction.create_response(
         ctx,
@@ -140,14 +132,17 @@ pub async fn handle_slots_button(
  
     let mut revealed = String::new();
     for emoji in &slots {
-        sleep(std::time::Duration::from_millis(3_000)).await;
+        sleep(std::time::Duration::from_millis(2_000)).await;
+
         revealed += emoji;
- 
+
         response.interaction.edit_response(
             ctx,
             serenity::EditInteractionResponse::new()
                 .embed(serenity::CreateEmbed::default().title(&revealed))
         ).await?;
+
+        sleep(std::time::Duration::from_millis(1_000)).await;
     }
  
     let full_slots = slots.concat();
@@ -189,6 +184,177 @@ pub async fn handle_guess_button(
     interaction: &serenity::ComponentInteraction,
     data: &Data
 ) -> Result<(), Error> {
-    // TODO
+    let modal = serenity::CreateQuickModal::new("Угадай число")
+        .timeout(std::time::Duration::from_secs(300))
+        .field(
+            serenity::CreateInputText::new(
+                serenity::InputTextStyle::Short,
+                "Ваша ставка",
+                ""
+            ).max_length(20).value("100")
+        )
+        .field(
+            serenity::CreateInputText::new(
+                serenity::InputTextStyle::Short,
+                "До какого числа будете угадывать? (включит.)",
+                ""
+            ).max_length(20).value("10")
+        )
+        .field(
+            serenity::CreateInputText::new(
+                serenity::InputTextStyle::Short,
+                "Ваше число",
+                ""
+            ).max_length(20)
+        );
+
+    let response = interaction.quick_modal(ctx, modal).await?;
+    let Some(response) = response else {
+        return Ok(());
+    };
+
+    let stavka = response.inputs.first().map(|s| s.as_str()).unwrap_or("").parse::<u64>();
+    let Ok(stavka) = stavka else {
+        response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваша ставка не является числом")
+                    .ephemeral(true)
+            )
+        ).await?;
+        return Ok(());
+    };
+
+    if stavka < 100 {
+        response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Минимальная ставка 100 бебр")
+                    .ephemeral(true)
+            )
+        ).await?;
+        return Ok(());
+    }
+    let stavka: Decimal = stavka.into();
+
+    let range = response.inputs.get(1).map(|s| s.as_str()).unwrap_or("").parse::<u64>();
+    let Ok(range) = range else {
+        response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваше число не является числом")
+                    .ephemeral(true)
+            )
+        ).await?;
+        return Ok(());
+    };
+
+    let number = response.inputs.get(2).map(|s| s.as_str()).unwrap_or("").parse::<u64>();
+    let Ok(number) = number else {
+        response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваше число не является числом")
+                    .ephemeral(true)
+            )
+        ).await?;
+        return Ok(());
+    };
+
+    if number < 1 || number > range {
+        response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваше число не входит в указанный диапазон!")
+                    .ephemeral(true)
+            )
+        ).await?;
+        return Ok(());
+    }
+
+    let rand_num = rand::random_range(1..=range);
+    let win: Option<Decimal> = if rand_num == number {
+        Some(
+            stavka
+                .mul(Decimal::from_u64(range).unwrap())
+                .mul(Decimal::from_f64(0.2).unwrap())
+        )
+    } else {
+        None
+    };
+
+    let delta = match win {
+        Some(w) => w - stavka,
+        None    => -stavka,
+    };
+
+    let result = sqlx::query(
+        "UPDATE sbp_users
+         SET balance = balance + $1
+         WHERE id = $2 AND balance >= $3"
+    )
+        .bind(delta)
+        .bind::<i64>(interaction.user.id.into())
+        .bind(stavka)
+        .execute(&data.pool)
+        .await?;
+
+    if result.rows_affected() == 0 {
+        response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("У вас не хватает бебр")
+                    .ephemeral(true)
+            )
+        ).await?;
+        return Ok(());
+    };
+
+    match win {
+        Some(w) => {
+            response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(
+                        serenity::CreateEmbed::default()
+                            .title(format!("Вы выиграли!"))
+                            .description(format!("Ваша ставка: {stavka} бебр\nВыигрыш: {w} бебр"))
+                            .colour(serenity::colours::branding::GREEN)
+                    )
+                    .ephemeral(true)
+                )
+            ).await?;
+        }
+
+        None => {
+            response.interaction.create_response(
+            ctx,
+            serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(
+                        serenity::CreateEmbed::default()
+                            .title(format!("Вы проиграли!"))
+                            .description(format!(
+                                "Я выдумал число {}\nВы могли бы выиграть {} бебр!",
+                                rand_num,
+                                stavka
+                                    .mul(Decimal::from_u64(range).unwrap())
+                                    .mul(Decimal::from_f64(0.2).unwrap())
+                            ))
+                            .colour(serenity::colours::branding::FUCHSIA)
+                    )
+                    .ephemeral(true)
+                )
+            ).await?;
+        }
+    }
+
     Ok(())
 }
