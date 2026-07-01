@@ -1,6 +1,6 @@
 mod types;
 mod modules;
-mod database;
+// mod database;
 mod checks;
 mod buttons;
 
