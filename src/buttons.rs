@@ -4,17 +4,35 @@ use crate::types::*;
 use std::future::Future;
 use std::pin::Pin;
 
-/// Обработчик нажатий на одну кнопку по её айди.
-/// В on_click вернуть false, чтобы продолжить обработку нажатий,
-/// и true, чтобы прекратить.
-/// Если время ожидания истекло, вызывается on_timeout.
+/// Слушает нажатия на кнопку с конкретным `custom_id` в течение `timeout_secs` секунд.
+///
+/// При каждом нажатии вызывается `on_click`. Если он возвращает `Ok(true)`,
+/// прослушивание немедленно прекращается (например, когда условие выполнено
+/// и дальше ждать нечего). Если `Ok(false)` — коллектор продолжает ждать
+/// следующих нажатий.
+///
+/// Если за отведённое время не пришло ни одного нажатия, удовлетворившего
+/// `on_click` (т.е. коллектор завершился по таймауту), вызывается `on_timeout`.
+///
+/// # Параметры
+/// - `ctx` — контекст команды.
+/// - `button_id` — точный `custom_id` кнопки, нажатия на которую нужно слушать.
+/// - `timeout_secs` — сколько секунд ждать нажатие, прежде чем сработает таймаут.
+/// - `on_click` — вызывается при каждом нажатии на кнопку. Верните `Ok(true)`,
+///   чтобы остановить прослушивание, `Ok(false)` — чтобы продолжить ждать.
+/// - `on_timeout` — вызывается один раз, если время истекло, а `on_click`
+///   так и не вернул `Ok(true)`.
+///
+/// # Возвращает
+/// `Ok(true)`, если прослушивание завершилось из-за нажатия (т.е. `on_click`
+/// вернул `true`), и `Ok(false)`, если завершилось по таймауту.
 pub async fn handle_button<Fut, FutTimeout>(
     ctx: Context<'_>,
     button_id: &str,
     timeout_secs: u64,
     mut on_click: impl FnMut(serenity::ComponentInteraction) -> Fut,
     on_timeout: impl FnOnce() -> FutTimeout,
-) -> Result<(), Error>
+) -> Result<bool, Error>
 where
     Fut: Future<Output = Result<bool, Error>>,
     FutTimeout: Future<Output = Result<(), Error>>,
@@ -56,20 +74,37 @@ where
         on_timeout().await?;
     }
 
-    Ok(())
+    Ok(is_broken)
 }
 
-/// Обработчик нажатий на кнопки по их префиксу.
-/// В on_click вернуть false, чтобы продолжить обработку нажатий,
-/// и true, чтобы прекратить.
-/// Если время ожидания истекло, вызывается on_timeout.
+/// Слушает нажатия на все кнопки, `custom_id` которых начинается с `prefix`,
+/// в течение `timeout_secs` секунд.
+///
+/// При каждом нажатии вызывается `on_click`, куда вторым аргументом передаётся
+/// часть `custom_id` после `prefix` (удобно для различения нескольких кнопок
+/// с общим префиксом, например `"rps:choice:rock"` → `"rock"`).
+/// Если `on_click` возвращает `Ok(true)`, прослушивание немедленно
+/// прекращается. Если `Ok(false)` — коллектор продолжает ждать следующих нажатий.
+///
+/// Если за отведённое время ни одно нажатие не привело к `Ok(true)`
+/// (коллектор завершился по таймауту), вызывается `on_timeout`.
+///
+/// # Параметры
+/// - `ctx` — контекст команды.
+/// - `prefix` — префикс `custom_id`, по которому отбираются нажатия кнопок.
+/// - `timeout_secs` — сколько секунд ждать нажатия, прежде чем сработает таймаут.
+/// - `on_click` — вызывается при каждом подходящем нажатии; вторым аргументом
+///   приходит `custom_id` без префикса. Верните `Ok(true)`, чтобы остановить
+///   прослушивание, `Ok(false)` — чтобы продолжить ждать.
+/// - `on_timeout` — вызывается один раз, если время истекло, а `on_click`
+///   так и не вернул `Ok(true)`.
 pub async fn handle_buttons<Fut, FutTimeout>(
     ctx: Context<'_>,
     prefix: &str,
     timeout_secs: u64,
     mut on_click: impl FnMut(serenity::ComponentInteraction, String) -> Fut,
     on_timeout: impl FnOnce() -> FutTimeout,
-) -> Result<(), Error>
+) -> Result<bool, Error>
 where
     Fut: Future<Output = Result<bool, Error>>,
     FutTimeout: Future<Output = Result<(), Error>>,
@@ -116,5 +151,5 @@ where
         on_timeout().await?;
     }
 
-    Ok(())
+    Ok(is_broken)
 }
