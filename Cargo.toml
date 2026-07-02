@@ -1,13 +1,13 @@
 [package]
 name = "gipsobob"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2024"
 
 [dependencies]
 poise = "0.6.2"
 tokio = { version = "1.21.2", features = ["full"] }
 dotenvy = "0.15"
-sqlx = { version = "0.8", features = [ "runtime-tokio", "postgres", "macros", "rust_decimal" ] }
+sqlx = { version = "0.8", features = [ "runtime-tokio", "postgres", "rust_decimal", "chrono" ] }
 rand = "0.10.1"
 log = "0.4"
 pretty_env_logger = "0.5"
@@ -17,3 +17,4 @@ pretty_decimal = "0.2"
 image = "0.25"
 imageproc = "0.25"
 ab_glyph = "0.2"
+chrono = "0.4.45"
