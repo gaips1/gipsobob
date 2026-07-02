@@ -108,6 +108,15 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
         return;
     }
 
+    if let poise::FrameworkError::CooldownHit { remaining_cooldown, ctx, .. } = error {
+        let _ = ctx.send(CreateReply::default().content(format!(
+            "Подожди ещё {:.1} секунд перед повторным использованием команды.",
+            remaining_cooldown.as_secs_f32()
+        )))
+            .await;
+        return;
+    }
+
     log::error!("{:?}", error);
     if let Some(ctx) = error.ctx() {
         let _ = ctx.send(
