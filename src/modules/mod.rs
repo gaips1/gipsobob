@@ -2,11 +2,13 @@ use crate::types::*;
 
 pub mod fun;
 pub mod sbp;
+pub mod marriages;
 
 pub fn all() -> Vec<poise::Command<Data, Error>> {
     [
         fun::commands(),
-        sbp::commands()
+        sbp::commands(),
+        marriages::commands()
     ]
     .into_iter()
     .flatten()
