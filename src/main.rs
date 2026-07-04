@@ -30,7 +30,13 @@ async fn main() {
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 let pool = PgPoolOptions::new()
-                    .max_connections(5)
+                    .max_connections(
+                        std::env::var("DATABASE_MAX_CONNECTIONS")
+                            .unwrap_or("5".to_owned())
+                            .as_str()
+                            .parse()
+                            .expect("DATABASE_MAX_CONNECTIONS must be integer")
+                    )
                     .min_connections(2)
                     .connect(
                         std::env::var("DATABASE_URL")
