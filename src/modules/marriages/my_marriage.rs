@@ -1,5 +1,5 @@
 use crate::{types::*};
-use poise::serenity_prelude::{self as serenity};
+use poise::serenity_prelude::{self as serenity, Mentionable};
 
 /// Управление моим браком
 #[poise::command(slash_command, ephemeral, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
@@ -25,7 +25,8 @@ pub async fn my_marriage(ctx: Context<'_>,) -> Result<(), Error> {
         .description(format!(
             "**Партнёр: <@{}>\nВы вступили в брак** <t:{}:R>",
             partner_id, row.2.timestamp()
-        ));
+        ))
+        .colour(serenity::colours::branding::BLURPLE);
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
         serenity::CreateButton::new("marriage:divorce").label("Развестись").style(serenity::ButtonStyle::Danger),
@@ -41,7 +42,65 @@ pub async fn handle_divorce_button(
     interaction: &serenity::ComponentInteraction,
     data: &Data
 ) -> Result<(), Error> {
-    // TODO
+    match interaction.data.custom_id.as_str() {
+        "marriage:divorce" => {
+            let embed = serenity::CreateEmbed::new()
+                .title("Развод")
+                .description("Вы уверены, что хотите развестись?")
+                .colour(serenity::colours::branding::RED);
+
+            let buttons = vec![serenity::CreateActionRow::Buttons(vec![
+                serenity::CreateButton::new("marriage:divorce:yes").label("Да").style(serenity::ButtonStyle::Danger),
+            ])];
+
+            interaction.create_response(ctx, serenity::CreateInteractionResponse::Message(
+                serenity::CreateInteractionResponseMessage::default()
+                    .embed(embed)
+                    .components(buttons)
+                    .ephemeral(true)
+            )).await?;
+        }
+
+        "marriage:divorce:yes" => {
+            let row: Option<(i64, i64)> = sqlx::query_as(
+                "SELECT user_id, partner_id FROM marriages WHERE user_id = $1 OR partner_id = $1"
+            )
+                .bind::<i64>(interaction.user.id.into())
+                .fetch_optional(&data.pool)
+                .await?;
+
+            let Some(row) = row else {
+                interaction.create_response(ctx, serenity::CreateInteractionResponse::UpdateMessage(
+                    serenity::CreateInteractionResponseMessage::default()
+                        .content("Вы в данный момент не в браке")
+                        .embeds(vec![])
+                        .components(vec![])
+                        .ephemeral(true)
+                )).await?;
+                return Ok(());
+            };
+
+            sqlx::query(
+                "DELETE FROM marriages WHERE user_id = $1 OR partner_id = $1"
+            )
+                .bind::<i64>(interaction.user.id.into())
+                .execute(&data.pool)
+                .await?;
+
+            interaction.create_response(ctx, serenity::CreateInteractionResponse::UpdateMessage(
+                serenity::CreateInteractionResponseMessage::default()
+                    .content("Вы успешно развелись :(")
+                    .embeds(vec![])
+                    .components(vec![])
+            )).await?;
+
+            let partner_id = if row.0 as u64 == interaction.user.id.get() { row.1 } else { row.0 };
+            let partner = serenity::UserId::new(partner_id as u64).to_user(ctx).await;
+            let Ok(partner) = partner else { return Ok(()) };
+            let _ = partner.dm(ctx, serenity::CreateMessage::new().content(format!("{} развёлся с вами! :(", interaction.user.mention()))).await;
+        }
+        _ => { }
+    }
 
     Ok(())
 }
