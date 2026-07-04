@@ -9,12 +9,8 @@ pub async fn handle_marriages_buttons(
     interaction: &serenity::ComponentInteraction,
     data: &Data
 ) -> Result<(), Error> {
-    match interaction.data.custom_id.as_str() {
-        "marriage::divorce" => {
-            my_marriage::handle_divorce_button(ctx, interaction, data).await?;
-        }
-
-        _ => { }
+    if interaction.data.custom_id.as_str().starts_with("marriage:divorce") {
+        my_marriage::handle_divorce_button(ctx, interaction, data).await?;
     }
     Ok(())
 }
