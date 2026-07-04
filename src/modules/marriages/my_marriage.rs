@@ -1,4 +1,4 @@
-use crate::{buttons::handle_buttons, types::*};
+use crate::{types::*};
 use poise::serenity_prelude::{self as serenity};
 
 /// Управление моим браком
@@ -20,8 +20,6 @@ pub async fn my_marriage(ctx: Context<'_>,) -> Result<(), Error> {
 
     let partner_id = if row.0 as u64 == ctx.author().id.get() { row.1 } else { row.0 };
 
-    // TODO: add buttons
-
     let embed = serenity::CreateEmbed::new()
         .title("Информация о браке")
         .description(format!(
@@ -29,7 +27,21 @@ pub async fn my_marriage(ctx: Context<'_>,) -> Result<(), Error> {
             partner_id, row.2.timestamp()
         ));
 
-    ctx.send(poise::CreateReply::default().embed(embed).ephemeral(true)).await?;
+    let buttons = vec![serenity::CreateActionRow::Buttons(vec![
+        serenity::CreateButton::new("marriage:divorce").label("Развестись").style(serenity::ButtonStyle::Danger),
+    ])]; 
+
+    ctx.send(poise::CreateReply::default().embed(embed).components(buttons).ephemeral(true)).await?;
+
+    Ok(())
+}
+
+pub async fn handle_divorce_button(
+    ctx: &serenity::Context,
+    interaction: &serenity::ComponentInteraction,
+    data: &Data
+) -> Result<(), Error> {
+    // TODO
 
     Ok(())
 }
