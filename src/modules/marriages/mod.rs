@@ -1,7 +1,23 @@
 use crate::{types::*};
+use poise::serenity_prelude as serenity;
 
 mod marry;
 pub mod my_marriage;
+
+pub async fn handle_marriages_buttons(
+    ctx: &serenity::Context,
+    interaction: &serenity::ComponentInteraction,
+    data: &Data
+) -> Result<(), Error> {
+    match interaction.data.custom_id.as_str() {
+        "marriage::divorce" => {
+            my_marriage::handle_divorce_button(ctx, interaction, data).await?;
+        }
+
+        _ => { }
+    }
+    Ok(())
+}
 
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
     vec![

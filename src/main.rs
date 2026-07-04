@@ -3,16 +3,11 @@ mod modules;
 // mod database;
 mod checks;
 mod buttons;
+mod routes;
 
 use sqlx::postgres::PgPoolOptions;
 use types::*;
 use poise::{CreateReply, serenity_prelude as serenity};
-
-// глобальные обработчики кнопок
-use modules::fun::kys::handle_kys_button;
-use modules::sbp::register::sbp_register;
-use modules::sbp::account::handle_change_notifications_button;
-use modules::sbp::casino::{handle_guess_button, handle_slots_button};
 
 #[tokio::main]
 async fn main() {
@@ -71,35 +66,20 @@ async fn on_event<'a>(
     _framework: poise::FrameworkContext<'a, Data, Error>,
     data: &'a Data
 ) -> Result<(), Error> {
-    if let serenity::FullEvent::InteractionCreate { interaction } = event {
-        if let serenity::Interaction::Component(component) = interaction {
-            if matches!(component.data.kind, serenity::ComponentInteractionDataKind::Button) {
-                match component.data.custom_id.as_str() {
-                    "kys_btn" => {
-                        handle_kys_button(ctx, component).await?
-                    }
+    let serenity::FullEvent::InteractionCreate { interaction } = event else {
+        return Ok(());
+    };
 
-                    "sbp_register_btn" => {
-                        sbp_register(ctx, component, data).await?
-                    }
-
-                    "sbp_notifications_change" => {
-                        handle_change_notifications_button(ctx, component, data).await?
-                    }
-
-                    "casino:slots" => {
-                        handle_slots_button(ctx, component, data).await?
-                    }
-
-                    "casino:guess" => {
-                        handle_guess_button(ctx, component, data).await?
-                    }
-
-                    _ => { }
-                }
-            }
-        }
+    let serenity::Interaction::Component(component) = interaction else {
+        return Ok(());
+    };
+    
+    if !matches!(component.data.kind, serenity::ComponentInteractionDataKind::Button) {
+        return Ok(());
     }
+
+    routes::route_button_interaction(ctx, component, data).await?;
+
     Ok(())
 }
 

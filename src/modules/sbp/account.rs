@@ -40,9 +40,9 @@ pub async fn account(ctx: Context<'_>) -> Result<(), Error> {
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
         if user.1 {
-            serenity::CreateButton::new("sbp_notifications_change").label("Выключить уведомления").emoji('✖').style(serenity::ButtonStyle::Danger)
+            serenity::CreateButton::new("sbp:notifications_change").label("Выключить уведомления").emoji('✖').style(serenity::ButtonStyle::Danger)
         } else {
-            serenity::CreateButton::new("sbp_notifications_change").label("Включить уведомления").emoji('✅').style(serenity::ButtonStyle::Success)
+            serenity::CreateButton::new("sbp:notifications_change").label("Включить уведомления").emoji('✅').style(serenity::ButtonStyle::Success)
         }
     ])];
 
@@ -68,12 +68,12 @@ pub async fn handle_change_notifications_button(
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
         if new_notifications {
-            serenity::CreateButton::new("sbp_notifications_change")
+            serenity::CreateButton::new("sbp:notifications_change")
                 .label("Выключить уведомления")
                 .emoji('✖')
                 .style(serenity::ButtonStyle::Danger)
         } else {
-            serenity::CreateButton::new("sbp_notifications_change")
+            serenity::CreateButton::new("sbp:notifications_change")
                 .label("Включить уведомления")
                 .emoji('✅')
                 .style(serenity::ButtonStyle::Success)

@@ -53,7 +53,7 @@ pub async fn sbp_check(ctx: Context<'_>) -> Result<bool, Error> {
         Ok(is_exists) => {
             if !is_exists {
                 let buttons = vec![serenity::CreateActionRow::Buttons(vec![
-                        serenity::CreateButton::new("sbp_register_btn")
+                        serenity::CreateButton::new("sbp:register")
                             .label("Зарегистрироваться в СБП")
                             .style(serenity::ButtonStyle::Success)
                     ]
