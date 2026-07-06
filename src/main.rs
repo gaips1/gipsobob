@@ -1,6 +1,5 @@
 mod modules;
 mod types;
-// mod database;
 mod buttons;
 mod checks;
 mod routes;
@@ -61,8 +60,10 @@ async fn main() {
         .await;
 
     if std::env::var("BOT_SHARDED").as_deref() == Ok("true") {
+        log::info!("start sharded");
         client.unwrap().start_autosharded().await.unwrap();
     } else {
+        log::info!("start nonsharded");
         client.unwrap().start().await.unwrap();
     }
 }
