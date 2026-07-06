@@ -1,17 +1,22 @@
-use crate::{types::*};
-use std::fmt::Write;
+use crate::types::*;
 use poise::serenity_prelude::{self as serenity};
+use std::fmt::Write;
 
 /// Показать топ браков по времени
-#[poise::command(slash_command, ephemeral, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
-pub async fn marriages(ctx: Context<'_>,) -> Result<(), Error> {
+#[poise::command(
+    slash_command,
+    ephemeral,
+    install_context = "User | Guild",
+    interaction_context = "Guild | BotDm | PrivateChannel"
+)]
+pub async fn marriages(ctx: Context<'_>) -> Result<(), Error> {
     let pool = &ctx.data().pool;
-    
+
     let marriages: Vec<(i64, i64, chrono::DateTime<chrono::Utc>)> = sqlx::query_as(
-        "SELECT user_id, partner_id, created_at FROM marriages ORDER BY created_at ASC LIMIT 10"
+        "SELECT user_id, partner_id, created_at FROM marriages ORDER BY created_at ASC LIMIT 10",
     )
-        .fetch_all(pool)
-        .await?;
+    .fetch_all(pool)
+    .await?;
 
     if marriages.len() == 0 {
         ctx.say("К сожалению, браков пока нет.").await?;
@@ -23,7 +28,10 @@ pub async fn marriages(ctx: Context<'_>,) -> Result<(), Error> {
         let _ = write!(
             text,
             "**{}.** <@{}> и <@{}> - <t:{}:R>\n",
-            i + 1, m.0, m.1, m.2.timestamp()
+            i + 1,
+            m.0,
+            m.1,
+            m.2.timestamp()
         );
     }
 
@@ -32,7 +40,8 @@ pub async fn marriages(ctx: Context<'_>,) -> Result<(), Error> {
         .description(text)
         .colour(serenity::colours::branding::BLURPLE);
 
-    ctx.send(poise::CreateReply::default().embed(embed).ephemeral(true)).await?;
+    ctx.send(poise::CreateReply::default().embed(embed).ephemeral(true))
+        .await?;
 
     Ok(())
 }

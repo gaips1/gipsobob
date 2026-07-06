@@ -1,13 +1,13 @@
-mod types;
 mod modules;
+mod types;
 // mod database;
-mod checks;
 mod buttons;
+mod checks;
 mod routes;
 
+use poise::{CreateReply, serenity_prelude as serenity};
 use sqlx::postgres::PgPoolOptions;
 use types::*;
-use poise::{CreateReply, serenity_prelude as serenity};
 
 #[tokio::main]
 async fn main() {
@@ -35,14 +35,14 @@ async fn main() {
                             .unwrap_or("5".to_owned())
                             .as_str()
                             .parse()
-                            .expect("DATABASE_MAX_CONNECTIONS must be integer")
+                            .expect("DATABASE_MAX_CONNECTIONS must be integer"),
                     )
                     .min_connections(2)
                     .connect(
                         std::env::var("DATABASE_URL")
                             .expect("env DATABASE_URL not set")
-                            .as_str()
-                        )
+                            .as_str(),
+                    )
                     .await
                     .expect("Cannot connect to db");
 
@@ -51,7 +51,7 @@ async fn main() {
                 ctx.online();
                 ctx.set_activity(Some(serenity::ActivityData::playing("Visual Studio Code")));
 
-                Ok(Data{ pool })
+                Ok(Data { pool })
             })
         })
         .build();
@@ -71,7 +71,7 @@ async fn on_event<'a>(
     ctx: &serenity::Context,
     event: &serenity::FullEvent,
     _framework: poise::FrameworkContext<'a, Data, Error>,
-    data: &'a Data
+    data: &'a Data,
 ) -> Result<(), Error> {
     let serenity::FullEvent::InteractionCreate { interaction } = event else {
         return Ok(());
@@ -80,8 +80,11 @@ async fn on_event<'a>(
     let serenity::Interaction::Component(component) = interaction else {
         return Ok(());
     };
-    
-    if !matches!(component.data.kind, serenity::ComponentInteractionDataKind::Button) {
+
+    if !matches!(
+        component.data.kind,
+        serenity::ComponentInteractionDataKind::Button
+    ) {
         return Ok(());
     }
 
@@ -95,21 +98,29 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
         return;
     }
 
-    if let poise::FrameworkError::CooldownHit { remaining_cooldown, ctx, .. } = error {
-        let _ = ctx.send(CreateReply::default().content(format!(
-            "Подожди ещё {:.1} секунд перед повторным использованием команды.",
-            remaining_cooldown.as_secs_f32()
-        )))
+    if let poise::FrameworkError::CooldownHit {
+        remaining_cooldown,
+        ctx,
+        ..
+    } = error
+    {
+        let _ = ctx
+            .send(CreateReply::default().content(format!(
+                "Подожди ещё {:.1} секунд перед повторным использованием команды.",
+                remaining_cooldown.as_secs_f32()
+            )))
             .await;
         return;
     }
 
     log::error!("{:?}", error);
     if let Some(ctx) = error.ctx() {
-        let _ = ctx.send(
-            CreateReply::default()
-                .content("Произошла ошибка при выполнении команды.")
-                .ephemeral(true)
-        ).await;
+        let _ = ctx
+            .send(
+                CreateReply::default()
+                    .content("Произошла ошибка при выполнении команды.")
+                    .ephemeral(true),
+            )
+            .await;
     }
 }

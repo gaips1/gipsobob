@@ -3,5 +3,5 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[derive(Debug)]
 pub struct Data {
-    pub pool: sqlx::Pool<sqlx::Postgres>
+    pub pool: sqlx::Pool<sqlx::Postgres>,
 }
