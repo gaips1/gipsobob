@@ -2,10 +2,15 @@ use crate::{buttons::handle_buttons, types::*};
 use poise::serenity_prelude::{self as serenity, Mentionable};
 
 /// Сделать предложение руки и сердца
-#[poise::command(slash_command, ephemeral, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+#[poise::command(
+    slash_command,
+    ephemeral,
+    install_context = "User | Guild",
+    interaction_context = "Guild | BotDm | PrivateChannel"
+)]
 pub async fn marry(
     ctx: Context<'_>,
-    #[description = "Кому предлагаете"] user: serenity::User
+    #[description = "Кому предлагаете"] user: serenity::User,
 ) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
@@ -20,11 +25,11 @@ pub async fn marry(
     }
 
     let is_author_marriaged: bool = sqlx::query_scalar(
-        "SELECT EXISTS (SELECT 1 FROM marriages WHERE user_id = $1 OR partner_id = $1)"
+        "SELECT EXISTS (SELECT 1 FROM marriages WHERE user_id = $1 OR partner_id = $1)",
     )
-        .bind::<i64>(ctx.author().id.into())
-        .fetch_one(pool)
-        .await?;
+    .bind::<i64>(ctx.author().id.into())
+    .fetch_one(pool)
+    .await?;
 
     if is_author_marriaged {
         ctx.say("Ты, чё, изменщик? KYS").await?;
@@ -32,11 +37,11 @@ pub async fn marry(
     }
 
     let is_user_marriaged: bool = sqlx::query_scalar(
-        "SELECT EXISTS (SELECT 1 FROM marriages WHERE user_id = $1 OR partner_id = $1)"
+        "SELECT EXISTS (SELECT 1 FROM marriages WHERE user_id = $1 OR partner_id = $1)",
     )
-        .bind::<i64>(user.id.into())
-        .fetch_one(pool)
-        .await?;
+    .bind::<i64>(user.id.into())
+    .fetch_one(pool)
+    .await?;
 
     if is_user_marriaged {
         ctx.say("Пользователь уже в браке").await?;
@@ -53,11 +58,22 @@ pub async fn marry(
         .colour(serenity::colours::branding::YELLOW);
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
-        serenity::CreateButton::new(format!("{}:marry:yes", ctx.id())).label("Да").style(serenity::ButtonStyle::Success),
-        serenity::CreateButton::new(format!("{}:marry:no", ctx.id())).label("Нет").style(serenity::ButtonStyle::Danger),
+        serenity::CreateButton::new(format!("{}:marry:yes", ctx.id()))
+            .label("Да")
+            .style(serenity::ButtonStyle::Success),
+        serenity::CreateButton::new(format!("{}:marry:no", ctx.id()))
+            .label("Нет")
+            .style(serenity::ButtonStyle::Danger),
     ])];
 
-    let msg = ctx.send(poise::CreateReply::default().embed(embed).components(buttons).ephemeral(false)).await?;
+    let msg = ctx
+        .send(
+            poise::CreateReply::default()
+                .embed(embed)
+                .components(buttons)
+                .ephemeral(false),
+        )
+        .await?;
 
     handle_buttons(ctx, format!("{}:marry:", ctx.id()).as_str(), 300, 
         move |press, id| {
@@ -119,7 +135,7 @@ pub async fn marry(
                                 .components(vec![])
                         )).await?;
 
-                        press.create_followup(&ctx, 
+                        press.create_followup(&ctx,
                             serenity::CreateInteractionResponseFollowup::new()
                                 .content(format!("**Поздравим молодожёнов!\n{} и {} теперь официально вместе!**", ctx.author().mention(), user.mention()))
                                 .ephemeral(false)
@@ -132,7 +148,7 @@ pub async fn marry(
                                 .components(vec![])
                         )).await?;
 
-                        press.create_followup(&ctx, 
+                        press.create_followup(&ctx,
                             serenity::CreateInteractionResponseFollowup::new()
                                 .content(format!("**{}, вот чёрт, тебе отказал(а) {}**", ctx.author().mention(), user.mention()))
                                 .ephemeral(false)

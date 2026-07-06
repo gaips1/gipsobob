@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 use std::ops::Mul as _;
 
+use crate::buttons::{handle_button, handle_buttons};
+use crate::types::*;
+use poise::CreateReply;
 use poise::serenity_prelude as serenity;
-use poise::{CreateReply};
+use rust_decimal::Decimal;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use rust_decimal::Decimal;
-use crate::buttons::{handle_buttons, handle_button};
-use crate::types::*;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum RpsChoice {
@@ -28,7 +28,13 @@ impl RpsChoice {
 }
 
 /// Камень-ножницы-бумага
-#[poise::command(slash_command, rename = "цуефа", ephemeral, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+#[poise::command(
+    slash_command,
+    rename = "цуефа",
+    ephemeral,
+    install_context = "User | Guild",
+    interaction_context = "Guild | BotDm | PrivateChannel"
+)]
 pub async fn rps(
     ctx: Context<'_>,
     #[description = "С кем играть"] user: serenity::User,
@@ -57,32 +63,35 @@ pub async fn rps(
         };
 
         if amount.is_zero() || amount.is_sign_negative() {
-            ctx.say("Пожалуйста, введите положительное или не нулевое число бебр").await?;
+            ctx.say("Пожалуйста, введите положительное или не нулевое число бебр")
+                .await?;
             return Ok(());
         }
 
         let result = sqlx::query(
-            "UPDATE sbp_users SET balance = balance - $1 WHERE id = $2 AND balance >= $1"
+            "UPDATE sbp_users SET balance = balance - $1 WHERE id = $2 AND balance >= $1",
         )
-            .bind(amount)
-            .bind::<i64>(ctx.author().id.into())
-            .execute(pool)
-            .await?;
+        .bind(amount)
+        .bind::<i64>(ctx.author().id.into())
+        .execute(pool)
+        .await?;
 
         if result.rows_affected() == 0 {
             ctx.say("У Вас не хватает бебр на ставку, либо вы не зарегистрированы в СБП. Сделайте это, используя команду `/reg`").await?;
             return Ok(());
         }
 
-        let is_user_exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS (SELECT 1 FROM sbp_users WHERE id = $1)"
-        )
-            .bind::<i64>(user.id.into())
-            .fetch_one(pool)
-            .await?;
+        let is_user_exists: bool =
+            sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM sbp_users WHERE id = $1)")
+                .bind::<i64>(user.id.into())
+                .fetch_one(pool)
+                .await?;
 
         if !is_user_exists {
-            ctx.say("Пользователь, которому вы предлагаете играть со ставкой, не зарегистрирован в СБП").await?;
+            ctx.say(
+                "Пользователь, которому вы предлагаете играть со ставкой, не зарегистрирован в СБП",
+            )
+            .await?;
             return Ok(());
         }
 
@@ -94,18 +103,27 @@ pub async fn rps(
     } else {
         embed = serenity::CreateEmbed::default()
             .title("Цуефа")
-            .description(
-                format!("**{}** предложил **{}** поиграть в цуефа!\nБез ставки!\nУ него 1 минута на ответ!", ctx.author().display_name(), user.display_name())
-            );
+            .description(format!(
+                "**{}** предложил **{}** поиграть в цуефа!\nБез ставки!\nУ него 1 минута на ответ!",
+                ctx.author().display_name(),
+                user.display_name()
+            ));
     }
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
         serenity::CreateButton::new(format!("{}:rps:yes", ctx.id()))
             .label("Согласен играть")
-            .style(serenity::ButtonStyle::Success)
+            .style(serenity::ButtonStyle::Success),
     ])];
 
-    let msg = ctx.send(CreateReply::default().components(buttons).embed(embed).ephemeral(false)).await?;
+    let msg = ctx
+        .send(
+            CreateReply::default()
+                .components(buttons)
+                .embed(embed)
+                .ephemeral(false),
+        )
+        .await?;
 
     let accepted_user = user.clone();
     let accepted_msg = msg.clone();
@@ -192,7 +210,9 @@ pub async fn rps(
         },
     ).await?;
 
-    if !accepted { return Ok(()) }
+    if !accepted {
+        return Ok(());
+    }
 
     let choices: Arc<Mutex<HashMap<u64, RpsChoice>>> = Arc::new(Mutex::new(HashMap::new()));
     let button_choices = choices.clone();
@@ -205,11 +225,16 @@ pub async fn rps(
             let choices = button_choices.clone();
             async move {
                 if press.user.id != user.id && press.user.id != ctx.author().id {
-                    press.create_response(&ctx, serenity::CreateInteractionResponse::Message(
-                        serenity::CreateInteractionResponseMessage::default()
-                            .content("Тише будь")
-                            .ephemeral(true)
-                    )).await?;
+                    press
+                        .create_response(
+                            &ctx,
+                            serenity::CreateInteractionResponse::Message(
+                                serenity::CreateInteractionResponseMessage::default()
+                                    .content("Тише будь")
+                                    .ephemeral(true),
+                            ),
+                        )
+                        .await?;
                     return Ok(false);
                 }
 
@@ -223,105 +248,135 @@ pub async fn rps(
                 let mut choices = choices.lock().await;
 
                 if choices.contains_key(&press.user.id.get()) {
-                    press.create_response(&ctx, serenity::CreateInteractionResponse::Message(
-                        serenity::CreateInteractionResponseMessage::default()
-                            .content("Ты уже выбрал")
-                            .ephemeral(true)
-                    )).await?;
-                    return Ok(false)
+                    press
+                        .create_response(
+                            &ctx,
+                            serenity::CreateInteractionResponse::Message(
+                                serenity::CreateInteractionResponseMessage::default()
+                                    .content("Ты уже выбрал")
+                                    .ephemeral(true),
+                            ),
+                        )
+                        .await?;
+                    return Ok(false);
                 }
 
                 choices.insert(press.user.id.get(), choice);
 
-                press.create_response(&ctx, serenity::CreateInteractionResponse::Message(
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content(format!(
-                            "Успешно выбрал {}",
-                            if let RpsChoice::Paper = choice { "бумагу" }
-                            else if let RpsChoice::Rock = choice { "камень" }
-                            else { "ножницы" }
-                        ))
-                        .ephemeral(true)
-                )).await?;
+                press
+                    .create_response(
+                        &ctx,
+                        serenity::CreateInteractionResponse::Message(
+                            serenity::CreateInteractionResponseMessage::default()
+                                .content(format!(
+                                    "Успешно выбрал {}",
+                                    if let RpsChoice::Paper = choice {
+                                        "бумагу"
+                                    } else if let RpsChoice::Rock = choice {
+                                        "камень"
+                                    } else {
+                                        "ножницы"
+                                    }
+                                ))
+                                .ephemeral(true),
+                        ),
+                    )
+                    .await?;
 
                 Ok(choices.len() == 2)
             }
         },
-        move || {
-            async move {
-                if let Some(amount) = amount {
-                    let amount = Decimal::try_from(amount).unwrap();
-                    let (_, _) = tokio::join!(
-                        sqlx::query(
-                            "UPDATE sbp_users SET balance = balance + $1 WHERE id = ANY($2)"
-                        )
-                            .bind(amount)
-                            .bind([ctx.author().id.get() as i64, user.id.get() as i64])
-                            .execute(pool),
-
-                        choiced_msg.edit(ctx, CreateReply::default().components(vec![]).content("Время ожидания истекло. Игра отменена."))
-                    );
+        move || async move {
+            if let Some(amount) = amount {
+                let amount = Decimal::try_from(amount).unwrap();
+                let (_, _) = tokio::join!(
+                    sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = ANY($2)")
+                        .bind(amount)
+                        .bind([ctx.author().id.get() as i64, user.id.get() as i64])
+                        .execute(pool),
+                    choiced_msg.edit(
+                        ctx,
+                        CreateReply::default()
+                            .components(vec![])
+                            .content("Время ожидания истекло. Игра отменена.")
+                    )
+                );
             } else {
-                choiced_msg.edit(ctx, CreateReply::default().components(vec![]).content("Время ожидания истекло. Игра отменена.")).await?;
+                choiced_msg
+                    .edit(
+                        ctx,
+                        CreateReply::default()
+                            .components(vec![])
+                            .content("Время ожидания истекло. Игра отменена."),
+                    )
+                    .await?;
             }
             Ok(())
-        }
         },
-    ).await?;
+    )
+    .await?;
 
-    if !choiced { return Ok(()) }
+    if !choiced {
+        return Ok(());
+    }
 
     let choices = choices.lock().await;
 
     let author_choice = *choices.get(&ctx.author().id.get()).unwrap();
     let user_choice = *choices.get(&user.id.get()).unwrap();
 
-    let mut embed = serenity::CreateEmbed::new()
-        .title(format!("Цуефа {} VS {}", ctx.author().display_name(), user.display_name()));
+    let mut embed = serenity::CreateEmbed::new().title(format!(
+        "Цуефа {} VS {}",
+        ctx.author().display_name(),
+        user.display_name()
+    ));
 
     if author_choice == user_choice {
         if let Some(amount) = amount {
             let amount = Decimal::try_from(amount).unwrap();
-            sqlx::query(
-                "UPDATE sbp_users SET balance = balance + $1 WHERE id = ANY($2)"
-            )
+            sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = ANY($2)")
                 .bind(amount)
                 .bind([ctx.author().id.get() as i64, user.id.get() as i64])
                 .execute(pool)
                 .await?;
-            embed = embed.description("Ничья!!! Бебры за ставку возвращены").colour(serenity::colours::branding::YELLOW)
+            embed = embed
+                .description("Ничья!!! Бебры за ставку возвращены")
+                .colour(serenity::colours::branding::YELLOW)
         } else {
-            embed = embed.description("Ничья!!!").colour(serenity::colours::branding::YELLOW)
+            embed = embed
+                .description("Ничья!!!")
+                .colour(serenity::colours::branding::YELLOW)
         }
     } else if author_choice.beats(user_choice) {
         if let Some(amount) = amount {
             let amount = Decimal::try_from(amount).unwrap();
-            sqlx::query(
-                "UPDATE sbp_users SET balance = balance + $1 WHERE id = $2"
-            )
+            sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = $2")
                 .bind(amount.mul(Decimal::TWO))
                 .bind(ctx.author().id.get() as i64)
                 .execute(pool)
                 .await?;
         }
 
-        embed = embed.description(format!("**{}** победил!!!", ctx.author().display_name())).colour(serenity::colours::branding::GREEN)
+        embed = embed
+            .description(format!("**{}** победил!!!", ctx.author().display_name()))
+            .colour(serenity::colours::branding::GREEN)
     } else {
         if let Some(amount) = amount {
             let amount = Decimal::try_from(amount).unwrap();
-            sqlx::query(
-                "UPDATE sbp_users SET balance = balance + $1 WHERE id = $2"
-            )
+            sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = $2")
                 .bind(amount.mul(Decimal::TWO))
                 .bind(user.id.get() as i64)
                 .execute(pool)
                 .await?;
         }
 
-        embed = embed.description(format!("**{}** победил!!!", user.display_name())).colour(serenity::colours::branding::RED)
+        embed = embed
+            .description(format!("**{}** победил!!!", user.display_name()))
+            .colour(serenity::colours::branding::RED)
     }
 
-    msg.edit(ctx, CreateReply::default().embed(embed).components(vec![])).await?;
+    msg.edit(ctx, CreateReply::default().embed(embed).components(vec![]))
+        .await?;
 
     Ok(())
 }

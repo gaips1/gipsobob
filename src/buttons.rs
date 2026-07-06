@@ -1,6 +1,6 @@
+use crate::types::*;
 use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::futures::StreamExt;
-use crate::types::*;
 use std::future::Future;
 use std::pin::Pin;
 
@@ -126,7 +126,7 @@ where
                         .strip_prefix(prefix)
                         .unwrap_or(&press.data.custom_id)
                         .to_string();
-                        
+
                     active_click = Some(Box::pin(on_click(press, relative_id)));
                 } else {
                     break;

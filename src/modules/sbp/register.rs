@@ -1,14 +1,15 @@
-use crate::{types::*};
+use crate::types::*;
 use poise::serenity_prelude as serenity;
 
 pub async fn sbp_register(
     ctx: &serenity::Context,
     interaction: &serenity::ComponentInteraction,
-    data: &Data
+    data: &Data,
 ) -> Result<(), Error> {
-    let sbp_user = sqlx::query(
-        "INSERT INTO sbp_users (id) VALUES ($1)"
-    ).bind::<i64>(interaction.user.id.into()).execute(&data.pool).await;
+    let sbp_user = sqlx::query("INSERT INTO sbp_users (id) VALUES ($1)")
+        .bind::<i64>(interaction.user.id.into())
+        .execute(&data.pool)
+        .await;
 
     match sbp_user {
         Ok(_) => {
@@ -23,22 +24,31 @@ pub async fn sbp_register(
         Err(err) => {
             if let Some(db_err) = err.as_database_error() {
                 if db_err.is_unique_violation() {
-                   interaction.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
-                        serenity::CreateInteractionResponseMessage::default()
-                            .content("Вы уже зарегистрированы в СБП")
-                            .ephemeral(true)
-                            .components(vec![])
-                    )).await?; 
+                    interaction
+                        .create_response(
+                            &ctx,
+                            serenity::CreateInteractionResponse::UpdateMessage(
+                                serenity::CreateInteractionResponseMessage::default()
+                                    .content("Вы уже зарегистрированы в СБП")
+                                    .ephemeral(true)
+                                    .components(vec![]),
+                            ),
+                        )
+                        .await?;
                     return Ok(());
                 }
-                
             }
-            interaction.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
-                serenity::CreateInteractionResponseMessage::default()
-                    .content("Произошла неизвестная ошибка при регистрации")
-                    .ephemeral(true)
-                    .components(vec![])
-            )).await?;
+            interaction
+                .create_response(
+                    &ctx,
+                    serenity::CreateInteractionResponse::UpdateMessage(
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Произошла неизвестная ошибка при регистрации")
+                            .ephemeral(true)
+                            .components(vec![]),
+                    ),
+                )
+                .await?;
         }
     }
 
@@ -46,15 +56,24 @@ pub async fn sbp_register(
 }
 
 /// Регистрация в СБП
-#[poise::command(slash_command, ephemeral, install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+#[poise::command(
+    slash_command,
+    ephemeral,
+    install_context = "User | Guild",
+    interaction_context = "Guild | BotDm | PrivateChannel"
+)]
 pub async fn reg(ctx: Context<'_>) -> Result<(), Error> {
-    let sbp_user = sqlx::query(
-        "INSERT INTO sbp_users (id) VALUES ($1)"
-    ).bind::<i64>(ctx.author().id.into()).execute(&ctx.data().pool).await;
+    let sbp_user = sqlx::query("INSERT INTO sbp_users (id) VALUES ($1)")
+        .bind::<i64>(ctx.author().id.into())
+        .execute(&ctx.data().pool)
+        .await;
 
     match sbp_user {
         Ok(_) => {
-            ctx.say("Вы успешно зарегистрированы! Посмотрите свой баланс используя команду `/account`!").await?;
+            ctx.say(
+                "Вы успешно зарегистрированы! Посмотрите свой баланс используя команду `/account`!",
+            )
+            .await?;
         }
 
         Err(err) => {
@@ -63,9 +82,9 @@ pub async fn reg(ctx: Context<'_>) -> Result<(), Error> {
                     ctx.say("Вы уже зарегистрированы в СБП").await?;
                     return Ok(());
                 }
-                
             }
-            ctx.say("Произошла неизвестная ошибка при регистрации").await?;
+            ctx.say("Произошла неизвестная ошибка при регистрации")
+                .await?;
         }
     }
 

@@ -1,11 +1,11 @@
-use std::io::Cursor;
 use ab_glyph::PxScale;
 use image::{ImageBuffer, Rgb};
 use imageproc::drawing::draw_text_mut;
+use poise::CreateReply;
 use poise::serenity_prelude as serenity;
-use poise::{CreateReply};
 use rand::RngExt;
 use rand::distr::Alphanumeric;
+use std::io::Cursor;
 
 use crate::buttons::handle_button;
 use crate::checks::sbp_check;
@@ -16,7 +16,12 @@ const IMG_WIDTH: u32 = 200;
 const IMG_HEIGHT: u32 = 50;
 
 /// Пройти капчу и получить бебры
-#[poise::command(slash_command, check = "sbp_check", install_context = "User | Guild", interaction_context = "Guild | BotDm | PrivateChannel")]
+#[poise::command(
+    slash_command,
+    check = "sbp_check",
+    install_context = "User | Guild",
+    interaction_context = "Guild | BotDm | PrivateChannel"
+)]
 pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
     let pool = &ctx.data().pool;
 
@@ -41,43 +46,51 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
     draw_text_mut(
         &mut image,
         Rgb([0u8, 0, 0]),
-        10, 10,
+        10,
+        10,
         scale,
         &font,
         &image_text,
     );
 
     let mut buf = Cursor::new(Vec::new());
-    image.write_to(&mut buf, image::ImageFormat::Avif)
+    image
+        .write_to(&mut buf, image::ImageFormat::Avif)
         .expect("image coding error");
     let image_bytes = buf.into_inner();
 
     let button_id = format!("{}:captcha", ctx.id());
     let mut buttons = vec![serenity::CreateActionRow::Buttons(vec![
-        serenity::CreateButton::new(button_id.clone()).label("Ввести капчу")
+        serenity::CreateButton::new(button_id.clone()).label("Ввести капчу"),
     ])];
 
-    let msg = ctx.send(
-        CreateReply::default()
-        .content("Привет!\nТвоя капча:")
-        .attachment(serenity::CreateAttachment::bytes(image_bytes, "captcha.avif"))
-        .components(buttons.clone())
-        .ephemeral(true)
-    ).await?;
+    let msg = ctx
+        .send(
+            CreateReply::default()
+                .content("Привет!\nТвоя капча:")
+                .attachment(serenity::CreateAttachment::bytes(
+                    image_bytes,
+                    "captcha.avif",
+                ))
+                .components(buttons.clone())
+                .ephemeral(true),
+        )
+        .await?;
 
-    handle_button(ctx, &button_id, 300,
+    handle_button(
+        ctx,
+        &button_id,
+        300,
         move |press| {
             let image_text = image_text.clone();
             async move {
                 let modal = serenity::CreateQuickModal::new("Ввод капчи")
                     .timeout(std::time::Duration::from_secs(300))
-                    .field(
-                        serenity::CreateInputText::new(
-                            serenity::InputTextStyle::Short,
-                            "Капча",
-                            "",
-                        )
-                    );
+                    .field(serenity::CreateInputText::new(
+                        serenity::InputTextStyle::Short,
+                        "Капча",
+                        "",
+                    ));
                 let response = press.quick_modal(ctx.serenity_context(), modal).await?;
                 let Some(response) = response else {
                     return Ok(false);
@@ -85,34 +98,38 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
 
                 let entered = response.inputs.first().map(|s| s.as_str()).unwrap_or("");
                 if entered == image_text {
-                    sqlx::query(
-                        "UPDATE sbp_users SET balance = balance + 10 WHERE id = $1",
-                    )
+                    sqlx::query("UPDATE sbp_users SET balance = balance + 10 WHERE id = $1")
                         .bind::<i64>(press.user.id.into())
                         .execute(pool)
                         .await?;
 
-                    response.interaction.create_response(
-                        ctx.serenity_context(),
-                        serenity::CreateInteractionResponse::UpdateMessage(
-                            serenity::CreateInteractionResponseMessage::new()
-                                .content("✅ Капча пройдена! Вы получили 10 бебр.")
-                                .components(vec![])
-                                .ephemeral(true)
+                    response
+                        .interaction
+                        .create_response(
+                            ctx.serenity_context(),
+                            serenity::CreateInteractionResponse::UpdateMessage(
+                                serenity::CreateInteractionResponseMessage::new()
+                                    .content("✅ Капча пройдена! Вы получили 10 бебр.")
+                                    .components(vec![])
+                                    .ephemeral(true),
+                            ),
                         )
-                    ).await?;
-                    
+                        .await?;
+
                     return Ok(true);
                 } else {
-                    response.interaction.create_response(
-                        ctx.serenity_context(),
-                        serenity::CreateInteractionResponse::UpdateMessage(
-                            serenity::CreateInteractionResponseMessage::new()
-                                .content("❌ Неверная капча. Попробуйте с новой капчой.")
-                                .components(vec![])
-                                .ephemeral(true)
+                    response
+                        .interaction
+                        .create_response(
+                            ctx.serenity_context(),
+                            serenity::CreateInteractionResponse::UpdateMessage(
+                                serenity::CreateInteractionResponseMessage::new()
+                                    .content("❌ Неверная капча. Попробуйте с новой капчой.")
+                                    .components(vec![])
+                                    .ephemeral(true),
+                            ),
                         )
-                    ).await?;
+                        .await?;
 
                     return Ok(true);
                 }
@@ -127,16 +144,19 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
                 }
             }
             async move {
-                let _ = msg.edit(
-                    ctx,
-                    CreateReply::default()
-                        .content("Вы не успели ввести капчу!")
-                        .components(buttons)
-                ).await;
+                let _ = msg
+                    .edit(
+                        ctx,
+                        CreateReply::default()
+                            .content("Вы не успели ввести капчу!")
+                            .components(buttons),
+                    )
+                    .await;
                 Ok(())
             }
-        }
-    ).await?;
+        },
+    )
+    .await?;
 
     Ok(())
 }
