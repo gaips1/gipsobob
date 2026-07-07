@@ -13,42 +13,38 @@ pub async fn sbp_register(
 
     match sbp_user {
         Ok(_) => {
-            interaction.create_response(&ctx, serenity::CreateInteractionResponse::UpdateMessage(
+            crate::create_edit_response!(
+                ctx,
+                interaction,
                 serenity::CreateInteractionResponseMessage::default()
                     .content("Вы успешно зарегистрированы! Посмотрите свой баланс используя команду `/account`!")
                     .ephemeral(true)
                     .components(vec![])
-            )).await?;
+            );
         }
 
         Err(err) => {
             if let Some(db_err) = err.as_database_error() {
                 if db_err.is_unique_violation() {
-                    interaction
-                        .create_response(
-                            &ctx,
-                            serenity::CreateInteractionResponse::UpdateMessage(
-                                serenity::CreateInteractionResponseMessage::default()
-                                    .content("Вы уже зарегистрированы в СБП")
-                                    .ephemeral(true)
-                                    .components(vec![]),
-                            ),
-                        )
-                        .await?;
+                    crate::create_edit_response!(
+                        ctx,
+                        interaction,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Вы уже зарегистрированы в СБП")
+                            .ephemeral(true)
+                            .components(vec![])
+                    );
                     return Ok(());
                 }
             }
-            interaction
-                .create_response(
-                    &ctx,
-                    serenity::CreateInteractionResponse::UpdateMessage(
-                        serenity::CreateInteractionResponseMessage::default()
-                            .content("Произошла неизвестная ошибка при регистрации")
-                            .ephemeral(true)
-                            .components(vec![]),
-                    ),
-                )
-                .await?;
+            crate::create_edit_response!(
+                ctx,
+                interaction,
+                serenity::CreateInteractionResponseMessage::default()
+                    .content("Произошла неизвестная ошибка при регистрации")
+                    .ephemeral(true)
+                    .components(vec![])
+            );
         }
     }
 

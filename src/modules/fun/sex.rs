@@ -86,29 +86,23 @@ pub async fn sex(
 
             async move {
                 if press.user.id != user.id {
-                    press
-                        .create_response(
-                            &ctx,
-                            serenity::CreateInteractionResponse::Message(
-                                serenity::CreateInteractionResponseMessage::default()
-                                    .content("Завидуй молча, это не тебе секс предлагали")
-                                    .ephemeral(true),
-                            ),
-                        )
-                        .await?;
+                    crate::create_response!(
+                        ctx,
+                        press,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Завидуй молча, это не тебе секс предлагали")
+                            .ephemeral(true)
+                    );
                     return Ok(false);
                 }
 
                 if relative_id == "yes" {
-                    press
-                        .create_response(
-                            &ctx,
-                            serenity::CreateInteractionResponse::UpdateMessage(
-                                serenity::CreateInteractionResponseMessage::default()
-                                    .components(buttons),
-                            ),
-                        )
-                        .await?;
+                    crate::create_edit_response!(
+                        ctx,
+                        press,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .components(buttons)
+                    );
 
                     let gif = {
                         let mut rng = rand::rng();
@@ -134,15 +128,12 @@ pub async fn sex(
                         )
                         .await?;
                 } else if relative_id == "no" {
-                    press
-                        .create_response(
-                            &ctx,
-                            serenity::CreateInteractionResponse::UpdateMessage(
-                                serenity::CreateInteractionResponseMessage::default()
-                                    .components(buttons),
-                            ),
-                        )
-                        .await?;
+                    crate::create_edit_response!(
+                        ctx,
+                        press,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .components(buttons)
+                    );
 
                     press
                         .create_followup(

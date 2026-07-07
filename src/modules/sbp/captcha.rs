@@ -103,33 +103,25 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
                         .execute(pool)
                         .await?;
 
-                    response
-                        .interaction
-                        .create_response(
-                            ctx.serenity_context(),
-                            serenity::CreateInteractionResponse::UpdateMessage(
-                                serenity::CreateInteractionResponseMessage::new()
-                                    .content("✅ Капча пройдена! Вы получили 10 бебр.")
-                                    .components(vec![])
-                                    .ephemeral(true),
-                            ),
-                        )
-                        .await?;
+                    crate::create_edit_response!(
+                        ctx,
+                        response.interaction,
+                        serenity::CreateInteractionResponseMessage::new()
+                            .content("✅ Капча пройдена! Вы получили 10 бебр.")
+                            .components(vec![])
+                            .ephemeral(true)
+                    );
 
                     return Ok(true);
                 } else {
-                    response
-                        .interaction
-                        .create_response(
-                            ctx.serenity_context(),
-                            serenity::CreateInteractionResponse::UpdateMessage(
-                                serenity::CreateInteractionResponseMessage::new()
-                                    .content("❌ Неверная капча. Попробуйте с новой капчой.")
-                                    .components(vec![])
-                                    .ephemeral(true),
-                            ),
-                        )
-                        .await?;
+                    crate::create_edit_response!(
+                        ctx,
+                        response.interaction,
+                        serenity::CreateInteractionResponseMessage::new()
+                            .content("❌ Неверная капча. Попробуйте с новой капчой.")
+                            .components(vec![])
+                            .ephemeral(true)
+                    );
 
                     return Ok(true);
                 }

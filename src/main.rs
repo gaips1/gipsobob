@@ -3,6 +3,7 @@ mod types;
 mod buttons;
 mod checks;
 mod routes;
+mod helpers;
 
 use poise::{CreateReply, serenity_prelude as serenity};
 use sqlx::postgres::PgPoolOptions;
