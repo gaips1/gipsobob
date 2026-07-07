@@ -12,7 +12,7 @@ pub async fn handle_char_info_button(
         .title(
             format!(
                 "Имя персонажа: {}\nКласс: {}\nБаланс: {}\nЗдоровье: {}\nМана: {}\nУрон: {}",
-                dl_user.name, dl_user.class, PrettyDecimal::comma3dot(dl_user.balance),
+                dl_user.name, dl_user.display_class(), PrettyDecimal::comma3dot(dl_user.balance),
                 dl_user.health, dl_user.mana, dl_user.damage
             )
         )
