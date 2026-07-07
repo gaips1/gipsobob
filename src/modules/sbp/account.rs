@@ -104,14 +104,11 @@ pub async fn handle_change_notifications_button(
         },
     ])];
 
-    interaction
-        .create_response(
-            &ctx,
-            serenity::CreateInteractionResponse::UpdateMessage(
-                serenity::CreateInteractionResponseMessage::default().components(buttons),
-            ),
-        )
-        .await?;
+    crate::create_edit_response!(
+        ctx,
+        interaction,
+        serenity::CreateInteractionResponseMessage::default().components(buttons)
+    );
 
     Ok(())
 }

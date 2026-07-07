@@ -1,6 +1,35 @@
 use crate::types::*;
 use poise::serenity_prelude::{self as serenity};
 
+pub fn get_main_menu_buttons() -> Vec<serenity::CreateActionRow> {
+    vec![
+        serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new("dl:enter")
+                .label("Отправиться в лабиринт")
+                .style(serenity::ButtonStyle::Danger),
+
+            serenity::CreateButton::new("dl:char_info")
+                .label("Информация о персонаже")
+                .style(serenity::ButtonStyle::Success)
+        ]),
+
+        serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new("dl:delete_char")
+                .label("Удалить персонажа")
+                .style(serenity::ButtonStyle::Danger),
+
+            serenity::CreateButton::new("dl:shop")
+                .label("Магазин")
+                .style(serenity::ButtonStyle::Success)
+        ]),
+
+        serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new("dl:donate")
+                .label("Донат")
+        ])
+    ]
+}
+
 /// Войти в Дромляндия: Онлайн
 #[poise::command(
     slash_command,
@@ -35,38 +64,11 @@ pub async fn game(ctx: Context<'_>) -> Result<(), Error> {
         ctx.say("Вы в данный момент в лабиринте").await?;
         return Ok(());
     }
-
-    let buttons = vec![
-        serenity::CreateActionRow::Buttons(vec![
-            serenity::CreateButton::new("dl:enter")
-                .label("Отправиться в лабиринт")
-                .style(serenity::ButtonStyle::Danger),
-
-            serenity::CreateButton::new("dl:char_info")
-                .label("Информация о персонаже")
-                .style(serenity::ButtonStyle::Success)
-        ]),
-
-        serenity::CreateActionRow::Buttons(vec![
-            serenity::CreateButton::new("dl:delete_char")
-                .label("Удалить персонажа")
-                .style(serenity::ButtonStyle::Danger),
-
-            serenity::CreateButton::new("dl:shop")
-                .label("Магазин")
-                .style(serenity::ButtonStyle::Success)
-        ]),
-
-        serenity::CreateActionRow::Buttons(vec![
-            serenity::CreateButton::new("dl:donate")
-                .label("Донат")
-        ])
-    ];
-
+    
     ctx.send(
         poise::CreateReply::default()
             .content(format!("Добро пожаловать обратно, {} {}", dl_user.1, dl_user.0))
-            .components(buttons)
+            .components(get_main_menu_buttons())
             .ephemeral(true)
     ).await?;
 

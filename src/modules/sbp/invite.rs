@@ -44,16 +44,13 @@ pub async fn invite(ctx: Context<'_>) -> Result<(), Error> {
                     .await?;
 
             if is_sbp_user_exists {
-                press
-                    .create_response(
-                        &ctx,
-                        serenity::CreateInteractionResponse::Message(
-                            serenity::CreateInteractionResponseMessage::default()
-                                .content("Вы уже зарегистрированы в СБП")
-                                .ephemeral(true),
-                        ),
-                    )
-                    .await?;
+                crate::create_response!(
+                    ctx,
+                    press,
+                    serenity::CreateInteractionResponseMessage::default()
+                        .content("Вы уже зарегистрированы в СБП")
+                        .ephemeral(true)
+                );
                 return Ok(false);
             }
 
@@ -85,16 +82,13 @@ pub async fn invite(ctx: Context<'_>) -> Result<(), Error> {
                     ctx.author().name
                 ));
 
-            press
-                .create_response(
-                    &ctx,
-                    serenity::CreateInteractionResponse::Message(
-                        serenity::CreateInteractionResponseMessage::default()
-                            .embed(embed)
-                            .ephemeral(true),
-                    ),
-                )
-                .await?;
+            crate::create_response!(
+                ctx,
+                press,
+                serenity::CreateInteractionResponseMessage::default()
+                    .embed(embed)
+                    .ephemeral(true)
+            );
 
             let author_notifications: bool =
                 sqlx::query_scalar("SELECT notifications FROM sbp_users WHERE id = $1")

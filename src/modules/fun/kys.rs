@@ -51,20 +51,17 @@ pub async fn handle_kys_button(
         list.choose(&mut rng).unwrap()
     };
 
-    interaction
-        .create_response(
-            &ctx,
-            serenity::CreateInteractionResponse::UpdateMessage(
-                serenity::CreateInteractionResponseMessage::default()
-                    .content(format!("Вы {}. Поздравляю со смертью!", choice))
-                    .components(vec![serenity::CreateActionRow::Buttons(vec![
-                        serenity::CreateButton::new("kys_btn")
-                            .label("KYS")
-                            .emoji('☠')
-                            .style(serenity::ButtonStyle::Danger),
-                    ])]),
-            ),
-        )
-        .await?;
+    crate::create_edit_response!(
+        ctx,
+        interaction,
+        serenity::CreateInteractionResponseMessage::default()
+            .content(format!("Вы {}. Поздравляю со смертью!", choice))
+            .components(vec![serenity::CreateActionRow::Buttons(vec![
+                serenity::CreateButton::new("kys_btn")
+                    .label("KYS")
+                    .emoji('☠')
+                    .style(serenity::ButtonStyle::Danger),
+            ])])
+    );
     Ok(())
 }
