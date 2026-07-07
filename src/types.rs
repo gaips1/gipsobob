@@ -1,6 +1,8 @@
 use rust_decimal::Decimal;
 use sqlx::FromRow;
 
+use crate::modules::dromland::display_class;
+
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
 
@@ -19,4 +21,10 @@ pub struct DlUser {
     pub mana: i32,
     pub damage: i32,
     pub in_game: bool
+}
+
+impl DlUser {
+    pub fn display_class(&self) -> &str {
+        display_class(self.class.as_str()).unwrap()
+    }
 }

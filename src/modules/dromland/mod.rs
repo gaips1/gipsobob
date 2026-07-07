@@ -5,6 +5,15 @@ mod game;
 mod character_info;
 mod create_character;
 
+pub fn display_class(raw_class: &str) -> Option<&str> {
+    match raw_class {
+        "mage" => Some("маг"),
+        "warrior" => Some("воин"),
+        "heavy" => Some("танк"),
+        _ => None
+    }
+}
+
 pub async fn handle_dromland_buttons(
     ctx: &serenity::Context,
     press: &serenity::ComponentInteraction,

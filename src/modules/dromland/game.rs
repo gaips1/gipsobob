@@ -1,4 +1,4 @@
-use crate::types::*;
+use crate::{modules::dromland::display_class, types::*};
 use poise::serenity_prelude::{self as serenity};
 
 pub fn get_main_menu_buttons() -> Vec<serenity::CreateActionRow> {
@@ -67,7 +67,7 @@ pub async fn game(ctx: Context<'_>) -> Result<(), Error> {
     
     ctx.send(
         poise::CreateReply::default()
-            .content(format!("Добро пожаловать обратно, {} {}", dl_user.1, dl_user.0))
+            .content(format!("Добро пожаловать обратно, {} {}", display_class(dl_user.1.as_str()).unwrap(), dl_user.0))
             .components(get_main_menu_buttons())
             .ephemeral(true)
     ).await?;
