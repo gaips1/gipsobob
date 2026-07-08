@@ -108,7 +108,7 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
                         response.interaction,
                         serenity::CreateInteractionResponseMessage::new()
                             .content("✅ Капча пройдена! Вы получили 10 бебр.")
-                            .components(vec![])
+                            .components(Vec::new())
                             .ephemeral(true)
                     );
 
@@ -119,7 +119,7 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
                         response.interaction,
                         serenity::CreateInteractionResponseMessage::new()
                             .content("❌ Неверная капча. Попробуйте с новой капчой.")
-                            .components(vec![])
+                            .components(Vec::new())
                             .ephemeral(true)
                     );
 

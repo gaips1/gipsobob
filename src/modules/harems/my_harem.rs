@@ -147,7 +147,7 @@ pub async fn handle_harem_leave_button(
                     press,
                     serenity::CreateInteractionResponseMessage::default()
                         .content("Вы удалили свой гарем :(")
-                        .components(vec![])
+                        .components(Vec::new())
                         .ephemeral(true)
                 );
 
@@ -163,7 +163,7 @@ pub async fn handle_harem_leave_button(
                     press,
                     serenity::CreateInteractionResponseMessage::default()
                         .content("Вы покинули свой гарем :(")
-                        .components(vec![])
+                        .components(Vec::new())
                         .ephemeral(true)
                 );
 

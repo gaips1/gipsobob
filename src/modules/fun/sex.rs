@@ -100,8 +100,7 @@ pub async fn sex(
                     crate::create_edit_response!(
                         ctx,
                         press,
-                        serenity::CreateInteractionResponseMessage::default()
-                            .components(buttons)
+                        serenity::CreateInteractionResponseMessage::default().components(buttons)
                     );
 
                     let gif = {
@@ -131,8 +130,7 @@ pub async fn sex(
                     crate::create_edit_response!(
                         ctx,
                         press,
-                        serenity::CreateInteractionResponseMessage::default()
-                            .components(buttons)
+                        serenity::CreateInteractionResponseMessage::default().components(buttons)
                     );
 
                     press
@@ -161,8 +159,11 @@ pub async fn sex(
                 ))
                 .colour(serenity::colours::branding::RED);
 
-            msg.edit(ctx, CreateReply::default().components(vec![]).embed(embed))
-                .await?;
+            msg.edit(
+                ctx,
+                CreateReply::default().components(Vec::new()).embed(embed),
+            )
+            .await?;
             Ok(())
         },
     )
