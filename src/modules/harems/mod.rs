@@ -1,5 +1,4 @@
 use crate::types::*;
-use poise::serenity_prelude::{self as serenity};
 
 mod create_harem;
 mod harems;

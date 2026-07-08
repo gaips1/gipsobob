@@ -2,7 +2,6 @@ use ab_glyph::PxScale;
 use image::{ImageBuffer, Rgb};
 use imageproc::drawing::draw_text_mut;
 use poise::CreateReply;
-use poise::serenity_prelude as serenity;
 use rand::RngExt;
 use rand::distr::Alphanumeric;
 use std::io::Cursor;

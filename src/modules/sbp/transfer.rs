@@ -1,4 +1,3 @@
-use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::utils::CreateQuickModal;
 use pretty_decimal::PrettyDecimal;
 use rust_decimal::Decimal;

@@ -7,7 +7,6 @@ mod rob;
 mod transfer;
 
 use crate::types::*;
-use poise::serenity_prelude::{self as serenity};
 
 pub const USER_UNAUTHORIZED_ERROR: &str = "Пользователь не зарегистрирован в Системе Быстрых Платежей! Скажите ему, чтобы он сделал это, написав `/reg`.\n||Или же пригласите его, используя команду `/invite`||";
 

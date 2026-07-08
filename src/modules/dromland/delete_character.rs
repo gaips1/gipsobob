@@ -1,5 +1,4 @@
 use crate::{modules::dromland::game::get_main_menu_buttons, types::*};
-use poise::serenity_prelude::{self as serenity};
 use pretty_decimal::PrettyDecimal;
 
 pub async fn handle_char_delete_button(

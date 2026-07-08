@@ -1,5 +1,4 @@
 use crate::{modules::dromland::display_class, types::*};
-use poise::serenity_prelude::{self as serenity};
 
 pub fn get_main_menu_buttons() -> Vec<serenity::CreateActionRow> {
     vec![

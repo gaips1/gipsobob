@@ -4,7 +4,6 @@ mod sex;
 
 use crate::types::*;
 use poise::CreateReply;
-use poise::serenity_prelude as serenity;
 use rand::prelude::*;
 use tokio::time::{Duration, sleep};
 

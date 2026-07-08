@@ -1,5 +1,4 @@
 use crate::types::*;
-use poise::serenity_prelude::{self as serenity};
 use pretty_decimal::PrettyDecimal;
 
 pub async fn handle_char_info_button(

@@ -1,5 +1,5 @@
 use crate::types::*;
-use poise::serenity_prelude::{self as serenity, Mentionable};
+use poise::serenity_prelude::Mentionable;
 
 /// Управление моим браком
 #[poise::command(

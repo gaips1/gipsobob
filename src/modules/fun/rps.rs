@@ -4,7 +4,6 @@ use std::ops::Mul as _;
 use crate::buttons::{handle_button, handle_buttons};
 use crate::types::*;
 use poise::CreateReply;
-use poise::serenity_prelude as serenity;
 use rust_decimal::Decimal;
 use std::sync::Arc;
 use tokio::sync::Mutex;
