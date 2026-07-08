@@ -8,7 +8,7 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[derive(Debug)]
 pub struct Data {
-    pub pool: sqlx::Pool<sqlx::Postgres>
+    pub pool: sqlx::Pool<sqlx::Postgres>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, FromRow)]
@@ -20,7 +20,7 @@ pub struct DlUser {
     pub health: i32,
     pub mana: i32,
     pub damage: i32,
-    pub in_game: bool
+    pub in_game: bool,
 }
 
 impl DlUser {

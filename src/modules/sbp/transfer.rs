@@ -68,6 +68,7 @@ async fn transfer(
             .await?;
 
     let Some(user_sbp) = user_sbp else {
+        tx.rollback().await?;
         ctx.say(USER_UNAUTHORIZED_ERROR).await?;
         return Ok(());
     };
@@ -172,7 +173,8 @@ pub async fn transfer_context_menu_command(
         .quick_modal(ctx.serenity_context(), modal)
         .await?;
 
-    app_ctx.has_sent_initial_response
+    app_ctx
+        .has_sent_initial_response
         .store(true, std::sync::atomic::Ordering::SeqCst);
 
     if let Some(response) = response {

@@ -140,7 +140,7 @@ pub async fn marry(
                             ctx,
                             press,
                             serenity::CreateInteractionResponseMessage::default()
-                                .components(vec![])
+                                .components(Vec::new())
                         );
 
                         press.create_followup(&ctx,
@@ -155,7 +155,7 @@ pub async fn marry(
                             ctx,
                             press,
                             serenity::CreateInteractionResponseMessage::default()
-                                .components(vec![])
+                                .components(Vec::new())
                         );
 
                         press.create_followup(&ctx,
@@ -173,7 +173,7 @@ pub async fn marry(
         }, move || {
             async move {
                 let embed = serenity::CreateEmbed::new().title("Предложение брака").description("Предложение просрочено. Думайте быстрее!!!!!!");
-                msg.edit(ctx, poise::CreateReply::default().embed(embed).components(vec![])).await?;
+                msg.edit(ctx, poise::CreateReply::default().embed(embed).components(Vec::new())).await?;
                 Ok(())
             }
         }

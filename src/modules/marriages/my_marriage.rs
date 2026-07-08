@@ -97,8 +97,8 @@ pub async fn handle_divorce_button(
                     interaction,
                     serenity::CreateInteractionResponseMessage::default()
                         .content("Вы в данный момент не в браке")
-                        .embeds(vec![])
-                        .components(vec![])
+                        .embeds(Vec::new())
+                        .components(Vec::new())
                         .ephemeral(true)
                 );
                 return Ok(());
@@ -114,8 +114,8 @@ pub async fn handle_divorce_button(
                 interaction,
                 serenity::CreateInteractionResponseMessage::default()
                     .content("Вы успешно развелись :(")
-                    .embeds(vec![])
-                    .components(vec![])
+                    .embeds(Vec::new())
+                    .components(Vec::new())
             );
 
             let partner_id = if row.0 as u64 == interaction.user.id.get() {

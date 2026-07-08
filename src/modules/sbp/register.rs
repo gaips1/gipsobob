@@ -19,7 +19,7 @@ pub async fn sbp_register(
                 serenity::CreateInteractionResponseMessage::default()
                     .content("Вы успешно зарегистрированы! Посмотрите свой баланс используя команду `/account`!")
                     .ephemeral(true)
-                    .components(vec![])
+                    .components(Vec::new())
             );
         }
 
@@ -32,7 +32,7 @@ pub async fn sbp_register(
                         serenity::CreateInteractionResponseMessage::default()
                             .content("Вы уже зарегистрированы в СБП")
                             .ephemeral(true)
-                            .components(vec![])
+                            .components(Vec::new())
                     );
                     return Ok(());
                 }
@@ -43,7 +43,7 @@ pub async fn sbp_register(
                 serenity::CreateInteractionResponseMessage::default()
                     .content("Произошла неизвестная ошибка при регистрации")
                     .ephemeral(true)
-                    .components(vec![])
+                    .components(Vec::new())
             );
         }
     }

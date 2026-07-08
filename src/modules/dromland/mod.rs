@@ -1,16 +1,18 @@
 use crate::types::*;
 use poise::serenity_prelude::{self as serenity};
 
-mod game;
 mod character_info;
 mod create_character;
+mod delete_character;
+mod game;
+mod shop;
 
-pub fn display_class(raw_class: &str) -> Option<&str> {
-    match raw_class {
-        "mage" => Some("маг"),
-        "warrior" => Some("воин"),
-        "heavy" => Some("танк"),
-        _ => None
+pub const fn display_class(raw_class: &str) -> Option<&str> {
+    match raw_class.as_bytes() {
+        b"mage" => Some("маг"),
+        b"warrior" => Some("воин"),
+        b"heavy" => Some("танк"),
+        _ => None,
     }
 }
 
@@ -26,9 +28,7 @@ pub async fn handle_dromland_buttons(
         return Ok(());
     }
 
-    let dl_user: Option<DlUser> = sqlx::query_as(
-        "SELECT * FROM dl_users WHERE id = $1"
-    )
+    let dl_user: Option<DlUser> = sqlx::query_as("SELECT * FROM dl_users WHERE id = $1")
         .bind(press.user.id.get() as i64)
         .fetch_optional(&data.pool)
         .await?;
@@ -44,18 +44,23 @@ pub async fn handle_dromland_buttons(
         return Ok(());
     };
 
-    match custom_id {
-        "dl:char_info" => {
-            character_info::handle_char_info_button(ctx, press, data, dl_user).await?;
+    if custom_id.starts_with("dl:char_delete") {
+        delete_character::handle_char_delete_button(ctx, press, data, dl_user).await?;
+    } else {
+        match custom_id {
+            "dl:char_info" => {
+                character_info::handle_char_info_button(ctx, press, data, dl_user).await?;
+            }
+            "dl:shop" => {
+                shop::handle_shop_button(ctx, press, data).await?;
+            }
+            _ => {}
         }
-        _ => {}
     }
 
     Ok(())
 }
 
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
-    vec![
-        game::game()
-    ]
+    vec![game::game()]
 }

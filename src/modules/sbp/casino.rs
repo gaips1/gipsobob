@@ -364,9 +364,7 @@ async fn handle_guess_button(
                     .embed(
                         serenity::CreateEmbed::default()
                             .title(format!("Вы выиграли!"))
-                            .description(format!(
-                                "Ваша ставка: {stavka} бебр\nВыигрыш: {w} бебр"
-                            ))
+                            .description(format!("Ваша ставка: {stavka} бебр\nВыигрыш: {w} бебр"))
                             .colour(serenity::colours::branding::GREEN)
                     )
                     .ephemeral(true)

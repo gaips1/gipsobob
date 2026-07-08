@@ -203,10 +203,10 @@ pub async fn rps(
                             .bind::<i64>(ctx.author().id.into())
                             .execute(pool),
 
-                        accepted_msg.edit(ctx, CreateReply::default().components(vec![]).content("Время ожидания истекло. Игра отменена."))
+                        accepted_msg.edit(ctx, CreateReply::default().components(Vec::new()).content("Время ожидания истекло. Игра отменена."))
                     );
                 } else {
-                    accepted_msg.edit(ctx, CreateReply::default().components(vec![]).content("Время ожидания истекло. Игра отменена.")).await?;
+                    accepted_msg.edit(ctx, CreateReply::default().components(Vec::new()).content("Время ожидания истекло. Игра отменена.")).await?;
                 }
                 Ok(())
             }
@@ -291,7 +291,7 @@ pub async fn rps(
                     choiced_msg.edit(
                         ctx,
                         CreateReply::default()
-                            .components(vec![])
+                            .components(Vec::new())
                             .content("Время ожидания истекло. Игра отменена.")
                     )
                 );
@@ -300,7 +300,7 @@ pub async fn rps(
                     .edit(
                         ctx,
                         CreateReply::default()
-                            .components(vec![])
+                            .components(Vec::new())
                             .content("Время ожидания истекло. Игра отменена."),
                     )
                     .await?;
@@ -369,8 +369,11 @@ pub async fn rps(
             .colour(serenity::colours::branding::RED)
     }
 
-    msg.edit(ctx, CreateReply::default().embed(embed).components(vec![]))
-        .await?;
+    msg.edit(
+        ctx,
+        CreateReply::default().embed(embed).components(Vec::new()),
+    )
+    .await?;
 
     Ok(())
 }
