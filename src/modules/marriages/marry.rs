@@ -1,5 +1,5 @@
 use crate::{buttons::handle_buttons, types::*};
-use poise::serenity_prelude::{self as serenity, Mentionable};
+use poise::serenity_prelude::Mentionable;
 
 /// Сделать предложение руки и сердца
 #[poise::command(

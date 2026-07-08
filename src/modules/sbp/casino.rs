@@ -1,7 +1,5 @@
 use std::ops::Mul;
-
 use poise::CreateReply;
-use poise::serenity_prelude as serenity;
 use rand::seq::IndexedRandom;
 use rust_decimal::Decimal;
 use rust_decimal::prelude::FromPrimitive;

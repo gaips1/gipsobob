@@ -1,5 +1,3 @@
-use poise::serenity_prelude as serenity;
-
 use crate::types::*;
 
 /// Ограбить пользователя

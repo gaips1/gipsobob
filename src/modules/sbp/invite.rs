@@ -1,5 +1,4 @@
 use poise::CreateReply;
-use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::Mentionable;
 
 use crate::buttons::handle_button;

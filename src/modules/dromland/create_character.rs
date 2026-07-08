@@ -2,7 +2,6 @@ use crate::{
     modules::dromland::{display_class, game::get_main_menu_buttons},
     types::*,
 };
-use poise::serenity_prelude::{self as serenity};
 
 const CLASSES: [(&str, [i32; 3]); 3] = [
     ("mage", [59, 200, 140]),

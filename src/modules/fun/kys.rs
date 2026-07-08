@@ -1,6 +1,5 @@
 use crate::types::*;
 use poise::CreateReply;
-use poise::serenity_prelude as serenity;
 use rand::prelude::*;
 use std::sync::OnceLock;
 

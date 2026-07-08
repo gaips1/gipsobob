@@ -1,5 +1,4 @@
 use crate::types::*;
-use poise::serenity_prelude as serenity;
 
 pub async fn sbp_register(
     ctx: &serenity::Context,

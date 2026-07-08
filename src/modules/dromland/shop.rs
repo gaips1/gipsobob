@@ -1,5 +1,4 @@
 use crate::types::*;
-use poise::serenity_prelude::{self as serenity};
 use rust_decimal::{Decimal, prelude::FromPrimitive};
 
 pub async fn handle_shop_button(

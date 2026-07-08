@@ -1,7 +1,7 @@
 use crate::buttons::handle_buttons;
 use crate::types::*;
 use poise::CreateReply;
-use poise::serenity_prelude::{self as serenity, Mentionable};
+use poise::serenity_prelude::Mentionable;
 use rand::seq::IndexedRandom;
 
 const GIFS: [&str; 5] = [

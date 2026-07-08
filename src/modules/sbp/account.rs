@@ -1,5 +1,4 @@
 use poise::CreateReply;
-use poise::serenity_prelude as serenity;
 use pretty_decimal::PrettyDecimal;
 use rust_decimal::Decimal;
 
