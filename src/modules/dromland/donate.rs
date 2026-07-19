@@ -26,12 +26,16 @@ pub async fn handle_donate_button(
 
             let buttons = vec![
                 serenity::CreateActionRow::Buttons(vec![
-                    serenity::CreateButton::new("dl:donate:to_sbp").label("ДО в СБП").style(serenity::ButtonStyle::Success),
-                    serenity::CreateButton::new("dl:donate:from_sbp").label("СБП в ДО").style(serenity::ButtonStyle::Success)
+                    serenity::CreateButton::new("dl:donate:to_sbp")
+                        .label("ДО в СБП")
+                        .style(serenity::ButtonStyle::Success),
+                    serenity::CreateButton::new("dl:donate:from_sbp")
+                        .label("СБП в ДО")
+                        .style(serenity::ButtonStyle::Success),
                 ]),
                 serenity::CreateActionRow::Buttons(vec![
                     serenity::CreateButton::new("dl:mm").label("Назад"),
-                ])
+                ]),
             ];
 
             crate::create_edit_response!(
@@ -155,7 +159,10 @@ pub async fn handle_donate_button(
                 ctx,
                 response.interaction,
                 serenity::CreateInteractionResponseMessage::default()
-                    .content(format!("Успешно! Перевёл `{}` бебр на ваш счёт СБП", PrettyDecimal::comma3dot(sbp_amount)))
+                    .content(format!(
+                        "Успешно! Перевёл `{}` бебр на ваш счёт СБП",
+                        PrettyDecimal::comma3dot(sbp_amount)
+                    ))
                     .ephemeral(true)
             );
         }
@@ -259,7 +266,10 @@ pub async fn handle_donate_button(
                 ctx,
                 response.interaction,
                 serenity::CreateInteractionResponseMessage::default()
-                    .content(format!("Успешно! Перевёл `{}` монет на ваш счёт Дромляндии: Онлайн", PrettyDecimal::comma3dot(dl_amount)))
+                    .content(format!(
+                        "Успешно! Перевёл `{}` монет на ваш счёт Дромляндии: Онлайн",
+                        PrettyDecimal::comma3dot(dl_amount)
+                    ))
                     .ephemeral(true)
             );
         }

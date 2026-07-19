@@ -4,9 +4,9 @@ use poise::serenity_prelude::{self as serenity};
 mod character_info;
 mod create_character;
 mod delete_character;
+mod donate;
 mod game;
 mod shop;
-mod donate;
 
 pub const fn display_class(raw_class: &str) -> Option<&str> {
     match raw_class.as_bytes() {

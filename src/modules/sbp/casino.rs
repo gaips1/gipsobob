@@ -1,8 +1,8 @@
-use std::ops::Mul;
 use poise::CreateReply;
 use rand::seq::IndexedRandom;
 use rust_decimal::Decimal;
 use rust_decimal::prelude::FromPrimitive;
+use std::ops::Mul;
 use tokio::time::sleep;
 
 use crate::checks::sbp_check;

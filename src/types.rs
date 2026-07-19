@@ -1,8 +1,8 @@
 use rust_decimal::Decimal;
 use sqlx::FromRow;
 
-pub use poise::serenity_prelude::{self as serenity};
 use crate::modules::dromland::display_class;
+pub use poise::serenity_prelude::{self as serenity};
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
