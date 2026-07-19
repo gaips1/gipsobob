@@ -6,6 +6,7 @@ mod create_character;
 mod delete_character;
 mod game;
 mod shop;
+mod donate;
 
 pub const fn display_class(raw_class: &str) -> Option<&str> {
     match raw_class.as_bytes() {
@@ -46,8 +47,24 @@ pub async fn handle_dromland_buttons(
 
     if custom_id.starts_with("dl:char_delete") {
         delete_character::handle_char_delete_button(ctx, press, data, dl_user).await?;
+    } else if custom_id.starts_with("dl:donate") {
+        donate::handle_donate_button(ctx, press, data, dl_user).await?;
     } else {
         match custom_id {
+            "dl:mm" => {
+                crate::create_edit_response!(
+                    ctx,
+                    press,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .content(format!(
+                            "Добро пожаловать обратно, {} {}",
+                            display_class(&dl_user.class).unwrap(),
+                            dl_user.name
+                        ))
+                        .components(game::get_main_menu_buttons())
+                        .embeds(Vec::new())
+                );
+            }
             "dl:char_info" => {
                 character_info::handle_char_info_button(ctx, press, data, dl_user).await?;
             }
