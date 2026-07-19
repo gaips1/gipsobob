@@ -1,10 +1,10 @@
 use crate::types::*;
-use poise::serenity_prelude::{self as serenity};
 
 mod character_info;
 mod create_character;
 mod delete_character;
 mod donate;
+mod enter;
 mod game;
 mod shop;
 
@@ -45,6 +45,17 @@ pub async fn handle_dromland_buttons(
         return Ok(());
     };
 
+    if dl_user.in_game {
+        crate::create_response!(
+            ctx,
+            press,
+            serenity::CreateInteractionResponseMessage::default()
+                .content("Вы в данный момент в лабиринте")
+                .ephemeral(true)
+        );
+        return Ok(());
+    }
+
     if custom_id.starts_with("dl:char_delete") {
         delete_character::handle_char_delete_button(ctx, press, data, dl_user).await?;
     } else if custom_id.starts_with("dl:donate") {
@@ -64,6 +75,9 @@ pub async fn handle_dromland_buttons(
                         .components(game::get_main_menu_buttons())
                         .embeds(Vec::new())
                 );
+            }
+            "dl:enter" => {
+                enter::handle_enter_button(ctx, press, data, dl_user).await?;
             }
             "dl:char_info" => {
                 character_info::handle_char_info_button(ctx, press, data, dl_user).await?;

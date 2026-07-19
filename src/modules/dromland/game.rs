@@ -51,6 +51,7 @@ pub async fn game(ctx: Context<'_>) -> Result<(), Error> {
                 .components(buttons)
                 .ephemeral(true)
         ).await?;
+
         return Ok(());
     };
 

@@ -9,6 +9,8 @@ use poise::{CreateReply, serenity_prelude as serenity};
 use sqlx::postgres::PgPoolOptions;
 use types::*;
 
+// ДОБАВИТЬ ЕВЕНТЫ ПРИ ВХОДЕ НА СЕРВЕР
+
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
