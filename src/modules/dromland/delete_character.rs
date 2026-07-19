@@ -1,4 +1,4 @@
-use crate::{modules::dromland::game::get_main_menu_buttons, types::*};
+use crate::types::*;
 use pretty_decimal::PrettyDecimal;
 
 pub async fn handle_char_delete_button(
@@ -13,7 +13,7 @@ pub async fn handle_char_delete_button(
                 serenity::CreateButton::new("dl:char_delete:yes")
                     .label("Да")
                     .style(serenity::ButtonStyle::Danger),
-                serenity::CreateButton::new("dl:char_delete:no")
+                serenity::CreateButton::new("dl:mm")
                     .label("Нет")
                     .style(serenity::ButtonStyle::Success),
             ])];
@@ -43,17 +43,6 @@ pub async fn handle_char_delete_button(
                 serenity::CreateInteractionResponseMessage::new()
                     .content("Пока, путник!")
                     .components(Vec::new())
-                    .embeds(Vec::new())
-            );
-        }
-
-        "dl:char_delete:no" => {
-            crate::create_edit_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .content("Молодец, что одумался!")
-                    .components(get_main_menu_buttons())
                     .embeds(Vec::new())
             );
         }

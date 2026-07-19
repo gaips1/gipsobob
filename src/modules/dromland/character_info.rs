@@ -24,6 +24,7 @@ pub async fn handle_char_info_button(
         ctx,
         press,
         serenity::CreateInteractionResponseMessage::default()
+            .content("")
             .embed(embed)
             .ephemeral(true)
     );
