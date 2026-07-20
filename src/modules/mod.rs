@@ -4,6 +4,7 @@ pub mod dromland;
 pub mod fun;
 pub mod harems;
 pub mod marriages;
+mod other;
 pub mod sbp;
 
 pub fn all() -> Vec<poise::Command<Data, Error>> {
@@ -13,6 +14,7 @@ pub fn all() -> Vec<poise::Command<Data, Error>> {
         marriages::commands(),
         harems::commands(),
         dromland::commands(),
+        other::commands(),
     ]
     .into_iter()
     .flatten()
