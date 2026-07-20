@@ -6,6 +6,7 @@ mod routes;
 mod types;
 
 use poise::{CreateReply, serenity_prelude as serenity};
+use rand::seq::IndexedRandom as _;
 use sqlx::postgres::PgPoolOptions;
 use types::*;
 
@@ -50,10 +51,7 @@ async fn main() {
 
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
 
-                ctx.online();
-                ctx.set_activity(Some(serenity::ActivityData::playing("Visual Studio Code")));
-
-                Ok(Data { pool })
+                Ok( Data { pool } )
             })
         })
         .build();
@@ -71,28 +69,98 @@ async fn main() {
     }
 }
 
+const NEW_MEMBER_GIFS: [&str; 5] = [
+    "https://media.tenor.com/ZvSSenCwxEcAAAAC/hello.gif",
+    "https://media.tenor.com/3o2hRDX8vw0AAAAC/hello-cute.gif",
+    "https://media.tenor.com/J_JT8JsNDlUAAAAC/hello-anime.gif",
+    "https://media.tenor.com/Q1dW7INg5ioAAAAC/hello-anime.gif",
+    "https://media.tenor.com/mIteh_Sas9QAAAAd/anime-hello.gif",
+];
+
+const DELETED_MEMBER_GIFS: [&str; 5] = [
+    "https://media.tenor.com/m0MabzE7tLIAAAAC/bye-anime-girl.gif",
+    "https://media.tenor.com/lOMogKtB3E8AAAAC/goodbye-bye.gif",
+    "hhttps://media.tenor.com/4NHXeITTdKcAAAAC/anime-wave.gif",
+    "https://media.tenor.com/oiYL8iyWwmkAAAAC/anime-jujutsu-kaisen.gif",
+    "https://media.tenor.com/KasGopE0HIsAAAAC/bye-bye-anime.gif",
+];
+
+
 async fn on_event<'a>(
     ctx: &serenity::Context,
     event: &serenity::FullEvent,
     _framework: poise::FrameworkContext<'a, Data, Error>,
     data: &'a Data,
 ) -> Result<(), Error> {
-    let serenity::FullEvent::InteractionCreate { interaction } = event else {
-        return Ok(());
-    };
+    match event {
+        serenity::FullEvent::Ready { data_about_bot: _ } => {
+            ctx.online();
+            ctx.set_activity(Some(serenity::ActivityData::playing("Visual Studio Code")));
+        }
 
-    let serenity::Interaction::Component(component) = interaction else {
-        return Ok(());
-    };
+        serenity::FullEvent::InteractionCreate { interaction } => {
+            let serenity::Interaction::Component(component) = interaction else {
+                return Ok(());
+            };
 
-    if !matches!(
-        component.data.kind,
-        serenity::ComponentInteractionDataKind::Button
-    ) {
-        return Ok(());
+            if !matches!(
+                component.data.kind,
+                serenity::ComponentInteractionDataKind::Button
+            ) {
+                return Ok(());
+            }
+
+            routes::route_button_interaction(ctx, component, data).await?;
+        }
+
+        serenity::FullEvent::GuildMemberAddition { new_member } => {
+            if new_member.guild_id != 621378615174758421 {
+                return Ok(());
+            }
+
+            let random_gif = {
+                let mut rng = rand::rng();
+                *NEW_MEMBER_GIFS.choose(&mut rng).unwrap()
+            };
+
+            let embed = serenity::CreateEmbed::new()
+                .title(format!("**{}, привет! Возможно, мы рады тебя видеть...**", new_member.display_name()))
+                .image(random_gif);
+
+            let _ = serenity::ChannelId::new(807651258520436736)
+                .send_message(
+                    ctx,
+                    serenity::CreateMessage::new()
+                        .embed(embed)
+                )
+            .await;
+        }
+
+        serenity::FullEvent::GuildMemberRemoval { guild_id, user, member_data_if_available: _ } => {
+            if guild_id.get() != 621378615174758421 {
+                return Ok(());
+            }
+
+            let random_gif = {
+                let mut rng = rand::rng();
+                *DELETED_MEMBER_GIFS.choose(&mut rng).unwrap()
+            };
+
+            let embed = serenity::CreateEmbed::new()
+                .title(format!("**{}, привет! Возможно, мы рады тебя видеть...**", user.display_name()))
+                .image(random_gif);
+
+            let _ = serenity::ChannelId::new(807651258520436736)
+                .send_message(
+                    ctx,
+                    serenity::CreateMessage::new()
+                        .embed(embed)
+                )
+            .await;
+        }
+
+        _ => {}
     }
-
-    routes::route_button_interaction(ctx, component, data).await?;
 
     Ok(())
 }
