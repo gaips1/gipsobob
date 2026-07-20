@@ -10,8 +10,6 @@ use rand::seq::IndexedRandom as _;
 use sqlx::postgres::PgPoolOptions;
 use types::*;
 
-// ДОБАВИТЬ ЕВЕНТЫ ПРИ ВХОДЕ НА СЕРВЕР
-
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
@@ -23,6 +21,11 @@ async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: modules::all(),
+            prefix_options: poise::PrefixFrameworkOptions {
+                prefix: None,
+                mention_as_prefix: true,
+                ..Default::default()
+            },
             on_error: |err| Box::pin(on_error(err)),
             event_handler: |ctx, event, framework, data| {
                 Box::pin(on_event(ctx, event, framework, data))
@@ -35,7 +38,7 @@ async fn main() {
                 let pool = PgPoolOptions::new()
                     .max_connections(
                         std::env::var("DATABASE_MAX_CONNECTIONS")
-                            .unwrap_or("5".to_owned())
+                            .unwrap_or(String::from("5"))
                             .as_str()
                             .parse()
                             .expect("DATABASE_MAX_CONNECTIONS must be integer"),
@@ -51,7 +54,7 @@ async fn main() {
 
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
 
-                Ok( Data { pool } )
+                Ok(Data { pool })
             })
         })
         .build();
@@ -80,11 +83,10 @@ const NEW_MEMBER_GIFS: [&str; 5] = [
 const DELETED_MEMBER_GIFS: [&str; 5] = [
     "https://media.tenor.com/m0MabzE7tLIAAAAC/bye-anime-girl.gif",
     "https://media.tenor.com/lOMogKtB3E8AAAAC/goodbye-bye.gif",
-    "hhttps://media.tenor.com/4NHXeITTdKcAAAAC/anime-wave.gif",
+    "https://media.tenor.com/4NHXeITTdKcAAAAC/anime-wave.gif",
     "https://media.tenor.com/oiYL8iyWwmkAAAAC/anime-jujutsu-kaisen.gif",
     "https://media.tenor.com/KasGopE0HIsAAAAC/bye-bye-anime.gif",
 ];
-
 
 async fn on_event<'a>(
     ctx: &serenity::Context,
@@ -124,19 +126,22 @@ async fn on_event<'a>(
             };
 
             let embed = serenity::CreateEmbed::new()
-                .title(format!("**{}, привет! Возможно, мы рады тебя видеть...**", new_member.display_name()))
+                .title(format!(
+                    "**{}, привет! Возможно, мы рады тебя видеть...**",
+                    new_member.display_name()
+                ))
                 .image(random_gif);
 
             let _ = serenity::ChannelId::new(807651258520436736)
-                .send_message(
-                    ctx,
-                    serenity::CreateMessage::new()
-                        .embed(embed)
-                )
-            .await;
+                .send_message(ctx, serenity::CreateMessage::new().embed(embed))
+                .await;
         }
 
-        serenity::FullEvent::GuildMemberRemoval { guild_id, user, member_data_if_available: _ } => {
+        serenity::FullEvent::GuildMemberRemoval {
+            guild_id,
+            user,
+            member_data_if_available: _,
+        } => {
             if guild_id.get() != 621378615174758421 {
                 return Ok(());
             }
@@ -147,16 +152,15 @@ async fn on_event<'a>(
             };
 
             let embed = serenity::CreateEmbed::new()
-                .title(format!("**{}, привет! Возможно, мы рады тебя видеть...**", user.display_name()))
+                .title(format!(
+                    "**{}, привет! Возможно, мы рады тебя видеть...**",
+                    user.display_name()
+                ))
                 .image(random_gif);
 
             let _ = serenity::ChannelId::new(807651258520436736)
-                .send_message(
-                    ctx,
-                    serenity::CreateMessage::new()
-                        .embed(embed)
-                )
-            .await;
+                .send_message(ctx, serenity::CreateMessage::new().embed(embed))
+                .await;
         }
 
         _ => {}
@@ -167,6 +171,12 @@ async fn on_event<'a>(
 
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     if let poise::FrameworkError::CommandCheckFailed { error: None, .. } = error {
+        return;
+    }
+    if let poise::FrameworkError::UnknownCommand { .. } = error {
+        return;
+    }
+    if let poise::FrameworkError::ArgumentParse { .. } = error {
         return;
     }
 
