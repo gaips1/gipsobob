@@ -3,6 +3,7 @@ use poise::serenity_prelude::{self as serenity};
 
 use crate::modules::dromland::handle_dromland_buttons;
 use crate::modules::fun::kys::handle_kys_button;
+use crate::modules::giveaways::handle_giveaway_buttons;
 use crate::modules::harems::handle_harems_buttons;
 use crate::modules::marriages::handle_marriages_buttons;
 use crate::modules::sbp::casino::handle_casino_buttons;
@@ -25,6 +26,8 @@ pub async fn route_button_interaction(
         handle_harems_buttons(ctx, component, data).await?;
     } else if custom_id.starts_with("dl:") {
         handle_dromland_buttons(ctx, component, data).await?;
+    } else if custom_id.starts_with("giveaway:") {
+        handle_giveaway_buttons(ctx, component, data).await?;
     } else {
         match custom_id {
             "kys_btn" => handle_kys_button(ctx, component).await?,

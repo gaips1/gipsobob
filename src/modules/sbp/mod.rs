@@ -8,7 +8,7 @@ mod transfer;
 
 use crate::types::*;
 
-pub const USER_UNAUTHORIZED_ERROR: &str = "Пользователь не зарегистрирован в Системе Быстрых Платежей! Скажите ему, чтобы он сделал это, написав `/reg`.\n||Или же пригласите его, используя команду `/invite`||";
+pub const USER_UNAUTHORIZED_ERROR: &str = "Пользователь не зарегистрирован в Системе Быстрых Платежей! Скажите ему, чтобы он сделал это, написав `/сбп регистрация`.\n||Или же пригласите его, используя команду `/invite`||";
 
 pub async fn handle_sbp_buttons(
     ctx: &serenity::Context,

@@ -113,7 +113,9 @@ pub async fn handle_donate_button(
                     ctx,
                     response.interaction,
                     serenity::CreateInteractionResponseMessage::default()
-                        .content("Сначала зарегистрируйся в СБП, используя команду `/reg`")
+                        .content(
+                            "Сначала зарегистрируйся в СБП, используя команду `/сбп регистрация`"
+                        )
                         .ephemeral(true)
                 );
                 return Ok(());
@@ -220,7 +222,9 @@ pub async fn handle_donate_button(
                     ctx,
                     response.interaction,
                     serenity::CreateInteractionResponseMessage::default()
-                        .content("Сначала зарегистрируйся в СБП, используя команду `/reg`")
+                        .content(
+                            "Сначала зарегистрируйся в СБП, используя команду `/сбп регистрация`"
+                        )
                         .ephemeral(true)
                 );
                 return Ok(());

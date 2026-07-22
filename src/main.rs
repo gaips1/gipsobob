@@ -96,6 +96,14 @@ async fn on_event<'a>(
 ) -> Result<(), Error> {
     match event {
         serenity::FullEvent::Ready { data_about_bot: _ } => {
+            tokio::spawn(modules::giveaways::restore_giveaways(
+                ctx.clone(),
+                data.pool.clone(),
+            ));
+            tokio::spawn(modules::giveaways::run_giveaway_poller(
+                ctx.clone(),
+                data.pool.clone(),
+            ));
             ctx.online();
             ctx.set_activity(Some(serenity::ActivityData::playing("Visual Studio Code")));
         }
