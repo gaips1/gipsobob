@@ -3,6 +3,7 @@ use crate::{buttons::handle_button, types::*};
 /// Пригласить пользователей в свой гарем
 #[poise::command(
     slash_command,
+    rename = "пригласить",
     ephemeral,
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

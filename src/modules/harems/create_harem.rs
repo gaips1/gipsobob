@@ -3,6 +3,7 @@ use crate::types::*;
 /// Создать свой гарем
 #[poise::command(
     slash_command,
+    rename = "создать",
     ephemeral,
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

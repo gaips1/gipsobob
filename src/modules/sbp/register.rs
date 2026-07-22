@@ -53,6 +53,7 @@ pub async fn sbp_register(
 /// Регистрация в СБП
 #[poise::command(
     slash_command,
+    rename = "регистрация",
     ephemeral,
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

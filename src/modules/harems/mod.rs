@@ -19,11 +19,23 @@ pub async fn handle_harems_buttons(
     Ok(())
 }
 
+/// Гаремы
+#[poise::command(
+    slash_command,
+    rename = "гарем",
+    subcommands(
+        "my_harem::my_harem",
+        "create_harem::create_harem",
+        "harems::harems",
+        "invite_to_harem::invite_to_harem"
+    ),
+    install_context = "User | Guild",
+    interaction_context = "Guild | BotDm | PrivateChannel"
+)]
+async fn harems(_ctx: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}
+
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
-    vec![
-        my_harem::my_harem(),
-        create_harem::create_harem(),
-        harems::harems(),
-        invite_to_harem::invite_to_harem(),
-    ]
+    vec![harems()]
 }

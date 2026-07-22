@@ -17,6 +17,7 @@ const IMG_HEIGHT: u32 = 50;
 /// Пройти капчу и получить бебры
 #[poise::command(
     slash_command,
+    rename = "капча",
     check = "sbp_check",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

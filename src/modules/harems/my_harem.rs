@@ -4,6 +4,7 @@ use poise::serenity_prelude::Mentionable;
 /// Просмотр информации о твоем гареме
 #[poise::command(
     slash_command,
+    rename = "управление",
     ephemeral,
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

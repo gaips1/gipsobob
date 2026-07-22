@@ -10,6 +10,7 @@ use tokio::time::{Duration, sleep};
 /// Да или нет
 #[poise::command(
     slash_command,
+    rename = "данет",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
@@ -26,6 +27,7 @@ async fn yes_or_no(ctx: Context<'_>) -> Result<(), Error> {
 /// Подбросить монетку
 #[poise::command(
     slash_command,
+    rename = "монетка",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
@@ -47,6 +49,7 @@ async fn monetka(ctx: Context<'_>) -> Result<(), Error> {
 /// Русская рулетка
 #[poise::command(
     slash_command,
+    rename = "русская-рулетка",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
@@ -71,6 +74,7 @@ async fn russian_roulette(ctx: Context<'_>) -> Result<(), Error> {
 /// Кинуть кости
 #[poise::command(
     slash_command,
+    rename = "кости",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
@@ -126,6 +130,7 @@ const KISS_GIFS: [&str; 5] = [
 /// Поцеловать пользователя
 #[poise::command(
     slash_command,
+    rename = "поцеловать",
     context_menu_command = "Поцеловать",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
@@ -181,6 +186,7 @@ const HUG_GIFS: [&str; 5] = [
 /// Обнять пользователя
 #[poise::command(
     slash_command,
+    rename = "обнять",
     context_menu_command = "Обнять",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
@@ -236,6 +242,7 @@ const PUNCH_GIFS: [&str; 5] = [
 /// Ударить пользователя
 #[poise::command(
     slash_command,
+    rename = "ударить",
     context_menu_command = "Ударить",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
@@ -284,6 +291,7 @@ pub async fn punch(
 /// Выстрелить спермой в пользователя
 #[poise::command(
     slash_command,
+    rename = "камшот",
     context_menu_command = "Камшот",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
@@ -349,8 +357,8 @@ pub async fn cumshot(
 /// Отсосать пользователю
 #[poise::command(
     slash_command,
+    rename = "минет",
     context_menu_command = "Отсосать",
-    name_localized("ru", "отсосать"),
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
@@ -415,8 +423,8 @@ pub async fn blowjob(
 /// Нафутджобить пользователю
 #[poise::command(
     slash_command,
+    rename = "футджоб",
     context_menu_command = "Футджоб",
-    name_localized("ru", "футджоб"),
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]

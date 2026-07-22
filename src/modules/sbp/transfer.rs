@@ -119,7 +119,7 @@ async fn transfer(
 #[poise::command(
     slash_command,
     ephemeral,
-    rename = "transfer",
+    rename = "перевод",
     check = "sbp_check",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

@@ -9,6 +9,7 @@ use crate::types::*;
 /// Твой личный кабинет Системы Быстрых Платежей
 #[poise::command(
     slash_command,
+    rename = "аккаунт",
     check = "sbp_check",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
@@ -49,7 +50,8 @@ pub async fn account(ctx: Context<'_>) -> Result<(), Error> {
                 .unwrap_or_else(|| &ctx.author().name),
             PrettyDecimal::comma3dot(user.0),
             user.2
-        ));
+        ))
+        .colour(serenity::colours::branding::BLURPLE);
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![if user.1 {
         serenity::CreateButton::new("sbp:notifications_change")

@@ -5,6 +5,7 @@ use std::fmt::Write;
 #[poise::command(
     slash_command,
     ephemeral,
+    rename = "таблица-лидеров",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
