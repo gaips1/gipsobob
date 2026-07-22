@@ -29,13 +29,27 @@ pub async fn handle_sbp_buttons(
     Ok(())
 }
 
+/// Система Быстрых Платежей
+#[poise::command(
+    slash_command,
+    rename = "сбп",
+    subcommands(
+        "account::account",
+        "register::reg",
+        "transfer::transfer_slash_command",
+        "invite::invite"
+    ),
+    install_context = "User | Guild",
+    interaction_context = "Guild | BotDm | PrivateChannel"
+)]
+async fn sbp(_ctx: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}
+
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
     vec![
-        account::account(),
-        register::reg(),
-        transfer::transfer_slash_command(),
+        sbp(),
         transfer::transfer_context_menu_command(),
-        invite::invite(),
         captcha::captcha(),
         casino::casino(),
         rob::rob(),

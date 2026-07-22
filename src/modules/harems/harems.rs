@@ -4,6 +4,7 @@ use std::fmt::Write;
 /// Топ 10 гаремов по количеству пользователей
 #[poise::command(
     slash_command,
+    rename = "таблица-лидеров",
     ephemeral,
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

@@ -3,6 +3,7 @@ use crate::types::*;
 /// Ограбить пользователя
 #[poise::command(
     slash_command,
+    rename = "ограбить",
     user_cooldown = 86400,
     ephemeral,
     install_context = "User | Guild",

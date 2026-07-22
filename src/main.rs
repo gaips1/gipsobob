@@ -153,7 +153,7 @@ async fn on_event<'a>(
 
             let embed = serenity::CreateEmbed::new()
                 .title(format!(
-                    "**{}, привет! Возможно, мы рады тебя видеть...**",
+                    "**{}, надеемся ты к нам ещё придёшь**",
                     user.display_name()
                 ))
                 .image(random_gif);

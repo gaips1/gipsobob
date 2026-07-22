@@ -8,6 +8,7 @@ use crate::types::*;
 /// Пригласить друзей в СБП и получить бебры
 #[poise::command(
     slash_command,
+    rename = "пригласить",
     check = "sbp_check",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

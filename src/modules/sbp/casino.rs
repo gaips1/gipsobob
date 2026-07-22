@@ -11,6 +11,7 @@ use crate::types::*;
 /// Казино "У Снюсоеда"
 #[poise::command(
     slash_command,
+    rename = "казино",
     check = "sbp_check",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

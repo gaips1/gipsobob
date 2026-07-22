@@ -5,6 +5,7 @@ use poise::serenity_prelude::Mentionable;
 #[poise::command(
     slash_command,
     ephemeral,
+    rename = "создать",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]

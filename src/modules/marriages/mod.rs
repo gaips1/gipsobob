@@ -2,7 +2,7 @@ use crate::types::*;
 
 mod marriages;
 mod marry;
-pub mod my_marriage;
+mod my_marriage;
 
 pub async fn handle_marriages_buttons(
     ctx: &serenity::Context,
@@ -17,10 +17,18 @@ pub async fn handle_marriages_buttons(
     Ok(())
 }
 
+/// Система браков
+#[poise::command(
+    slash_command,
+    rename = "брак",
+    subcommands("marry::marry", "my_marriage::my_marriage", "marriages::marriages"),
+    install_context = "User | Guild",
+    interaction_context = "Guild | BotDm | PrivateChannel"
+)]
+async fn marriages(_ctx: Context<'_>) -> Result<(), Error> {
+    Ok(())
+}
+
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
-    vec![
-        marry::marry(),
-        my_marriage::my_marriage(),
-        marriages::marriages(),
-    ]
+    vec![marriages()]
 }

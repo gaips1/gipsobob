@@ -27,6 +27,7 @@ pub fn get_main_menu_buttons() -> Vec<serenity::CreateActionRow> {
 /// Войти в Дромляндия: Онлайн
 #[poise::command(
     slash_command,
+    rename = "дромляндия",
     ephemeral,
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"

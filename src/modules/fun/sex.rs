@@ -15,6 +15,7 @@ const GIFS: [&str; 5] = [
 /// Предложить секс пользователю
 #[poise::command(
     slash_command,
+    rename = "секс",
     context_menu_command = "Предложить секс",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
