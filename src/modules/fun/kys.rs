@@ -1,4 +1,4 @@
-use crate::types::*;
+use crate::{helpers::resolve_data_path, types::*};
 use poise::CreateReply;
 use rand::prelude::*;
 use std::sync::OnceLock;
@@ -6,8 +6,8 @@ use std::sync::OnceLock;
 static KYS_LIST: OnceLock<Vec<String>> = OnceLock::new();
 fn get_kys_list() -> &'static [String] {
     KYS_LIST.get_or_init(|| {
-        let data = include_str!("kys.json");
-        serde_json::from_str(data).expect("Failed to parse kys.json")
+        let data = std::fs::read_to_string(resolve_data_path("src/modules/fun/kys.json")).unwrap();
+        serde_json::from_str(&data).expect("Failed to parse kys.json")
     })
 }
 /// KEEP YOURSELF SAFE

@@ -6,6 +6,7 @@ pub mod giveaways;
 pub mod harems;
 pub mod marriages;
 mod other;
+pub mod quests;
 pub mod sbp;
 
 pub fn all() -> Vec<poise::Command<Data, Error>> {
@@ -17,6 +18,7 @@ pub fn all() -> Vec<poise::Command<Data, Error>> {
         dromland::commands(),
         other::commands(),
         giveaways::commands(),
+        quests::commands(),
     ]
     .into_iter()
     .flatten()

@@ -7,6 +7,7 @@ mod donate;
 mod enter;
 mod game;
 mod shop;
+mod types;
 
 pub const fn display_class(raw_class: &str) -> Option<&str> {
     match raw_class.as_bytes() {
@@ -29,7 +30,7 @@ pub async fn handle_dromland_buttons(
         return Ok(());
     }
 
-    let dl_user: Option<DlUser> = sqlx::query_as("SELECT * FROM dl_users WHERE id = $1")
+    let dl_user: Option<types::DlUser> = sqlx::query_as("SELECT * FROM dl_users WHERE id = $1")
         .bind(press.user.id.get() as i64)
         .fetch_optional(&data.pool)
         .await?;

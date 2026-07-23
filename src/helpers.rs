@@ -23,3 +23,22 @@ macro_rules! create_edit_response {
             .await?
     };
 }
+
+pub fn resolve_data_path(relative: &str) -> std::path::PathBuf {
+    if cfg!(debug_assertions) {
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        std::path::Path::new(manifest_dir).join(relative)
+    } else {
+        let exe_dir = std::env::current_exe()
+            .expect("failed to get current exe path")
+            .parent()
+            .unwrap()
+            .to_path_buf();
+
+        let file_name = std::path::Path::new(relative)
+            .file_name()
+            .expect("relative path has no file name");
+
+        exe_dir.join(file_name)
+    }
+}

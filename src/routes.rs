@@ -6,6 +6,7 @@ use crate::modules::fun::kys::handle_kys_button;
 use crate::modules::giveaways::handle_giveaway_buttons;
 use crate::modules::harems::handle_harems_buttons;
 use crate::modules::marriages::handle_marriages_buttons;
+use crate::modules::quests::handle_quests_select;
 use crate::modules::sbp::casino::handle_casino_buttons;
 use crate::modules::sbp::handle_sbp_buttons;
 
@@ -33,6 +34,24 @@ pub async fn route_button_interaction(
             "kys_btn" => handle_kys_button(ctx, component).await?,
             _ => {}
         }
+    }
+
+    Ok(())
+}
+
+pub async fn route_string_select_interaction(
+    ctx: &serenity::Context,
+    component: &serenity::ComponentInteraction,
+    data: &Data,
+    values: &Vec<String>,
+) -> Result<(), Error> {
+    let custom_id = component.data.custom_id.as_str();
+
+    match custom_id {
+        "quest_status_select" => {
+            handle_quests_select(ctx, component, data, values).await?;
+        }
+        _ => {}
     }
 
     Ok(())

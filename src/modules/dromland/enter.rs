@@ -5,6 +5,8 @@ use std::time::Duration;
 use tokio::sync::RwLock;
 use tokio::time::{Instant, sleep};
 
+use super::types::*;
+
 const CACHE_TTL: Duration = Duration::from_secs(600);
 static MONSTERS_CACHE: RwLock<Option<(Instant, Vec<DlMonster>)>> = RwLock::const_new(None);
 
