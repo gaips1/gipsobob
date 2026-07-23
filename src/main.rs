@@ -113,14 +113,17 @@ async fn on_event<'a>(
                 return Ok(());
             };
 
-            if !matches!(
-                component.data.kind,
-                serenity::ComponentInteractionDataKind::Button
-            ) {
-                return Ok(());
-            }
+            match &component.data.kind {
+                serenity::ComponentInteractionDataKind::Button => {
+                    routes::route_button_interaction(ctx, component, data).await?;
+                }
 
-            routes::route_button_interaction(ctx, component, data).await?;
+                serenity::ComponentInteractionDataKind::StringSelect { values } => {
+                    routes::route_string_select_interaction(ctx, component, data, values).await?;
+                }
+
+                _ => {}
+            }
         }
 
         serenity::FullEvent::GuildMemberAddition { new_member } => {

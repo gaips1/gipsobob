@@ -33,14 +33,13 @@ pub async fn run_giveaway_poller(ctx: serenity::Context, pool: sqlx::PgPool) {
     loop {
         ticker.tick().await;
 
-        let giveaways: Vec<(i64, i32, i64)> =
-            sqlx::query_as(
-                "SELECT id, prize, channel_id FROM giveaways \
-                WHERE ends_at <= NOW() LIMIT 20"
-            )
-                .fetch_all(&pool)
-                .await
-                .unwrap_or_default();
+        let giveaways: Vec<(i64, i32, i64)> = sqlx::query_as(
+            "SELECT id, prize, channel_id FROM giveaways \
+                WHERE ends_at <= NOW() LIMIT 20",
+        )
+        .fetch_all(&pool)
+        .await
+        .unwrap_or_default();
 
         for g in giveaways {
             let ctx = ctx.clone();

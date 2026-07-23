@@ -1011,7 +1011,7 @@ dependencies = [
 
 [[package]]
 name = "gipsobob"
-version = "0.9.0"
+version = "1.0.0"
 dependencies = [
  "ab_glyph",
  "chrono",
@@ -1024,6 +1024,7 @@ dependencies = [
  "pretty_env_logger",
  "rand 0.10.1",
  "rust_decimal",
+ "serde",
  "serde_json",
  "sqlx",
  "tokio",
