@@ -1,6 +1,8 @@
 use std::{collections::HashMap, sync::OnceLock};
 
-use super::types::{Quest, Status, UserQuest};
+use rand::seq::IndexedRandom as _;
+
+use super::types::*;
 use crate::helpers::resolve_data_path;
 use crate::types::*;
 
@@ -85,4 +87,58 @@ pub fn quests_select_menu(selected: Status) -> Vec<serenity::CreateActionRow> {
     .max_values(1);
 
     vec![serenity::CreateActionRow::SelectMenu(menu)]
+}
+
+pub static FIRST_QUEST: std::sync::LazyLock<Quest> = std::sync::LazyLock::new(|| Quest {
+    id: "first_q".to_string(),
+    name: "Начальный квест".to_string(),
+    description: "Добро пожаловать в систему квестов! \
+        Чтобы выполнить квест, вам нужно поцеловать 3 разных пользователей. \
+        Используйте ПКМ или долго нажмите на пользователя и выберите `Поцеловать`"
+        .to_string(),
+    action: "kiss".to_string(),
+    reward: 100,
+    users_required_type: UsersRequiredType::Different,
+    ends: None,
+    max_progess: 3
+});
+
+pub async fn add_quest_to_user(
+    pool: &sqlx::PgPool,
+    user_id: u64,
+    quest: &Quest
+) -> Result<(), Error> {
+    sqlx::query(
+        "INSERT INTO user_quests (user_id, quest_id, ends_at, status) VALUES ($1, $2, $3, $4)"
+    )
+    .bind(user_id as i64)
+    .bind(&quest.id)
+    .bind(
+        if let Some(ends) = quest.ends {
+            Some(chrono::Utc::now() + chrono::Duration::hours(ends as i64))
+        } else {
+            None
+        }
+    )
+    .bind(Status::Active)
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn add_random_quest_to_user(
+    pool: &sqlx::PgPool,
+    user_id: u64
+) -> Result<(), Error> {
+    let quests: Vec<&Quest> = get_quests().values().collect();
+
+    let quest = {
+        let mut rng = rand::rng();
+        *quests.choose(&mut rng).unwrap()
+    };
+    
+    add_quest_to_user(pool, user_id, quest).await?;
+
+    Ok(())
 }
