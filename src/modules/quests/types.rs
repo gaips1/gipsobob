@@ -16,7 +16,7 @@ pub struct Quest {
     pub action: String,
     pub reward: u32,
     pub users_required_type: UsersRequiredType,
-    pub ends: u16,
+    pub ends: Option<u16>,
     pub max_progess: u32,
 }
 
