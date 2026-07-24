@@ -1,6 +1,6 @@
 use sqlx::prelude::FromRow;
 
-#[derive(Debug, PartialEq, Eq, serde::Deserialize)]
+#[derive(Debug, PartialEq, Eq, serde::Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum UsersRequiredType {
     None,
@@ -8,16 +8,16 @@ pub enum UsersRequiredType {
     Any,
 }
 
-#[derive(Debug, PartialEq, Eq, serde::Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, serde::Deserialize, Default)]
 pub struct Quest {
     pub id: String,
     pub name: String,
     pub description: String,
     pub action: String,
     pub reward: u32,
-    pub users_required_type: UsersRequiredType,
+    pub users_required_type: Option<UsersRequiredType>,
     pub ends: Option<u16>,
-    pub max_progess: u32,
+    pub max_progress: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type)]
@@ -32,8 +32,8 @@ pub enum Status {
 pub struct UserQuest {
     pub user_id: Option<i64>,
     pub quest_id: String,
-    pub progess: i32,
-    pub users: Option<Vec<i64>>,
+    pub progress: i32,
+    pub users: Vec<i64>,
     pub ends_at: Option<chrono::DateTime<chrono::Utc>>,
     pub status: Status,
 }

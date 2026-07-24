@@ -1,6 +1,6 @@
 use crate::types::*;
 
-mod helpers;
+pub mod helpers;
 mod types;
 
 pub async fn handle_quests_select(

@@ -1,199 +1,191 @@
 [
-    {
-        "name": "Купидон",
-        "description": "Поцелуйте 15 человек (разных)",
-        "action": "kiss",
-        "reward": 300,
-        
-        "id": "kisses",
-        "max_progress": 15,
-        "ends": 24,
-        "users_required_type": "different"
-    },
-    {
-        "name": "Секс Бомба",
-        "description": "Поебитесь с 30 людьми (разными)",
-        "action": "sex",
-        "reward": 1000,
-        
-        "id": "sex_bomba",
-        "max_progress": 30,
-        "ends": 24,
-        "users_required_type": "different"
-    },
-    {
-        "name": "Секс Мастер",
-        "description": "Поебитесь с 15 людьми (разными)",
-        "action": "sex",
-        "reward": 500,
-        
-        "id": "sex_master",
-        "max_progress": 15,
-        "ends": 24,
-        "users_required_type": "different"
-    },
-    {
-        "name": "Переводчик",
-        "description": "Переведите людям в сумме 3500 бебр",
-        "action": "transfer",
-        "reward": 1000,
-        
-        "id": "transfer-3500",
-        "max_progress": 3500,
-        "ends": 168
-    },
-    {
-        "name": "Переводчик-5000",
-        "description": "Переведите людям в сумме 5000 бебр",
-        "action": "transfer",
-        "reward": 3000,
-        
-        "id": "transfer-5000",
-        "max_progress": 5000,
-        "ends": 168
-    },
-    {
-        "name": "Обниматель",
-        "description": "Обнимите 15 человек (разных)",
-        "action": "hug",
-        "reward": 300,
-        
-        "id": "huges",
-        "max_progress": 15,
-        "ends": 24,
-        "users_required_type": "different"
-    },
-    {
-        "name": "Борзый",
-        "description": "Ударьте 15 человек (разных)",
-        "action": "punch",
-        "reward": 300,
-        
-        "id": "punches",
-        "max_progress": 15,
-        "ends": 24,
-        "users_required_type": "different"
-    },
-    {
-        "name": "Счастливчик",
-        "description": "Поиграйте в казино `/казино`",
-        "action": "casino",
-        "reward": 150,
-        
-        "id": "casino",
-        "max_progress": 1,
-        "ends": 24
-    },
-    {
-        "name": "Не повезло",
-        "description": "Убейте себя в русской рулетке `/русская-рулетка`",
-        "action": "rr",
-        "reward": 150,
-        
-        "id": "rr",
-        "max_progress": 1,
-        "ends": 24
-    },
-    {
-        "name": "Не бот",
-        "description": "Пройти 10 капч `/капча`",
-        "action": "captcha",
-        "reward": 150,
-        
-        "id": "captcha",
-        "max_progress": 10,
-        "ends": 24
-    },
-    {
-        "name": "Ребро!!!!",
-        "description": "Кинуть монетку чтобы она упала на ребро `/монетка`",
-        "action": "monetka",
-        "reward": 150,
-        
-        "id": "monetka",
-        "max_progress": 1,
-        "ends": 24
-    },
-    {
-        "name": "Слава узбии",
-        "description": "Крикнуть слава узбии 3 раза `/слава узбии`",
-        "action": "slava_uzbii",
-        "reward": 150,
-        "id": "slava_uzbii",
-        "max_progress": 3,
-        "ends": 24
-    },
-    {
-        "name": "Мастер Лабиринта",
-        "description": "Победить монстра 5 раз в Дромляндии: Онлайн `/дромляндия`",
-        "action": "dromlyandia",
-        "reward": 300,
-        "id": "dromlyandia-5",
-        "max_progress": 5,
-        "ends": 24
-    },
-    {
-        "name": "Грабитель",
-        "description": "Успешно ограбить человека",
-        "action": "rob",
-        "reward": 300,
-        "id": "rob",
-        "max_progress": 1,
-        "ends": 120
-    },
-    {
-        "name": "Камшот мастер",
-        "description": "Успешно обкамить 5 человек (разных) `/камшот`",
-        "action": "cumshot",
-        "reward": 300,
-        
-        "id": "cumshot-5",
-        "max_progress": 5,
-        "ends": 24,
-        "users_required_type": "different"
-    },
-    {
-        "name": "Камшот бомба",
-        "description": "Успешно обкамить 15 человек (разных) `/камшот`",
-        "action": "cumshot",
-        "reward": 300,
-        
-        "id": "cumshot-15",
-        "max_progress": 15,
-        "ends": "2d",
-        "users_required_type": "different"
-    },
-    {
-        "name": "Сосунок",
-        "description": "Заставить кончить 15 человек (разных) минетом `/минет`",
-        "action": "minet",
-        "reward": 300,
-        
-        "id": "minet-15",
-        "max_progress": 15,
-        "ends": "2d",
-        "users_required_type": "different"
-    },
-    {
-        "name": "Само-Сосунок",
-        "description": "Сделать само-отсос 15 раз `/минет`",
-        "action": "self-minet",
-        "reward": 300,
-        
-        "id": "self-minet-15",
-        "max_progress": 15,
-        "ends": 24,
-        "users_required_type": "none"
-    },
-    {
-        "name": "Рабочие Ноги",
-        "description": "Сделать футджоб 15 разным людям `/футджоб`",
-        "action": "footjob",
-        "reward": 300,
-        
-        "id": "footjob-15",
-        "max_progress": 15,
-        "ends": 48,
-        "users_required_type": "different"
-    }
+  {
+    "id": "first_q",
+    "name": "Начальный квест",
+    "description": "Добро пожаловать в систему квестов! Чтобы выполнить квест, вам нужно поцеловать 3 разных пользователей. Используйте ПКМ или долго нажмите на пользователя и выберите `Поцеловать`",
+    "action": "kiss",
+    "max_progress": 3,
+    "users_required_type": "different",
+    "reward": 100
+  },
+  {
+    "id": "kisses",
+    "name": "Купидон",
+    "description": "Поцелуйте 15 человек (разных)",
+    "action": "kiss",
+    "max_progress": 15,
+    "users_required_type": "different",
+    "reward": 300,
+    "ends": 24
+  },
+  {
+    "id": "sex_bomba",
+    "name": "Секс Бомба",
+    "description": "Поебитесь с 30 людьми (разными)",
+    "action": "sex",
+    "max_progress": 30,
+    "users_required_type": "different",
+    "reward": 1000,
+    "ends": 24
+  },
+  {
+    "id": "sex_master",
+    "name": "Секс Мастер",
+    "description": "Поебитесь с 15 людьми (разными)",
+    "action": "sex",
+    "max_progress": 15,
+    "users_required_type": "different",
+    "reward": 500,
+    "ends": 24
+  },
+  {
+    "id": "transfer-3500",
+    "name": "Переводчик",
+    "description": "Переведите людям в сумме 3500 бебр",
+    "action": "transfer",
+    "max_progress": 3500,
+    "reward": 1000,
+    "ends": 168
+  },
+  {
+    "id": "transfer-5000",
+    "name": "Переводчик-5000",
+    "description": "Переведите людям в сумме 5000 бебр",
+    "action": "transfer",
+    "max_progress": 5000,
+    "reward": 3000,
+    "ends": 168
+  },
+  {
+    "id": "huges",
+    "name": "Обниматель",
+    "description": "Обнимите 15 человек (разных)",
+    "action": "hug",
+    "max_progress": 15,
+    "users_required_type": "different",
+    "reward": 300,
+    "ends": 24
+  },
+  {
+    "id": "punches",
+    "name": "Борзый",
+    "description": "Ударьте 15 человек (разных)",
+    "action": "punch",
+    "max_progress": 15,
+    "users_required_type": "different",
+    "reward": 300,
+    "ends": 24
+  },
+  {
+    "id": "casino",
+    "name": "Счастливчик",
+    "description": "Поиграйте в казино `/казино`",
+    "action": "casino",
+    "max_progress": 1,
+    "reward": 150,
+    "ends": 24
+  },
+  {
+    "id": "rr",
+    "name": "Не повезло",
+    "description": "Убейте себя в русской рулетке `/русская-рулетка`",
+    "action": "rr",
+    "max_progress": 1,
+    "reward": 150,
+    "ends": 24
+  },
+  {
+    "id": "captcha",
+    "name": "Не бот",
+    "description": "Пройти 10 капч `/капча`",
+    "action": "captcha",
+    "max_progress": 10,
+    "reward": 150,
+    "ends": 24
+  },
+  {
+    "id": "monetka",
+    "name": "Ребро!!!!",
+    "description": "Кинуть монетку чтобы она упала на ребро `/монетка`",
+    "action": "monetka",
+    "max_progress": 1,
+    "reward": 150,
+    "ends": 24
+  },
+  {
+    "id": "slava_uzbii",
+    "name": "Слава узбии",
+    "description": "Крикнуть слава узбии 3 раза `/слава узбии`",
+    "action": "slava_uzbii",
+    "max_progress": 3,
+    "reward": 150,
+    "ends": 24
+  },
+  {
+    "id": "dromlyandia-5",
+    "name": "Мастер Лабиринта",
+    "description": "Победить монстра 5 раз в Дромляндии: Онлайн `/дромляндия`",
+    "action": "dromlyandia",
+    "max_progress": 5,
+    "reward": 300,
+    "ends": 24
+  },
+  {
+    "id": "rob",
+    "name": "Грабитель",
+    "description": "Успешно ограбить человека",
+    "action": "rob",
+    "max_progress": 1,
+    "reward": 300,
+    "ends": 120
+  },
+  {
+    "id": "cumshot-5",
+    "name": "Камшот мастер",
+    "description": "Успешно обкамить 5 человек (разных) `/камшот`",
+    "action": "cumshot",
+    "max_progress": 5,
+    "users_required_type": "different",
+    "reward": 300,
+    "ends": 24
+  },
+  {
+    "id": "cumshot-15",
+    "name": "Камшот бомба",
+    "description": "Успешно обкамить 15 человек (разных) `/камшот`",
+    "action": "cumshot",
+    "max_progress": 15,
+    "users_required_type": "different",
+    "reward": 300,
+    "ends": 48
+  },
+  {
+    "id": "minet-15",
+    "name": "Сосунок",
+    "description": "Заставить кончить 15 человек (разных) минетом `/минет`",
+    "action": "minet",
+    "max_progress": 15,
+    "users_required_type": "different",
+    "reward": 300,
+    "ends": 48
+  },
+  {
+    "id": "self-minet-15",
+    "name": "Само-Сосунок",
+    "description": "Сделать само-отсос 15 раз `/минет`",
+    "action": "self-minet",
+    "max_progress": 15,
+    "reward": 300,
+    "ends": 24
+  },
+  {
+    "id": "footjob-15",
+    "name": "Рабочие Ноги",
+    "description": "Сделать футджоб 15 разным людям `/футджоб`",
+    "action": "footjob",
+    "max_progress": 15,
+    "users_required_type": "different",
+    "reward": 300,
+    "ends": 48
+  }
 ]
