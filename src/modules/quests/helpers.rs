@@ -1,5 +1,4 @@
 use std::{collections::HashMap, sync::OnceLock};
-
 use rand::seq::IndexedRandom as _;
 
 use super::types::*;
@@ -52,8 +51,8 @@ pub fn create_quests_embed(user_quests: &Vec<UserQuest>) -> serenity::CreateEmbe
             format!(
                 "{}\nВыполнено: {}/{}\nНаграда: {}\nИстекает: {}",
                 &quest.description,
-                user_quest.progess,
-                quest.max_progess,
+                user_quest.progress,
+                quest.max_progress,
                 quest.reward,
                 if user_quest.ends_at.is_none() {
                     "Никогда".to_string()
@@ -89,27 +88,13 @@ pub fn quests_select_menu(selected: Status) -> Vec<serenity::CreateActionRow> {
     vec![serenity::CreateActionRow::SelectMenu(menu)]
 }
 
-pub static FIRST_QUEST: std::sync::LazyLock<Quest> = std::sync::LazyLock::new(|| Quest {
-    id: "first_q".to_string(),
-    name: "Начальный квест".to_string(),
-    description: "Добро пожаловать в систему квестов! \
-        Чтобы выполнить квест, вам нужно поцеловать 3 разных пользователей. \
-        Используйте ПКМ или долго нажмите на пользователя и выберите `Поцеловать`"
-        .to_string(),
-    action: "kiss".to_string(),
-    reward: 100,
-    users_required_type: UsersRequiredType::Different,
-    ends: None,
-    max_progess: 3
-});
-
 pub async fn add_quest_to_user(
     pool: &sqlx::PgPool,
     user_id: u64,
     quest: &Quest
 ) -> Result<(), Error> {
     sqlx::query(
-        "INSERT INTO user_quests (user_id, quest_id, ends_at, status) VALUES ($1, $2, $3, $4)"
+        "INSERT INTO user_quests (user_id, quest_id, ends_at) VALUES ($1, $2, $3, $4)"
     )
     .bind(user_id as i64)
     .bind(&quest.id)
@@ -120,25 +105,117 @@ pub async fn add_quest_to_user(
             None
         }
     )
-    .bind(Status::Active)
     .execute(pool)
     .await?;
 
     Ok(())
 }
 
-pub async fn add_random_quest_to_user(
-    pool: &sqlx::PgPool,
-    user_id: u64
-) -> Result<(), Error> {
+pub async fn run_random_quests_adder(
+    ctx: serenity::Context,
+    pool: sqlx::PgPool
+) {
     let quests: Vec<&Quest> = get_quests().values().collect();
+    log::info!("random quests adder started");
 
-    let quest = {
-        let mut rng = rand::rng();
-        *quests.choose(&mut rng).unwrap()
-    };
+    loop {
+        let now = chrono::Local::now();
+        let target_time = chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap();
+
+        let mut next_run = now.date_naive().and_time(target_time);
+        if now.naive_local() >= next_run {
+            next_run += chrono::Duration::days(1);
+        }
+
+        let duration_until = next_run - now.naive_local();
+        let std_duration = duration_until.to_std().unwrap_or(std::time::Duration::from_secs(0));
+
+        tokio::time::sleep(std_duration).await;
+
+        let users: Vec<(i64, bool)> = sqlx::query_as("SELECT id, quest_notifications FROM users")
+            .fetch_all(&pool)
+            .await
+            .unwrap_or_default();
+
+        let (user_ids, quest_ids, ends_ats, notify_ids) = {
+            let mut rng = rand::rng();
+
+            let mut user_ids = Vec::with_capacity(users.len());
+            let mut quest_ids = Vec::with_capacity(users.len());
+            let mut ends_ats = Vec::with_capacity(users.len());
+            let mut notify_ids = Vec::new();
+
+            for (id, notify) in &users {
+                let quest = quests.choose(&mut rng).unwrap();
+
+                user_ids.push(*id);
+                quest_ids.push(quest.id.clone());
+                ends_ats.push(quest.ends.map(|h| chrono::Utc::now() + chrono::Duration::hours(h as i64)));
+
+                if *notify {
+                    notify_ids.push(*id);
+                }
+            }
+
+            (user_ids, quest_ids, ends_ats, notify_ids)
+        };
+
+        let _ = sqlx::query(
+            "INSERT INTO user_quests (user_id, quest_id, ends_at)
+            SELECT * FROM UNNEST($1::bigint[], $2::text[], $3::timestamptz[])"
+        )
+        .bind(&user_ids)
+        .bind(&quest_ids)
+        .bind(&ends_ats)
+        .execute(&pool)
+        .await;
+
+        for uid in notify_ids {
+            let embed = serenity::CreateEmbed::new()
+                .title("Новый квест!")
+                .description("Вам был добавлен новый квест\nПодробнее в `/квесты`")
+                .color(serenity::colours::branding::GREEN);
+
+            let user_id = serenity::UserId::new(uid as u64);
+            let _ = user_id.dm(&ctx, serenity::CreateMessage::new().embed(embed)).await;
+        }
+
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    }
+}
+
+pub async fn run_quests_poller(
+    ctx: serenity::Context,
+    pool: sqlx::PgPool
+) {
+    log::info!("quests poller started");
+
+    let mut ticker = tokio::time::interval(std::time::Duration::from_mins(1));
+    ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+
+    loop {
+        ticker.tick().await;
     
-    add_quest_to_user(pool, user_id, quest).await?;
+        let expired_quests: Vec<(i64, String, bool)> = sqlx::query_as(
+            "DELETE FROM user_quests uq \
+            USING users u \
+            WHERE uq.user_id = u.id \
+            AND uq.ends_at IS NOT NULL \
+            AND ends_at <= NOW() \
+            RETURNING uq.user_id, uq.quest_id, u.quest_notifications"
+        )
+            .fetch_all(&pool)
+            .await
+            .unwrap_or_default();
 
-    Ok(())
+        for quest in expired_quests {
+            let embed = serenity::CreateEmbed::new()
+                .title(format!("Квест {} истёк!", get_quests().get(&quest.1).cloned().unwrap_or_default().name))
+                .description("Увы, время выполнения квеста истекло")
+                .color(serenity::colours::branding::RED);
+
+            let user_id = serenity::UserId::new(quest.0 as u64);
+            let _ = user_id.dm(&ctx, serenity::CreateMessage::new().embed(embed)).await;
+        }
+    }
 }

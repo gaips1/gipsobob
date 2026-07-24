@@ -25,10 +25,10 @@ pub async fn restore_giveaways(ctx: serenity::Context, pool: sqlx::PgPool) {
 pub async fn run_giveaway_poller(ctx: serenity::Context, pool: sqlx::PgPool) {
     log::info!("giveaway poller started");
 
-    tokio::time::sleep(Duration::from_mins(5)).await;
-
     let mut ticker = interval(Duration::from_mins(5));
     ticker.set_missed_tick_behavior(MissedTickBehavior::Delay);
+
+    ticker.tick().await;
 
     loop {
         ticker.tick().await;
