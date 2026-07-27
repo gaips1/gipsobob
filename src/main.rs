@@ -10,8 +10,6 @@ use rand::seq::IndexedRandom as _;
 use sqlx::postgres::PgPoolOptions;
 use types::*;
 
-// ДОБАВИТЬ КНОПКИ МЕНЯЮЩИЕ УВЕДОМЛЕНИЯ
-
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
@@ -110,7 +108,7 @@ async fn on_event<'a>(
                 ctx.clone(),
                 data.pool.clone(),
             ));
-            tokio::spawn(modules::quests::helpers::run_quests_poller(
+            tokio::spawn(modules::quests::helpers::run_expired_quests_poller(
                 ctx.clone(),
                 data.pool.clone(),
             ));
