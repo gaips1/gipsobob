@@ -5,6 +5,7 @@ mod invite;
 pub mod register;
 mod rob;
 mod transfer;
+mod top;
 
 use crate::types::*;
 
@@ -37,7 +38,8 @@ pub async fn handle_sbp_buttons(
         "account::account",
         "register::reg",
         "transfer::transfer_slash_command",
-        "invite::invite"
+        "invite::invite",
+        "top::top"
     ),
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
