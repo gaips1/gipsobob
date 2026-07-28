@@ -194,15 +194,6 @@ async fn process_giveaway(
     prize: i32,
     channel_id: i64,
 ) -> Result<(), Error> {
-    let result = sqlx::query("DELETE FROM giveaways WHERE id = $1")
-        .bind(id)
-        .execute(pool)
-        .await?;
-
-    if result.rows_affected() == 0 {
-        return Ok(());
-    }
-
     let users: Vec<i64> = sqlx::query_scalar(
         "SELECT user_id \
         FROM giveaway_participants \
@@ -211,6 +202,15 @@ async fn process_giveaway(
     .bind(id)
     .fetch_all(pool)
     .await?;
+
+    let result = sqlx::query("DELETE FROM giveaways WHERE id = $1")
+        .bind(id)
+        .execute(pool)
+        .await?;
+
+    if result.rows_affected() == 0 {
+        return Ok(());
+    }
 
     let mut msg = serenity::ChannelId::new(channel_id as u64)
         .message(ctx, id as u64)
@@ -434,11 +434,13 @@ async fn create_giveaway(
             .style(serenity::ButtonStyle::Success),
     ])];
 
+    let role = serenity::RoleId::new(968467508724138014);
     let msg = ctx
         .channel_id()
         .send_message(
             ctx,
             serenity::CreateMessage::new()
+                .content(format!("{}", role.mention()))
                 .embed(embed)
                 .components(buttons),
         )
@@ -466,6 +468,8 @@ async fn create_giveaway(
         ctx.channel_id().get() as i64,
     )
     .await;
+
+    let _ = ctx.say("Успешно!").await;
 
     Ok(())
 }
