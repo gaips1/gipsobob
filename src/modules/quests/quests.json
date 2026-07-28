@@ -16,7 +16,7 @@
     "max_progress": 15,
     "users_required_type": "different",
     "reward": 300,
-    "ends": 24
+    "ends": 48
   },
   {
     "id": "sex_bomba",
@@ -25,8 +25,8 @@
     "action": "sex",
     "max_progress": 30,
     "users_required_type": "different",
-    "reward": 1000,
-    "ends": 24
+    "reward": 2000,
+    "ends": 168
   },
   {
     "id": "sex_master",
@@ -36,7 +36,7 @@
     "max_progress": 15,
     "users_required_type": "different",
     "reward": 500,
-    "ends": 24
+    "ends": 48
   },
   {
     "id": "transfer-3500",
@@ -64,7 +64,7 @@
     "max_progress": 15,
     "users_required_type": "different",
     "reward": 300,
-    "ends": 24
+    "ends": 48
   },
   {
     "id": "punches",
@@ -74,7 +74,7 @@
     "max_progress": 15,
     "users_required_type": "different",
     "reward": 300,
-    "ends": 24
+    "ends": 48
   },
   {
     "id": "casino",
@@ -91,7 +91,7 @@
     "description": "Убейте себя в русской рулетке `/русская-рулетка`",
     "action": "rr",
     "max_progress": 1,
-    "reward": 150,
+    "reward": 300,
     "ends": 24
   },
   {
