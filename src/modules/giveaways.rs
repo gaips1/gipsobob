@@ -1,5 +1,6 @@
 use std::time::Duration;
 use chrono::Timelike;
+use poise::serenity_prelude::Mentionable;
 use rand::seq::IndexedRandom as _;
 use tokio::time::{MissedTickBehavior, interval};
 
@@ -108,12 +109,14 @@ pub async fn run_daily_giveaway_scheduler(
         ])];
 
         let chan_id = serenity::ChannelId::new(channel_id as u64);
+        let role = serenity::RoleId::new(968467508724138014);
         
         match chan_id
             .send_message(
                 &ctx,
                 serenity::CreateMessage::new()
                     .embed(embed)
+                    .content(format!("{}", role.mention()))
                     .components(buttons),
             )
             .await
