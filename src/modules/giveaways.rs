@@ -1,5 +1,5 @@
 use std::time::Duration;
-
+use chrono::Timelike;
 use rand::seq::IndexedRandom as _;
 use tokio::time::{MissedTickBehavior, interval};
 
@@ -50,6 +50,108 @@ pub async fn run_giveaway_poller(ctx: serenity::Context, pool: sqlx::PgPool) {
                 log::error!("Failed to process giveaway {}: {:?}", id, e);
             }
         }
+    }
+}
+
+pub async fn run_daily_giveaway_scheduler(
+    ctx: serenity::Context,
+    pool: sqlx::PgPool,
+    channel_id: i64,
+) {
+    log::info!("daily giveaway scheduler started");
+
+    loop {
+        let now = chrono::Local::now();
+        
+        let mut target = now
+            .with_hour(12)
+            .and_then(|t| t.with_minute(0))
+            .and_then(|t| t.with_second(0))
+            .and_then(|t| t.with_nanosecond(0))
+            .unwrap_or(now);
+
+        if now >= target {
+            target = target + chrono::Duration::days(1);
+        }
+
+        let duration = (target - now)
+            .to_std()
+            .unwrap_or_else(|_| std::time::Duration::from_secs(0));
+
+        tokio::time::sleep(duration).await;
+
+        let now_local = chrono::Local::now();
+        let midnight_local = now_local
+            .with_hour(0)
+            .and_then(|t| t.with_minute(0))
+            .and_then(|t| t.with_second(0))
+            .and_then(|t| t.with_nanosecond(0))
+            .unwrap_or(now_local)
+            + chrono::Duration::days(1);
+
+        let ends_at = midnight_local.with_timezone(&chrono::Utc);
+        let ends_at_timestamp = ends_at.timestamp() as u64;
+        let amount = 100;
+
+        let embed = serenity::CreateEmbed::new()
+            .title(format!("Ежедневный розыгрыш {amount} бебр"))
+            .description(format!(
+                "**Чтобы участвовать, нажми кнопку ниже.\nЗаканчивается <t:{}:R>**",
+                ends_at_timestamp
+            ))
+            .colour(serenity::colours::branding::BLURPLE);
+
+        let buttons = vec![serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new("giveaway:join")
+                .label("Принять участие")
+                .style(serenity::ButtonStyle::Success),
+        ])];
+
+        let chan_id = serenity::ChannelId::new(channel_id as u64);
+        
+        match chan_id
+            .send_message(
+                &ctx,
+                serenity::CreateMessage::new()
+                    .embed(embed)
+                    .components(buttons),
+            )
+            .await
+        {
+            Ok(msg) => {
+                let msg_id = msg.id.get() as i64;
+                match sqlx::query(
+                    "INSERT INTO giveaways (ends_at, prize, channel_id, id) VALUES ($1, $2, $3, $4)"
+                )
+                .bind(ends_at)
+                .bind(amount as i32)
+                .bind(channel_id)
+                .bind(msg_id)
+                .execute(&pool)
+                .await
+                {
+                    Ok(_) => {
+                        spawn_giveaway_timer(
+                            ctx.clone(),
+                            pool.clone(),
+                            msg_id,
+                            ends_at,
+                            amount as i32,
+                            channel_id,
+                        )
+                        .await;
+                    }
+                    Err(e) => {
+                        log::error!("Failed to save daily giveaway to database: {:?}", e);
+                    }
+                }
+            }
+            Err(e) => {
+                log::error!("Failed to send daily giveaway message: {:?}", e);
+            }
+        }
+
+        tokio::time::sleep(std::time::Duration::from_secs(60)).await;
     }
 }
 

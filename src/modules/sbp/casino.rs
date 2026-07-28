@@ -42,11 +42,11 @@ pub async fn handle_casino_buttons(
     data: &Data,
 ) -> Result<(), Error> {
     match interaction.data.custom_id.as_str() {
-        "casino::slots" => {
+        "casino:slots" => {
             handle_slots_button(ctx, interaction, data).await?;
         }
 
-        "casino::guess" => {
+        "casino:guess" => {
             handle_guess_button(ctx, interaction, data).await?;
         }
 
