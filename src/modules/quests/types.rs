@@ -30,7 +30,7 @@ pub enum Status {
 
 #[derive(Debug, PartialEq, Eq, FromRow)]
 pub struct UserQuest {
-    pub user_id: Option<i64>,
+    pub user_id: i64,
     pub quest_id: String,
     pub progress: i32,
     pub users: Vec<i64>,

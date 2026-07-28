@@ -1,6 +1,7 @@
 use poise::serenity_prelude::utils::CreateQuickModal;
 use pretty_decimal::PrettyDecimal;
 use rust_decimal::Decimal;
+use rust_decimal::prelude::ToPrimitive as _;
 
 use crate::checks::sbp_check;
 use crate::modules::sbp::USER_UNAUTHORIZED_ERROR;
@@ -85,6 +86,8 @@ async fn transfer(
         .await?;
 
     tx.commit().await?;
+
+    let _ = add_user_quest_progress(pool, ctx.serenity_context(), ctx.author().id.get(), "transfer", Some(user.id.get()), amount.to_i32()).await;
 
     let _ = ctx
         .say(format!(

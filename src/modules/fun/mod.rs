@@ -41,6 +41,9 @@ async fn monetka(ctx: Context<'_>) -> Result<(), Error> {
     };
     let msg = ctx.say("Подбрасываю...").await?;
     sleep(Duration::from_millis(2_500)).await;
+    if choice == "Ребро!" {
+        let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "monetka", None, None).await;
+    }
     msg.edit(ctx, CreateReply::default().content(choice))
         .await?;
     Ok(())
@@ -59,9 +62,13 @@ async fn russian_roulette(ctx: Context<'_>) -> Result<(), Error> {
     msg.edit(ctx, CreateReply::default().content("Раскручиваю барабан.."))
         .await?;
     sleep(Duration::from_millis(1_500)).await;
+    let is_dead = rand::random_bool(0.167);
+    if is_dead {
+        let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "rr", None, None).await;
+    }
     msg.edit(
         ctx,
-        CreateReply::default().content(if rand::random_bool(0.167) {
+        CreateReply::default().content(if is_dead {
             "Бум! Тебе разорвало лицо"
         } else {
             "Повезло, ты остался жив"
@@ -109,6 +116,7 @@ async fn slava(_ctx: Context<'_>) -> Result<(), Error> {
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
 async fn uzbii(ctx: Context<'_>) -> Result<(), Error> {
+    let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "slava_uzbii", None, None).await;
     ctx.send(
         CreateReply::default().embed(
             serenity::CreateEmbed::default()
@@ -154,6 +162,8 @@ pub async fn kiss(
         .await?;
         return Ok(());
     }
+
+    let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "kiss", Some(user.id.get()), None).await;
 
     let gif = {
         let mut rng = rand::rng();
@@ -211,6 +221,8 @@ pub async fn hug(
         return Ok(());
     }
 
+    let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "hug", Some(user.id.get()), None).await;
+
     let gif = {
         let mut rng = rand::rng();
         *HUG_GIFS.choose(&mut rng).unwrap()
@@ -266,6 +278,8 @@ pub async fn punch(
         .await?;
         return Ok(());
     }
+
+    let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "punch", Some(user.id.get()), None).await;
 
     let gif = {
         let mut rng = rand::rng();
@@ -331,6 +345,7 @@ pub async fn cumshot(
             .await?;
         sleep(Duration::from_millis(1_500)).await;
         if rand::random_bool(0.5) {
+            let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "cumshot", Some(user.id.get()), None).await;
             msg.edit(
                 ctx,
                 CreateReply::default().content(format!(
@@ -376,6 +391,7 @@ pub async fn blowjob(
         let msg = ctx.say("Вы пытаетесь сделать само-отсос...").await?;
         sleep(Duration::from_millis(3_500)).await;
         if rand::random_bool(0.3) {
+            let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "self-minet", Some(ctx.author().id.get()), None).await;
             msg.edit(
                 ctx,
                 CreateReply::default().content("Вы успешно отсосали самому себе"),
@@ -397,6 +413,7 @@ pub async fn blowjob(
             .await?;
         sleep(Duration::from_millis(3_500)).await;
         if rand::random_bool(0.5) {
+            let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "minet", Some(user.id.get()), None).await;
             msg.edit(
                 ctx,
                 CreateReply::default().content(format!(
@@ -457,6 +474,7 @@ pub async fn footjob(
     sleep(Duration::from_millis(3_500)).await;
 
     if rand::random_bool(0.5) {
+        let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "footjob", Some(user.id.get()), None).await;
         msg.edit(
             ctx,
             CreateReply::default().content(format!(

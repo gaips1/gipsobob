@@ -1,10 +1,12 @@
 use crate::types::*;
+use crate::checks::sbp_check;
 
 /// Ограбить пользователя
 #[poise::command(
     slash_command,
     rename = "ограбить",
     user_cooldown = 86400,
+    check = "sbp_check",
     ephemeral,
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
@@ -27,6 +29,8 @@ pub async fn rob(
 
     if rand::random_bool(0.3) {
         let win = rand::random_range(150..=900);
+
+        let _ = add_user_quest_progress(pool, ctx.serenity_context(), ctx.author().id.get(), "rob", Some(user.id.get()), None).await;
 
         let result = sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = $2")
             .bind(win)
