@@ -112,6 +112,9 @@ async fn on_event<'a>(
                 ctx.clone(),
                 data.pool.clone(),
             ));
+            tokio::spawn(modules::quests::helpers::run_old_quests_cleaner(
+                data.pool.clone(),
+            ));
 
             ctx.online();
             ctx.set_activity(Some(serenity::ActivityData::playing("Visual Studio Code")));

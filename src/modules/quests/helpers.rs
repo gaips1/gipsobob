@@ -343,11 +343,13 @@ pub async fn run_expired_quests_poller(ctx: serenity::Context, pool: sqlx::PgPoo
         ticker.tick().await;
 
         let expired_quests: Vec<(i64, String, bool)> = sqlx::query_as(
-            "DELETE FROM user_quests uq \
-            USING users u \
+            "UPDATE user_quests uq \
+            SET status = 'expired' \
+            FROM users u \
             WHERE uq.user_id = u.id \
             AND uq.ends_at IS NOT NULL \
-            AND ends_at <= NOW() \
+            AND uq.ends_at <= NOW() \
+            AND uq.status = 'active' \
             RETURNING uq.user_id, uq.quest_id, u.quest_notifications",
         )
         .fetch_all(&pool)
@@ -372,6 +374,31 @@ pub async fn run_expired_quests_poller(ctx: serenity::Context, pool: sqlx::PgPoo
                         .components(get_notifications_button(false)),
                 )
                 .await;
+        }
+    }
+}
+
+pub async fn run_old_quests_cleaner(pool: sqlx::PgPool) {
+    log::info!("old quests cleaner started");
+
+    let mut ticker = tokio::time::interval(std::time::Duration::from_secs(60 * 60 * 24));
+    ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+
+    loop {
+        ticker.tick().await;
+
+        let result = sqlx::query(
+            "DELETE FROM user_quests \
+            WHERE status IN ('expired', 'completed') \
+            AND ends_at IS NOT NULL \
+            AND ends_at <= NOW() - INTERVAL '7 days'",
+        )
+        .execute(&pool)
+        .await;
+
+        match result {
+            Ok(r) => log::info!("old quests cleaner: deleted {} rows", r.rows_affected()),
+            Err(e) => log::error!("old quests cleaner error: {:?}", e),
         }
     }
 }
