@@ -3,5 +3,4 @@
 сделано с ❤️  
   
 полностью переписан с Python на Rust.  
-  
-![image](https://github.com/gaips1/gipsobob/assets/50048569/2deec384-09ea-4786-b224-126b939046d2)
+все доступные команды бота есть на сайте gipsobob.gaips.ru
