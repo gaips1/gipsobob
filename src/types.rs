@@ -1,3 +1,4 @@
+pub use crate::modules::quests::helpers::add_user_quest_progress;
 pub use poise::serenity_prelude::{self as serenity};
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;

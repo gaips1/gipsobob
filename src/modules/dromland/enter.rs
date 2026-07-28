@@ -200,6 +200,8 @@ pub async fn handle_enter_button(
     in_game_guard.disarm();
 
     if loose.is_none() {
+        let _ = add_user_quest_progress(&data.pool, ctx, user_id as u64, "dromlyandia", None, None).await;
+
         let embed = serenity::CreateEmbed::new()
             .title(&monster.name)
             .description(format!(

@@ -33,7 +33,7 @@ pub async fn get_user_quests(
     quest_status: Status,
 ) -> Result<Vec<UserQuest>, Error> {
     let user_quests: Vec<UserQuest> = sqlx::query_as(
-        "SELECT quest_id, progress, ends_at, status \
+        "SELECT user_id, quest_id, progress, users, ends_at, status \
         FROM user_quests \
         WHERE user_id = $1 \
         AND status = $2",
@@ -44,6 +44,134 @@ pub async fn get_user_quests(
     .await?;
 
     Ok(user_quests)
+}
+
+pub async fn add_user_quest_progress(
+    pool: &sqlx::PgPool,
+    ctx: &serenity::Context,
+    user_id: u64,
+    action: &str,
+    target_user_id: Option<u64>,
+    value: Option<i32>,
+) -> Result<(), Error> {
+    let quests: Vec<_> = get_quests()
+        .values()
+        .filter(|q| &q.action == action)
+        .map(|q| q.id.clone())
+        .collect();
+
+    if quests.is_empty() {
+        return Ok(());
+    }
+
+    let mut tx = pool.begin().await?;
+
+    let quest_notifications: bool = sqlx::query_scalar(
+        "SELECT quest_notifications FROM users WHERE id = $1",
+    )
+    .bind(user_id as i64)
+    .fetch_one(&mut *tx)
+    .await
+    .unwrap_or(false);
+
+    let active_quests: Vec<UserQuest> = sqlx::query_as(
+        "SELECT user_id, quest_id, progress, users, ends_at, status \
+         FROM user_quests \
+         WHERE user_id = $1 \
+         AND quest_id = ANY($2) \
+         AND status = 'active' \
+         FOR UPDATE",
+    )
+    .bind(user_id as i64)
+    .bind(&quests)
+    .fetch_all(&mut *tx)
+    .await?;
+
+    for active_quest in active_quests {
+        let quest_def = active_quest.to_quest();
+        let mut should_update = true;
+        let mut new_users = active_quest.users.clone();
+
+        if let Some(q) = quest_def {
+            if q.users_required_type == Some(UsersRequiredType::Different) {
+                if let Some(target_id) = target_user_id {
+                    if active_quest.users.contains(&(target_id as i64)) {
+                        should_update = false;
+                    } else {
+                        new_users.push(target_id as i64);
+                    }
+                } else {
+                    should_update = false;
+                }
+            } else {
+                if let Some(target_id) = target_user_id {
+                    new_users.push(target_id as i64);
+                }
+            }
+        }
+
+        if should_update {
+            let new_progress = active_quest.progress + value.unwrap_or(1);
+            let mut is_completed = false;
+            if let Some(q) = quest_def {
+                if new_progress >= q.max_progress as i32 {
+                    is_completed = true;
+                }
+            }
+
+            if is_completed {
+                sqlx::query(
+                    "UPDATE user_quests \
+                     SET progress = $1, users = $2, status = 'completed' \
+                     WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
+                )
+                .bind(new_progress)
+                .bind(new_users)
+                .bind(user_id as i64)
+                .bind(&active_quest.quest_id)
+                .execute(&mut *tx)
+                .await?;
+
+                if quest_notifications {
+                    if let Some(q) = quest_def {
+                        let embed = serenity::CreateEmbed::new()
+                            .title(format!("Квест {} выполнен!", q.name))
+                            .description(format!(
+                                "Вы успешно выполнили квест **{}**!\nНаграда: {} бебр",
+                                q.name, q.reward
+                            ))
+                            .color(serenity::colours::branding::GREEN);
+
+                        let dm_user_id = serenity::UserId::new(user_id);
+                        let _ = dm_user_id
+                            .dm(
+                                ctx,
+                                serenity::CreateMessage::new()
+                                    .embed(embed)
+                                    .components(get_notifications_button(false)),
+                            )
+                            .await;
+                    }
+                }
+            } else {
+                sqlx::query(
+                    "UPDATE user_quests \
+                     SET progress = $1, users = $2 \
+                     WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
+                )
+                .bind(new_progress)
+                .bind(new_users)
+                .bind(user_id as i64)
+                .bind(&active_quest.quest_id)
+                .execute(&mut *tx)
+                .await?;
+            }
+        }
+    }
+
+    tx.commit().await?;
+
+    Ok(())
 }
 
 pub fn create_quests_embed(user_quests: &Vec<UserQuest>) -> serenity::CreateEmbed {

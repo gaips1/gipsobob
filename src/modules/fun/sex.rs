@@ -104,6 +104,8 @@ pub async fn sex(
                         serenity::CreateInteractionResponseMessage::default().components(buttons)
                     );
 
+                    let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "sex", Some(user.id.get()), None).await;
+
                     let gif = {
                         let mut rng = rand::rng();
                         *GIFS.choose(&mut rng).unwrap()
