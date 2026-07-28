@@ -248,7 +248,7 @@ pub async fn add_quest_to_user(
 }
 
 pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool) {
-    let quests: Vec<&Quest> = get_quests().values().collect();
+    let quests: Vec<&Quest> = get_quests().values().filter(|q| &q.id != "first_q").collect();
     log::info!("random quests adder started");
 
     loop {
@@ -299,7 +299,7 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
             (user_ids, quest_ids, ends_ats, notify_entries)
         };
 
-        let _ = sqlx::query(
+        match sqlx::query(
             "INSERT INTO user_quests (user_id, quest_id, ends_at)
             SELECT * FROM UNNEST($1::bigint[], $2::text[], $3::timestamptz[])",
         )
@@ -307,7 +307,11 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
         .bind(&quest_ids)
         .bind(&ends_ats)
         .execute(&pool)
-        .await;
+        .await
+        {
+            Ok(res) => log::info!("inserted {} quests", res.rows_affected()),
+            Err(e) => log::error!("failed to insert quests: {e}"),
+        };
 
         for (uid, quest) in notify_entries {
             let embed = serenity::CreateEmbed::new()
@@ -319,14 +323,20 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
                 .color(serenity::colours::branding::GREEN);
 
             let user_id = serenity::UserId::new(uid as u64);
-            let _ = user_id
+            match user_id
                 .dm(
                     &ctx,
                     serenity::CreateMessage::new()
                         .embed(embed)
                         .components(get_notifications_button(false)),
                 )
-                .await;
+                .await
+            {
+                Ok(_) => log::info!("dm sent to {uid}"),
+                Err(e) => log::warn!("failed to dm {uid}: {e:?}"),
+            }
+
+            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
         }
 
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
