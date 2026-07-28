@@ -192,7 +192,12 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
 
             let user_id = serenity::UserId::new(uid as u64);
             let _ = user_id
-                .dm(&ctx, serenity::CreateMessage::new().embed(embed).components(get_notifications_button(false)))
+                .dm(
+                    &ctx,
+                    serenity::CreateMessage::new()
+                        .embed(embed)
+                        .components(get_notifications_button(false)),
+                )
                 .await;
         }
 

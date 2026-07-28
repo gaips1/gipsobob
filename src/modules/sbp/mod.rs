@@ -4,8 +4,8 @@ pub mod casino;
 mod invite;
 pub mod register;
 mod rob;
-mod transfer;
 mod top;
+mod transfer;
 
 use crate::types::*;
 

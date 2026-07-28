@@ -1,6 +1,8 @@
 use crate::types::*;
+use rand::seq::IndexedRandom as _;
 
 pub mod helpers;
+mod notifications;
 mod types;
 
 pub async fn handle_quests_select(
@@ -31,6 +33,26 @@ pub async fn handle_quests_select(
     Ok(())
 }
 
+pub async fn handle_quests_buttons(
+    ctx: &serenity::Context,
+    interaction: &serenity::ComponentInteraction,
+    data: &Data,
+) -> Result<(), Error> {
+    let custom_id = interaction.data.custom_id.as_str();
+
+    if custom_id.starts_with("quests:notifications:") {
+        notifications::handle_notifications_button(
+            ctx,
+            interaction,
+            data,
+            custom_id.strip_prefix("quests:notifications:").unwrap(),
+        )
+        .await?;
+    }
+
+    Ok(())
+}
+
 /// Квесты
 #[poise::command(
     slash_command,
@@ -57,6 +79,35 @@ async fn quests(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
+#[poise::command(prefix_command)]
+async fn quest_add(
+    ctx: Context<'_>,
+    user_id: serenity::UserId,
+    quest_id: Option<String>,
+) -> Result<(), Error> {
+    if ctx.author().id.get() != 449882524697493515 {
+        return Ok(());
+    }
+
+    let quest = match quest_id {
+        Some(q_id) => helpers::get_quests().get(&q_id).expect("Квест не найден"),
+        None => {
+            let mut rng = rand::rng();
+            *helpers::get_quests()
+                .values()
+                .collect::<Vec<_>>()
+                .choose(&mut rng)
+                .unwrap()
+        }
+    };
+
+    helpers::add_quest_to_user(&ctx.data().pool, user_id.get(), quest).await?;
+
+    ctx.say("Успешно!").await?;
+
+    Ok(())
+}
+
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
-    vec![quests()]
+    vec![quests(), quest_add()]
 }
