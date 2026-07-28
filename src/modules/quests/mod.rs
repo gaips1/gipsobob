@@ -80,7 +80,7 @@ async fn quests(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 #[poise::command(prefix_command)]
-async fn quest_add(
+async fn add_quest(
     ctx: Context<'_>,
     user_id: serenity::UserId,
     quest_id: Option<String>,
@@ -109,5 +109,5 @@ async fn quest_add(
 }
 
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
-    vec![quests(), quest_add()]
+    vec![quests(), add_quest()]
 }

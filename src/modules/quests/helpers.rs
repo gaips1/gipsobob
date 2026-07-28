@@ -232,8 +232,8 @@ pub async fn add_quest_to_user(
     pool: &sqlx::PgPool,
     user_id: u64,
     quest: &Quest,
-) -> Result<(), Error> {
-    sqlx::query("INSERT INTO user_quests (user_id, quest_id, ends_at) VALUES ($1, $2, $3, $4)")
+) -> Result<(), Error> {    
+    sqlx::query("INSERT INTO user_quests (user_id, quest_id, ends_at) VALUES ($1, $2, $3)")
         .bind(user_id as i64)
         .bind(&quest.id)
         .bind(if let Some(ends) = quest.ends {
