@@ -1,3 +1,4 @@
+use pretty_decimal::PrettyDecimal;
 use rust_decimal::Decimal;
 use std::fmt::Write;
 
@@ -12,13 +13,13 @@ use crate::types::*;
 )]
 pub async fn top(ctx: Context<'_>) -> Result<(), Error> {
     let users: Vec<(i64, Decimal)> =
-        sqlx::query_as("SELECT id, balance FROM sbp_users ORDER BY balance ASC LIMIT 10")
+        sqlx::query_as("SELECT id, balance FROM sbp_users ORDER BY balance DESC LIMIT 10")
             .fetch_all(&ctx.data().pool)
             .await?;
 
     let mut text = String::new();
     for (i, &m) in users.iter().enumerate() {
-        let _ = write!(text, "**{}.** <@{}> - {} бебр\n", i + 1, m.0, m.1,);
+        let _ = write!(text, "**{}.** <@{}> - {} бебр\n", i + 1, m.0, PrettyDecimal::comma3dot(m.1),);
     }
 
     let embed = serenity::CreateEmbed::default()
