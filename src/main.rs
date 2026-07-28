@@ -104,6 +104,11 @@ async fn on_event<'a>(
                 ctx.clone(),
                 data.pool.clone(),
             ));
+            tokio::spawn(modules::giveaways::run_daily_giveaway_scheduler(
+                ctx.clone(),
+                data.pool.clone(),
+                843475272107163648
+            ));
             tokio::spawn(modules::quests::helpers::run_random_quests_adder(
                 ctx.clone(),
                 data.pool.clone(),
