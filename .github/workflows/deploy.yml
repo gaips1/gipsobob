@@ -33,7 +33,7 @@ jobs:
             cp src/modules/quests/quests.json target/release/
 
             echo ">>> Restarting service..."
-            systemctl restart gipsobob
+            sudo systemctl restart gipsobob
 
             echo ">>> Status:"
-            systemctl status gipsobob --no-pager
+            sudo systemctl status gipsobob --no-pager
