@@ -1,17 +1,15 @@
 [Unit]
 Description=gipsobob
-After=multi-user.target
+After=network.target
 
 [Service]
-User=root
-Group=root
+User=deploy
+Group=deploy
 Type=simple
-
-ExecStart=/root/bots-rs/gipsobob/gipsobob
-
-EnvironmentFile=/root/bots-rs/gipsobob/.env
-
-Restart=on-failure
+WorkingDirectory=/opt/gipsobob
+ExecStart=/opt/gipsobob/target/release/gipsobob
+EnvironmentFile=/opt/gipsobob/.env
+Restart=always
 RestartSec=5
 
 [Install]

@@ -24,10 +24,15 @@ jobs:
             git reset --hard origin/main
 
             echo ">>> Building release..."
+            source $HOME/.cargo/env
             cargo build --release
+
+            echo ">>> Copying JSONs..."
+            cp src/modules/fun/kys.json target/release/
+            cp src/modules/quests/quests.json target/release/
 
             echo ">>> Restarting service..."
             sudo systemctl restart gipsobob
 
             echo ">>> Status:"
-            sudo systemctl status mybot --no-pager
+            sudo systemctl status gipsobob --no-pager
