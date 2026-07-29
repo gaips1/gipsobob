@@ -151,6 +151,8 @@ pub async fn add_user_quest_progress(
                                     .components(get_notifications_button(false)),
                             )
                             .await;
+                        
+                        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
                     }
                 }
             } else {
@@ -399,6 +401,8 @@ pub async fn run_expired_quests_poller(ctx: serenity::Context, pool: sqlx::PgPoo
                         .components(get_notifications_button(false)),
                 )
                 .await;
+
+            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
         }
     }
 }

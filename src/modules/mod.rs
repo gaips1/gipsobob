@@ -8,6 +8,7 @@ pub mod marriages;
 mod other;
 pub mod quests;
 pub mod sbp;
+pub mod counter;
 
 pub fn all() -> Vec<poise::Command<Data, Error>> {
     [
