@@ -192,6 +192,20 @@ async fn on_event<'a>(
                 .await;
         }
 
+        serenity::FullEvent::Message { new_message: msg } => {
+            if msg.author.bot {
+                return Ok(());
+            }
+
+            if msg.author.id == ctx.cache.current_user().id {
+                return Ok(());
+            }
+
+            if msg.channel_id.get() == if cfg!(debug_assertions) { 1217813620705067010 } else { 1072943570962620477 } {
+                modules::counter::handle_counter_messages(ctx, msg).await?;
+            }
+        }
+
         _ => {}
     }
 
@@ -220,6 +234,25 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
                 "Подожди ещё {:.1} секунд перед повторным использованием команды.",
                 remaining_cooldown.as_secs_f32()
             )))
+            .await;
+        return;
+    }
+
+    if let poise::FrameworkError::CommandPanic { payload, ctx, .. } = error {
+        let mut msg = payload.as_deref().unwrap_or_else(|| "Произошла ошибка при выполнении команды.");
+
+        if msg.starts_with("!!") {
+            msg = &msg[2..];
+        } else {
+            msg = "Произошла ошибка при выполнении команды.";
+        }
+
+        let _ = ctx
+            .send(
+                CreateReply::default()
+                    .content(format!("{}", msg))
+                    .ephemeral(true),
+            )
             .await;
         return;
     }

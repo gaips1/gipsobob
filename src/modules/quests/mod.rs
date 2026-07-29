@@ -90,7 +90,7 @@ async fn add_quest(
     }
 
     let quest = match quest_id {
-        Some(q_id) => helpers::get_quests().get(&q_id).expect("Квест не найден"),
+        Some(q_id) => helpers::get_quests().get(&q_id).expect("!!Квест не найден"),
         None => {
             let mut rng = rand::rng();
             *helpers::get_quests()
