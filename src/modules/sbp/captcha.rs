@@ -103,7 +103,15 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
                         .execute(pool)
                         .await?;
 
-                    let _ = add_user_quest_progress(pool, ctx.serenity_context(), press.user.id.get(), "captcha", None, None).await;
+                    let _ = add_user_quest_progress(
+                        pool,
+                        ctx.serenity_context(),
+                        press.user.id.get(),
+                        "captcha",
+                        None,
+                        None,
+                    )
+                    .await;
 
                     crate::create_edit_response!(
                         ctx,

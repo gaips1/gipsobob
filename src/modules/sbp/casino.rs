@@ -142,7 +142,15 @@ async fn handle_slots_button(
         return Ok(());
     };
 
-    let _ = add_user_quest_progress(&data.pool, ctx, interaction.user.id.get(), "casino", None, None).await;
+    let _ = add_user_quest_progress(
+        &data.pool,
+        ctx,
+        interaction.user.id.get(),
+        "casino",
+        None,
+        None,
+    )
+    .await;
 
     crate::create_response!(
         ctx,
@@ -356,7 +364,15 @@ async fn handle_guess_button(
         return Ok(());
     };
 
-    let _ = add_user_quest_progress(&data.pool, ctx, interaction.user.id.get(), "casino", None, None).await;
+    let _ = add_user_quest_progress(
+        &data.pool,
+        ctx,
+        interaction.user.id.get(),
+        "casino",
+        None,
+        None,
+    )
+    .await;
 
     match win {
         Some(w) => {

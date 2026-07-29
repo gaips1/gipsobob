@@ -42,7 +42,15 @@ async fn monetka(ctx: Context<'_>) -> Result<(), Error> {
     let msg = ctx.say("Подбрасываю...").await?;
     sleep(Duration::from_millis(2_500)).await;
     if choice == "Ребро!" {
-        let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "monetka", None, None).await;
+        let _ = add_user_quest_progress(
+            &ctx.data().pool,
+            ctx.serenity_context(),
+            ctx.author().id.get(),
+            "monetka",
+            None,
+            None,
+        )
+        .await;
     }
     msg.edit(ctx, CreateReply::default().content(choice))
         .await?;
@@ -64,7 +72,15 @@ async fn russian_roulette(ctx: Context<'_>) -> Result<(), Error> {
     sleep(Duration::from_millis(1_500)).await;
     let is_dead = rand::random_bool(0.167);
     if is_dead {
-        let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "rr", None, None).await;
+        let _ = add_user_quest_progress(
+            &ctx.data().pool,
+            ctx.serenity_context(),
+            ctx.author().id.get(),
+            "rr",
+            None,
+            None,
+        )
+        .await;
     }
     msg.edit(
         ctx,
@@ -116,7 +132,15 @@ async fn slava(_ctx: Context<'_>) -> Result<(), Error> {
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
 async fn uzbii(ctx: Context<'_>) -> Result<(), Error> {
-    let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "slava_uzbii", None, None).await;
+    let _ = add_user_quest_progress(
+        &ctx.data().pool,
+        ctx.serenity_context(),
+        ctx.author().id.get(),
+        "slava_uzbii",
+        None,
+        None,
+    )
+    .await;
     ctx.send(
         CreateReply::default().embed(
             serenity::CreateEmbed::default()
@@ -163,7 +187,15 @@ pub async fn kiss(
         return Ok(());
     }
 
-    let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "kiss", Some(user.id.get()), None).await;
+    let _ = add_user_quest_progress(
+        &ctx.data().pool,
+        ctx.serenity_context(),
+        ctx.author().id.get(),
+        "kiss",
+        Some(user.id.get()),
+        None,
+    )
+    .await;
 
     let gif = {
         let mut rng = rand::rng();
@@ -192,7 +224,7 @@ const HUG_GIFS: [&str; 6] = [
     "https://media.tenor.com/BmbTYhCZ5UsAAAAM/yuri-sleeping-yuri-sleep.gif",
     "https://media.tenor.com/MApGHq5Kvj0AAAAM/anime-hug.gif",
     "https://tenor.com/view/hugtrip-gif-2490966530865073004",
-    "https://tenor.com/view/anime-comfort-hug-anime-hug-anime-wrap-hands-anime-hands-around-neck-anime-side-hug-gif-1321262205202367944"
+    "https://tenor.com/view/anime-comfort-hug-anime-hug-anime-wrap-hands-anime-hands-around-neck-anime-side-hug-gif-1321262205202367944",
 ];
 /// Обнять пользователя
 #[poise::command(
@@ -222,7 +254,15 @@ pub async fn hug(
         return Ok(());
     }
 
-    let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "hug", Some(user.id.get()), None).await;
+    let _ = add_user_quest_progress(
+        &ctx.data().pool,
+        ctx.serenity_context(),
+        ctx.author().id.get(),
+        "hug",
+        Some(user.id.get()),
+        None,
+    )
+    .await;
 
     let gif = {
         let mut rng = rand::rng();
@@ -280,7 +320,15 @@ pub async fn punch(
         return Ok(());
     }
 
-    let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "punch", Some(user.id.get()), None).await;
+    let _ = add_user_quest_progress(
+        &ctx.data().pool,
+        ctx.serenity_context(),
+        ctx.author().id.get(),
+        "punch",
+        Some(user.id.get()),
+        None,
+    )
+    .await;
 
     let gif = {
         let mut rng = rand::rng();
@@ -346,7 +394,15 @@ pub async fn cumshot(
             .await?;
         sleep(Duration::from_millis(1_500)).await;
         if rand::random_bool(0.5) {
-            let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "cumshot", Some(user.id.get()), None).await;
+            let _ = add_user_quest_progress(
+                &ctx.data().pool,
+                ctx.serenity_context(),
+                ctx.author().id.get(),
+                "cumshot",
+                Some(user.id.get()),
+                None,
+            )
+            .await;
             msg.edit(
                 ctx,
                 CreateReply::default().content(format!(
@@ -392,7 +448,15 @@ pub async fn blowjob(
         let msg = ctx.say("Вы пытаетесь сделать само-отсос...").await?;
         sleep(Duration::from_millis(3_500)).await;
         if rand::random_bool(0.3) {
-            let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "self-minet", Some(ctx.author().id.get()), None).await;
+            let _ = add_user_quest_progress(
+                &ctx.data().pool,
+                ctx.serenity_context(),
+                ctx.author().id.get(),
+                "self-minet",
+                Some(ctx.author().id.get()),
+                None,
+            )
+            .await;
             msg.edit(
                 ctx,
                 CreateReply::default().content("Вы успешно отсосали самому себе"),
@@ -414,7 +478,15 @@ pub async fn blowjob(
             .await?;
         sleep(Duration::from_millis(3_500)).await;
         if rand::random_bool(0.5) {
-            let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "minet", Some(user.id.get()), None).await;
+            let _ = add_user_quest_progress(
+                &ctx.data().pool,
+                ctx.serenity_context(),
+                ctx.author().id.get(),
+                "minet",
+                Some(user.id.get()),
+                None,
+            )
+            .await;
             msg.edit(
                 ctx,
                 CreateReply::default().content(format!(
@@ -475,7 +547,15 @@ pub async fn footjob(
     sleep(Duration::from_millis(3_500)).await;
 
     if rand::random_bool(0.5) {
-        let _ = add_user_quest_progress(&ctx.data().pool, ctx.serenity_context(), ctx.author().id.get(), "footjob", Some(user.id.get()), None).await;
+        let _ = add_user_quest_progress(
+            &ctx.data().pool,
+            ctx.serenity_context(),
+            ctx.author().id.get(),
+            "footjob",
+            Some(user.id.get()),
+            None,
+        )
+        .await;
         msg.edit(
             ctx,
             CreateReply::default().content(format!(

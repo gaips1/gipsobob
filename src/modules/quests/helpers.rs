@@ -66,13 +66,12 @@ pub async fn add_user_quest_progress(
 
     let mut tx = pool.begin().await?;
 
-    let quest_notifications: bool = sqlx::query_scalar(
-        "SELECT quest_notifications FROM users WHERE id = $1",
-    )
-    .bind(user_id as i64)
-    .fetch_one(&mut *tx)
-    .await
-    .unwrap_or(false);
+    let quest_notifications: bool =
+        sqlx::query_scalar("SELECT quest_notifications FROM users WHERE id = $1")
+            .bind(user_id as i64)
+            .fetch_one(&mut *tx)
+            .await
+            .unwrap_or(false);
 
     let active_quests: Vec<UserQuest> = sqlx::query_as(
         "SELECT user_id, quest_id, progress, users, ends_at, status \
@@ -151,7 +150,7 @@ pub async fn add_user_quest_progress(
                                     .components(get_notifications_button(false)),
                             )
                             .await;
-                        
+
                         tokio::time::sleep(std::time::Duration::from_millis(300)).await;
                     }
                 }
@@ -234,7 +233,7 @@ pub async fn add_quest_to_user(
     pool: &sqlx::PgPool,
     user_id: u64,
     quest: &Quest,
-) -> Result<(), Error> {    
+) -> Result<(), Error> {
     sqlx::query("INSERT INTO user_quests (user_id, quest_id, ends_at) VALUES ($1, $2, $3)")
         .bind(user_id as i64)
         .bind(&quest.id)
@@ -250,7 +249,10 @@ pub async fn add_quest_to_user(
 }
 
 pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool) {
-    let quests: Vec<&Quest> = get_quests().values().filter(|q| &q.id != "first_q").collect();
+    let quests: Vec<&Quest> = get_quests()
+        .values()
+        .filter(|q| &q.id != "first_q")
+        .collect();
     log::info!("random quests adder started");
 
     loop {
@@ -283,7 +285,7 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
                 WHERE status = 'active'
                 GROUP BY user_id
             ) uq ON uq.user_id = u.id
-            WHERE COALESCE(uq.cnt, 0) < 5"
+            WHERE COALESCE(uq.cnt, 0) < 5",
         )
         .fetch_all(&pool)
         .await

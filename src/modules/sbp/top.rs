@@ -19,7 +19,13 @@ pub async fn top(ctx: Context<'_>) -> Result<(), Error> {
 
     let mut text = String::new();
     for (i, &m) in users.iter().enumerate() {
-        let _ = write!(text, "**{}.** <@{}> - {} бебр\n", i + 1, m.0, PrettyDecimal::comma3dot(m.1),);
+        let _ = write!(
+            text,
+            "**{}.** <@{}> - {} бебр\n",
+            i + 1,
+            m.0,
+            PrettyDecimal::comma3dot(m.1),
+        );
     }
 
     let embed = serenity::CreateEmbed::default()

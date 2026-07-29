@@ -1,5 +1,5 @@
-use crate::types::*;
 use crate::checks::sbp_check;
+use crate::types::*;
 
 /// Ограбить пользователя
 #[poise::command(
@@ -30,7 +30,15 @@ pub async fn rob(
     if rand::random_bool(0.3) {
         let win = rand::random_range(150..=900);
 
-        let _ = add_user_quest_progress(pool, ctx.serenity_context(), ctx.author().id.get(), "rob", Some(user.id.get()), None).await;
+        let _ = add_user_quest_progress(
+            pool,
+            ctx.serenity_context(),
+            ctx.author().id.get(),
+            "rob",
+            Some(user.id.get()),
+            None,
+        )
+        .await;
 
         let result = sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = $2")
             .bind(win)
