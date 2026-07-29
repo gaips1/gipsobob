@@ -78,7 +78,7 @@ const NEW_MEMBER_GIFS: [&str; 6] = [
     "https://media.tenor.com/J_JT8JsNDlUAAAAC/hello-anime.gif",
     "https://media.tenor.com/Q1dW7INg5ioAAAAC/hello-anime.gif",
     "https://media.tenor.com/mIteh_Sas9QAAAAd/anime-hello.gif",
-    "https://tenor.com/view/ranma-anime-hello-chat-hi-hi-chat-gif-6124024137643951182"
+    "https://tenor.com/view/ranma-anime-hello-chat-hi-hi-chat-gif-6124024137643951182",
 ];
 
 const DELETED_MEMBER_GIFS: [&str; 5] = [
@@ -108,7 +108,7 @@ async fn on_event<'a>(
             tokio::spawn(modules::giveaways::run_daily_giveaway_scheduler(
                 ctx.clone(),
                 data.pool.clone(),
-                843475272107163648
+                843475272107163648,
             ));
             tokio::spawn(modules::quests::helpers::run_random_quests_adder(
                 ctx.clone(),
@@ -201,7 +201,13 @@ async fn on_event<'a>(
                 return Ok(());
             }
 
-            if msg.channel_id.get() == if cfg!(debug_assertions) { 1217813620705067010 } else { 1072943570962620477 } {
+            if msg.channel_id.get()
+                == if cfg!(debug_assertions) {
+                    1217813620705067010
+                } else {
+                    1072943570962620477
+                }
+            {
                 modules::counter::handle_counter_messages(ctx, msg).await?;
             }
         }
@@ -239,7 +245,9 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     }
 
     if let poise::FrameworkError::CommandPanic { payload, ctx, .. } = error {
-        let mut msg = payload.as_deref().unwrap_or_else(|| "Произошла ошибка при выполнении команды.");
+        let mut msg = payload
+            .as_deref()
+            .unwrap_or_else(|| "Произошла ошибка при выполнении команды.");
 
         if msg.starts_with("!!") {
             msg = &msg[2..];

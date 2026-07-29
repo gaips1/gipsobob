@@ -1,7 +1,7 @@
-use std::time::Duration;
 use chrono::Timelike;
 use poise::serenity_prelude::Mentionable;
 use rand::seq::IndexedRandom as _;
+use std::time::Duration;
 use tokio::time::{MissedTickBehavior, interval};
 
 use crate::types::*;
@@ -63,7 +63,7 @@ pub async fn run_daily_giveaway_scheduler(
 
     loop {
         let now = chrono::Local::now();
-        
+
         let mut target = now
             .with_hour(12)
             .and_then(|t| t.with_minute(0))
@@ -110,7 +110,7 @@ pub async fn run_daily_giveaway_scheduler(
 
         let chan_id = serenity::ChannelId::new(channel_id as u64);
         let role = serenity::RoleId::new(968467508724138014);
-        
+
         match chan_id
             .send_message(
                 &ctx,

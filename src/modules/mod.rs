@@ -1,5 +1,6 @@
 use crate::types::*;
 
+pub mod counter;
 pub mod dromland;
 pub mod fun;
 pub mod giveaways;
@@ -8,7 +9,6 @@ pub mod marriages;
 mod other;
 pub mod quests;
 pub mod sbp;
-pub mod counter;
 
 pub fn all() -> Vec<poise::Command<Data, Error>> {
     [

@@ -87,7 +87,15 @@ async fn transfer(
 
     tx.commit().await?;
 
-    let _ = add_user_quest_progress(pool, ctx.serenity_context(), ctx.author().id.get(), "transfer", Some(user.id.get()), amount.to_i32()).await;
+    let _ = add_user_quest_progress(
+        pool,
+        ctx.serenity_context(),
+        ctx.author().id.get(),
+        "transfer",
+        Some(user.id.get()),
+        amount.to_i32(),
+    )
+    .await;
 
     let _ = ctx
         .say(format!(
