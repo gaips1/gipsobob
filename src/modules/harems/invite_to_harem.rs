@@ -85,7 +85,7 @@ pub async fn invite_to_harem(ctx: Context<'_>) -> Result<(), Error> {
                 ctx,
                 press,
                 serenity::CreateInteractionResponseMessage::default()
-                    .content("Вы успешно присоединились к гарему. Подробнее в `/my_harem`")
+                    .content("Вы успешно присоединились к гарему. Подробнее в `/гарем управление`")
                     .ephemeral(true)
             );
 

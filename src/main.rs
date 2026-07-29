@@ -38,7 +38,7 @@ async fn main() {
                 let pool = PgPoolOptions::new()
                     .max_connections(
                         std::env::var("DATABASE_MAX_CONNECTIONS")
-                            .unwrap_or(String::from("5"))
+                            .unwrap_or(String::from("10"))
                             .as_str()
                             .parse()
                             .expect("DATABASE_MAX_CONNECTIONS must be integer"),
@@ -72,12 +72,13 @@ async fn main() {
     }
 }
 
-const NEW_MEMBER_GIFS: [&str; 5] = [
-    "https://media.tenor.com/ZvSSenCwxEcAAAAC/hello.gif",
+const NEW_MEMBER_GIFS: [&str; 6] = [
+    "https://tenor.com/view/lucky-star-wave-hello-gif-3561948478976684501",
     "https://media.tenor.com/3o2hRDX8vw0AAAAC/hello-cute.gif",
     "https://media.tenor.com/J_JT8JsNDlUAAAAC/hello-anime.gif",
     "https://media.tenor.com/Q1dW7INg5ioAAAAC/hello-anime.gif",
     "https://media.tenor.com/mIteh_Sas9QAAAAd/anime-hello.gif",
+    "https://tenor.com/view/ranma-anime-hello-chat-hi-hi-chat-gif-6124024137643951182"
 ];
 
 const DELETED_MEMBER_GIFS: [&str; 5] = [
