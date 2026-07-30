@@ -1,0 +1,24 @@
+{
+    "dialogues": {
+        "traits:first_pre_hi": {
+            "content": "Из темноты выныривает сутулый человек в грязном халате и сварных очках. Он нервно оглядывается и чешет нос.",
+            "buttons": [
+                {
+                    "custom_id": "dialogue:traits:first_hi",
+                    "label": "...",
+                    "style": "primary"
+                }
+            ]
+        },
+        "traits:first_hi": {
+            "content": "— Пс-с-с... Парень! Да-да, ты. Хочешь суперсилу? Или чтобы глаза в темноте светились? Заходи, не ссы. Первая проба за твой счёт, естественно!",
+            "buttons": [
+                {
+                    "custom_id": "dialogue:traits:first_pre_hi",
+                    "label": "ЗОВ",
+                    "style": "primary"
+                }
+            ]
+        }
+    }
+}
