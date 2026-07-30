@@ -54,6 +54,8 @@ async fn main() {
 
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
 
+                modules::dialogues::DialoguesManager::new("src/modules/traits/traits.json")?;
+
                 Ok(Data { pool })
             })
         })

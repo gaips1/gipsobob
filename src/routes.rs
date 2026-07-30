@@ -1,5 +1,6 @@
 use crate::types::*;
 
+use crate::modules::dialogues::buttons::handle_dialogue_buttons;
 use crate::modules::dromland::handle_dromland_buttons;
 use crate::modules::fun::kys::handle_kys_button;
 use crate::modules::giveaways::handle_giveaway_buttons;
@@ -26,6 +27,7 @@ pub async fn route_button_interaction(
         "dl" => handle_dromland_buttons(ctx, component, data).await?,
         "giveaway" => handle_giveaway_buttons(ctx, component, data).await?,
         "quests" => handle_quests_buttons(ctx, component, data).await?,
+        "dialogue" => handle_dialogue_buttons(ctx, component).await?,
         "kys_btn" => handle_kys_button(ctx, component).await?,
         _ => {}
     }
