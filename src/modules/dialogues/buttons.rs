@@ -1,4 +1,4 @@
-use crate::{modules::dialogues::DialoguesManager, types::*};
+use crate::{modules::dialogues::get_dialogue, types::*};
 
 pub async fn handle_dialogue_buttons(
     ctx: &serenity::Context,
@@ -6,7 +6,7 @@ pub async fn handle_dialogue_buttons(
 ) -> Result<(), Error> {
     let custom_id = press.data.custom_id.strip_prefix("dialogue:").unwrap();
 
-    let Some(dialogue) = DialoguesManager::get_dialogue(custom_id) else {
+    let Some(dialogue) = get_dialogue(custom_id) else {
         crate::create_edit_response!(
             ctx,
             press,
