@@ -15,7 +15,7 @@ static DIALOGUES_CACHE: OnceLock<HashMap<String, RawDialogue>> = OnceLock::new()
 pub struct DialoguesManager {}
 
 impl<'a> DialoguesManager {
-    pub fn new(data_path: &'a str) -> Result<(), Error> {
+    pub fn load(data_path: &'a str) -> Result<(), Error> {
         if DIALOGUES_CACHE.get().is_some() {
             return Err("DialoguesManager error: Диалоги уже были загружены ранее!".into());
         }
@@ -29,10 +29,16 @@ impl<'a> DialoguesManager {
         Ok(())
     }
 
-    pub fn get_dialogue(id: &str) -> Option<Dialogue<'static>> {
+    pub fn get_dialogue_with_vars(id: &str, vars: &[(&str, &str)]) -> Option<Dialogue> {
         let cache = DIALOGUES_CACHE.get()?;
         let raw_dialogue = cache.get(id)?;
-        let selected_content = raw_dialogue.content.choose()?;
+
+        let mut content = raw_dialogue.content.choose()?.to_string();
+        for (key, val) in vars {
+            let placeholder = format!("{{{}}}", key);
+            content = content.replace(&placeholder, val);
+        }
+
 
         let buttons = raw_dialogue
             .buttons
@@ -52,8 +58,12 @@ impl<'a> DialoguesManager {
             .collect();
 
         Some(Dialogue {
-            content: selected_content,
+            content: content,
             buttons: vec![serenity::CreateActionRow::Buttons(buttons)],
         })
+    }
+
+    pub fn get_dialogue(id: &str) -> Option<Dialogue> {
+        Self::get_dialogue_with_vars(id, &[])
     }
 }
