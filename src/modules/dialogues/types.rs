@@ -50,7 +50,7 @@ pub struct DialoguesFile {
 }
 
 #[derive(Debug)]
-pub struct Dialogue<'a> {
-    pub content: &'a str,
+pub struct Dialogue {
+    pub content: String,
     pub buttons: Vec<serenity::CreateActionRow>,
 }
