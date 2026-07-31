@@ -14,12 +14,12 @@
             "content": "— Пс-с-с... Парень! Да-да, ты. Хочешь суперсилу? Или чтобы глаза в темноте светились? Заходи, не ссы. Первая проба за твой счёт, естественно!",
             "buttons": [
                 {
-                    "custom_id": "traits:mm",
+                    "custom_id": "traits:mm_yes",
                     "label": "Да",
                     "style": "danger"
                 },
                 {
-                    "custom_id": "traits:mm",
+                    "custom_id": "traits:mm_want",
                     "label": "Хочу",
                     "style": "danger"
                 }
@@ -41,6 +41,7 @@
     },
 
     "traits": {
-        "zov": "zoov"
+        "empty": "🟢Пусто",
+        "locked": "🔒Закрыто"
     }
 }
