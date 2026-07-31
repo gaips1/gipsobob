@@ -58,7 +58,7 @@ pub async fn check_user_flag(pool: &sqlx::PgPool, user_id: u64, flag: &str) -> R
 
 pub async fn set_user_flag(pool: &sqlx::PgPool, user_id: u64, flag: &str) -> Result<sqlx::postgres::PgQueryResult, sqlx::Error> {
     sqlx::query(
-        "UPDATE users SET flags = array_append(flags, 'is_traits_opened') \
+        "UPDATE users SET flags = array_append(flags, $2) \
         WHERE id = $1 AND NOT (flags @> ARRAY[$2]::text[])"
     )
     .bind(user_id as i64)
