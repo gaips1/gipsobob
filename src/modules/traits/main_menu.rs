@@ -1,21 +1,45 @@
-use crate::{helpers::{check_user_flag, set_user_flag}, modules::dialogues::get_dialogue, types::*};
+use std::collections::HashMap;
+use crate::{helpers::{check_user_flag, set_user_flag}, modules::{dialogues::get_dialogue, traits::UserTrait}, types::*};
 
-fn get_main_menu(traits: &Vec<String>) -> (Vec<serenity::CreateActionRow>, serenity::CreateEmbed) {
+fn format_user_trait(all_traits: &'static HashMap<String, String>, user_trait: &UserTrait) -> String {
+    let trait_text = all_traits
+        .get(&user_trait.trait_id)
+        .unwrap();
+
+    let mut chars = trait_text.chars();
+
+    format!(
+        "{} Слот {}: {}",
+        chars.next().unwrap_or('🟢'),
+        user_trait.slot_index + 1,
+        chars.as_str()
+    )
+}
+
+async fn get_main_menu(pool: &sqlx::PgPool, user_id: u64) -> Result<(Vec<serenity::CreateActionRow>, serenity::CreateEmbed), Error> {
     let dialogue = get_dialogue("traits:main_menu").unwrap();
     let all_traits = super::get_traits();
 
-    let traits: Vec<(char, &str)> = traits
-        .iter()
-        .map(|id| {
-            let t = all_traits
-                .get(id)
-                .map(|s| s.as_str())
-                .unwrap();
+    let (user_traits, user_unlocked_slots) = tokio::try_join!(
+        sqlx::query_as::<_, UserTrait>(
+            "SELECT trait_id, slot_index FROM user_traits WHERE user_id = $1 ORDER BY slot_index ASC"
+        )
+        .bind(user_id as i64)
+        .fetch_all(pool),
 
-            let mut chars = t.chars();
-            (chars.next().unwrap_or('🟢'), chars.as_str())
+        sqlx::query_scalar::<_, i16>(
+            "SELECT unlocked_traits_slots FROM users WHERE id = $1"
+        )
+        .bind(user_id as i64)
+        .fetch_one(pool)
+    )?;
+
+    let [first_trait, second_trait, third_trait] = [0, 1, 2].map(|index|
+        user_traits.get(index).cloned().unwrap_or_else(|| UserTrait {
+            trait_id: if user_unlocked_slots > index as i16 { "empty" } else { "locked" }.to_string(),
+            slot_index: index as i16,
         })
-        .collect();
+    );
 
     let embed = serenity::CreateEmbed::new()
         .title("Мутации")
@@ -23,14 +47,14 @@ fn get_main_menu(traits: &Vec<String>) -> (Vec<serenity::CreateActionRow>, seren
             format!(
                 "{}\n\n\
                 🧬 Твои мутации:\n\
-                **[ {} Слот 1: {} ]**\n\
-                **[ {} Слот 2: {} ]**\n\
-                **[ {} Слот 3: {} ]**\n\
+                **[ {} ]**\n\
+                **[ {} ]**\n\
+                **[ {} ]**\n\
                 ",
                 dialogue.content,
-                traits[0].0, traits[0].1,
-                traits[1].0, traits[1].1,
-                traits[2].0, traits[2].1
+                format_user_trait(all_traits, &first_trait),
+                format_user_trait(all_traits, &second_trait),
+                format_user_trait(all_traits, &third_trait)
             )
         )
         .colour(serenity::colours::branding::BLURPLE);
@@ -45,7 +69,7 @@ fn get_main_menu(traits: &Vec<String>) -> (Vec<serenity::CreateActionRow>, seren
             .style(serenity::ButtonStyle::Primary)
     ])];
 
-    (buttons, embed)
+    Ok((buttons, embed))
 }
 
 pub async fn handle_traits_buttons(
@@ -54,14 +78,7 @@ pub async fn handle_traits_buttons(
     data: &Data,
 ) -> Result<(), Error> {
     if press.data.custom_id.starts_with("traits:mm") {
-        let user_traits: Vec<String> = sqlx::query_scalar(
-            "SELECT traits FROM users WHERE id = $1"
-        )
-        .bind(press.user.id.get() as i64)
-        .fetch_one(&data.pool)
-        .await?;
-
-        let mm = get_main_menu(&user_traits);
+        let mm = get_main_menu(&data.pool, press.user.id.get()).await?;
         crate::create_edit_response!(
             ctx,
             press,
@@ -97,14 +114,7 @@ pub async fn traits(ctx: Context<'_>) -> Result<(), Error> {
         return Ok(());
     }
 
-    let user_traits: Vec<String> = sqlx::query_scalar(
-        "SELECT traits FROM users WHERE id = $1"
-    )
-    .bind(ctx.author().id.get() as i64)
-    .fetch_one(&ctx.data().pool)
-    .await?;
-
-    let mm = get_main_menu(&user_traits);
+    let mm = get_main_menu(&ctx.data().pool, ctx.author().id.get()).await?;
     ctx.send(
         poise::CreateReply::default()
             .components(mm.0)
