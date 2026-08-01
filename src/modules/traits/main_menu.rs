@@ -1,38 +1,47 @@
 use std::collections::HashMap;
 use crate::{helpers::{check_user_flag, set_user_flag}, modules::{dialogues::get_dialogue, traits::UserTrait}, types::*};
 
-fn format_user_trait(all_traits: &'static HashMap<String, String>, user_trait: &UserTrait) -> String {
+fn format_user_trait(all_traits: &'static HashMap<String, String>, user_trait: &UserTrait, with_text: bool) -> String {
     let trait_text = all_traits
         .get(&user_trait.trait_id)
         .unwrap();
 
     let mut chars = trait_text.chars();
+    let emoji = chars.next().unwrap_or('🟢');
+    let slot = user_trait.slot_index + 1;
 
-    format!(
-        "{} Слот {}: {}",
-        chars.next().unwrap_or('🟢'),
-        user_trait.slot_index + 1,
-        chars.as_str()
-    )
+    let result = if with_text {
+        format!("{emoji} Слот {slot}: {}", chars.as_str())
+    } else {
+        format!("{emoji} Слот {slot}")
+    };
+
+    result
 }
 
 async fn get_main_menu(pool: &sqlx::PgPool, user_id: u64) -> Result<(Vec<serenity::CreateActionRow>, serenity::CreateEmbed), Error> {
     let dialogue = get_dialogue("traits:main_menu").unwrap();
     let all_traits = super::get_traits();
 
-    let (user_traits, user_unlocked_slots) = tokio::try_join!(
-        sqlx::query_as::<_, UserTrait>(
-            "SELECT trait_id, slot_index FROM user_traits WHERE user_id = $1 ORDER BY slot_index ASC"
-        )
-        .bind(user_id as i64)
-        .fetch_all(pool),
+    let rows: Vec<(i16, Option<String>, Option<i16>)> = sqlx::query_as(
+        "SELECT \
+            u.unlocked_traits_slots, \
+            ut.trait_id, \
+            ut.slot_index \
+        FROM users u \
+        LEFT JOIN user_traits ut ON u.id = ut.user_id \
+        WHERE u.id = $1 \
+        ORDER BY ut.slot_index ASC",
+    )
+    .bind(user_id as i64)
+    .fetch_all(pool)
+    .await?;
 
-        sqlx::query_scalar::<_, i16>(
-            "SELECT unlocked_traits_slots FROM users WHERE id = $1"
-        )
-        .bind(user_id as i64)
-        .fetch_one(pool)
-    )?;
+    let user_unlocked_slots = rows.first().unwrap().0;
+    let user_traits: Vec<UserTrait> = rows
+        .into_iter()
+        .filter_map(|r| Some(UserTrait { trait_id: r.1?, slot_index: r.2? }))
+        .collect();
 
     let [first_trait, second_trait, third_trait] = [0, 1, 2].map(|index|
         user_traits.get(index).cloned().unwrap_or_else(|| UserTrait {
@@ -52,20 +61,24 @@ async fn get_main_menu(pool: &sqlx::PgPool, user_id: u64) -> Result<(Vec<serenit
                 **[ {} ]**\n\
                 ",
                 dialogue.content,
-                format_user_trait(all_traits, &first_trait),
-                format_user_trait(all_traits, &second_trait),
-                format_user_trait(all_traits, &third_trait)
+                format_user_trait(all_traits, &first_trait, true),
+                format_user_trait(all_traits, &second_trait, true),
+                format_user_trait(all_traits, &third_trait, true)
             )
         )
         .colour(serenity::colours::branding::BLURPLE);
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
-        serenity::CreateButton::new("traits:spin")
-            .label("💉 Вколоть жижу (500 бебр)")
+        serenity::CreateButton::new("traits:0")
+            .label(format_user_trait(all_traits, &first_trait, false))
             .style(serenity::ButtonStyle::Primary),
 
-        serenity::CreateButton::new("traits:upgrade")
-            .label("🔪 Раскроить еще один слот")
+        serenity::CreateButton::new("traits:1")
+            .label(format_user_trait(all_traits, &second_trait, false))
+            .style(serenity::ButtonStyle::Primary),
+
+        serenity::CreateButton::new("traits:2")
+            .label(format_user_trait(all_traits, &third_trait, false))
             .style(serenity::ButtonStyle::Primary)
     ])];
 
