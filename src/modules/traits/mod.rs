@@ -1,8 +1,15 @@
+use sqlx::prelude::FromRow;
 use crate::{helpers::resolve_data_path, types::*};
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
 pub mod main_menu;
+
+#[derive(Debug, FromRow, Clone)]
+pub struct UserTrait {
+    trait_id: String,
+    slot_index: i16
+}
 
 static TRAITS: OnceLock<HashMap<String, String>> = OnceLock::new();
 pub fn get_traits() -> &'static HashMap<String, String> {
