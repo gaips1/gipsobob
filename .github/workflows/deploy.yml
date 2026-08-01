@@ -26,7 +26,7 @@ jobs:
 
             echo ">>> Building release..."
             source $HOME/.cargo/env
-            cpulimit -l 70 -m -- cargo build --release -j 1
+            cargo build --release
 
             echo ">>> Copying JSONs..."
             cp src/modules/fun/kys.json target/release/
