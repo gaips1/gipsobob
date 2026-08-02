@@ -54,6 +54,34 @@ async fn main() {
 
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
 
+                tokio::spawn(modules::giveaways::restore_giveaways(
+                    ctx.clone(),
+                    pool.clone(),
+                ));
+                tokio::spawn(modules::giveaways::run_giveaway_poller(
+                    ctx.clone(),
+                    pool.clone(),
+                ));
+                tokio::spawn(modules::giveaways::run_daily_giveaway_scheduler(
+                    ctx.clone(),
+                    pool.clone(),
+                    843475272107163648,
+                ));
+                tokio::spawn(modules::quests::helpers::run_random_quests_adder(
+                    ctx.clone(),
+                    pool.clone(),
+                ));
+                tokio::spawn(modules::quests::helpers::run_expired_quests_poller(
+                    ctx.clone(),
+                    pool.clone(),
+                ));
+                tokio::spawn(modules::quests::helpers::run_old_quests_cleaner(
+                    pool.clone(),
+                ));
+
+                ctx.online();
+                ctx.set_activity(Some(serenity::ActivityData::playing("Visual Studio Code")));
+
                 Ok(Data { pool })
             })
         })
@@ -96,36 +124,6 @@ async fn on_event<'a>(
     data: &'a Data,
 ) -> Result<(), Error> {
     match event {
-        serenity::FullEvent::Ready { data_about_bot: _ } => {
-            tokio::spawn(modules::giveaways::restore_giveaways(
-                ctx.clone(),
-                data.pool.clone(),
-            ));
-            tokio::spawn(modules::giveaways::run_giveaway_poller(
-                ctx.clone(),
-                data.pool.clone(),
-            ));
-            tokio::spawn(modules::giveaways::run_daily_giveaway_scheduler(
-                ctx.clone(),
-                data.pool.clone(),
-                843475272107163648,
-            ));
-            tokio::spawn(modules::quests::helpers::run_random_quests_adder(
-                ctx.clone(),
-                data.pool.clone(),
-            ));
-            tokio::spawn(modules::quests::helpers::run_expired_quests_poller(
-                ctx.clone(),
-                data.pool.clone(),
-            ));
-            tokio::spawn(modules::quests::helpers::run_old_quests_cleaner(
-                data.pool.clone(),
-            ));
-
-            ctx.online();
-            ctx.set_activity(Some(serenity::ActivityData::playing("Visual Studio Code")));
-        }
-
         serenity::FullEvent::InteractionCreate { interaction } => {
             let serenity::Interaction::Component(component) = interaction else {
                 return Ok(());
