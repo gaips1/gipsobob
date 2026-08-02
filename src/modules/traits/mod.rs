@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 pub mod main_menu;
+mod spin;
 
 #[derive(Debug, FromRow, Clone)]
 pub struct UserTrait {

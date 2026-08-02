@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use crate::{helpers::{check_user_flag, set_user_flag}, modules::{dialogues::get_dialogue, traits::UserTrait}, types::*};
 
-fn format_user_trait(all_traits: &'static HashMap<String, String>, user_trait: &UserTrait, with_text: bool) -> String {
+pub fn format_user_trait(all_traits: &'static HashMap<String, String>, user_trait: &UserTrait, with_text: bool) -> String {
     let trait_text = all_traits
         .get(&user_trait.trait_id)
         .unwrap();
@@ -69,16 +69,12 @@ async fn get_main_menu(pool: &sqlx::PgPool, user_id: u64) -> Result<(Vec<serenit
         .colour(serenity::colours::branding::BLURPLE);
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
-        serenity::CreateButton::new("traits:0")
-            .label(format_user_trait(all_traits, &first_trait, false))
+        serenity::CreateButton::new("traits:spin")
+            .label("💉 Вколоть жижу (500 бебр)")
             .style(serenity::ButtonStyle::Primary),
 
-        serenity::CreateButton::new("traits:1")
-            .label(format_user_trait(all_traits, &second_trait, false))
-            .style(serenity::ButtonStyle::Primary),
-
-        serenity::CreateButton::new("traits:2")
-            .label(format_user_trait(all_traits, &third_trait, false))
+        serenity::CreateButton::new("traits:upgrade")
+            .label("🔪 Раскроить еще один слот (3000 бебр)")
             .style(serenity::ButtonStyle::Primary)
     ])];
 
@@ -100,6 +96,8 @@ pub async fn handle_traits_buttons(
                 .components(mm.0)
                 .embed(mm.1)
         )
+    } else if press.data.custom_id.starts_with("traits:spin") {
+        super::spin::handle_traits_spin_button(ctx, press, data).await?
     }
 
     Ok(())
