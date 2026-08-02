@@ -1,4 +1,6 @@
 use rand::seq::IndexedRandom as _;
+use rust_decimal::Decimal;
+use rust_decimal::prelude::FromPrimitive;
 use std::{collections::HashMap, sync::OnceLock};
 
 use super::types::*;
@@ -75,11 +77,11 @@ pub async fn add_user_quest_progress(
 
     let active_quests: Vec<UserQuest> = sqlx::query_as(
         "SELECT user_id, quest_id, progress, users, ends_at, status \
-         FROM user_quests \
-         WHERE user_id = $1 \
-         AND quest_id = ANY($2) \
-         AND status = 'active' \
-         FOR UPDATE",
+        FROM user_quests \
+        WHERE user_id = $1 \
+        AND quest_id = ANY($2) \
+        AND status = 'active' \
+        FOR UPDATE",
     )
     .bind(user_id as i64)
     .bind(&quests)
@@ -87,42 +89,47 @@ pub async fn add_user_quest_progress(
     .await?;
 
     for active_quest in active_quests {
-        let quest_def = active_quest.to_quest();
+        let Some(q) = active_quest.to_quest() else {
+            sqlx::query(
+                "DELETE FROM user_quests WHERE quest_id = $1"
+            )
+            .bind(active_quest.quest_id)
+            .execute(&mut *tx)
+            .await?;
+        
+            continue;
+        };
         let mut should_update = true;
         let mut new_users = active_quest.users.clone();
 
-        if let Some(q) = quest_def {
-            if q.users_required_type == Some(UsersRequiredType::Different) {
-                if let Some(target_id) = target_user_id {
-                    if active_quest.users.contains(&(target_id as i64)) {
-                        should_update = false;
-                    } else {
-                        new_users.push(target_id as i64);
-                    }
-                } else {
+        if q.users_required_type == Some(UsersRequiredType::Different) {
+            if let Some(target_id) = target_user_id {
+                if active_quest.users.contains(&(target_id as i64)) {
                     should_update = false;
-                }
-            } else {
-                if let Some(target_id) = target_user_id {
+                } else {
                     new_users.push(target_id as i64);
                 }
+            } else {
+                should_update = false;
+            }
+        } else {
+            if let Some(target_id) = target_user_id {
+                new_users.push(target_id as i64);
             }
         }
 
         if should_update {
             let new_progress = active_quest.progress + value.unwrap_or(1);
             let mut is_completed = false;
-            if let Some(q) = quest_def {
-                if new_progress >= q.max_progress as i32 {
-                    is_completed = true;
-                }
+            if new_progress >= q.max_progress as i32 {
+                is_completed = true;
             }
 
             if is_completed {
                 sqlx::query(
                     "UPDATE user_quests \
-                     SET progress = $1, users = $2, status = 'completed' \
-                     WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
+                    SET progress = $1, users = $2, status = 'completed' \
+                    WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
                 )
                 .bind(new_progress)
                 .bind(new_users)
@@ -131,34 +138,42 @@ pub async fn add_user_quest_progress(
                 .execute(&mut *tx)
                 .await?;
 
+                sqlx::query(
+                    "UPDATE sbp_users \
+                    SET balance = balance + $1 \
+                    WHERE id = $2",
+                )
+                .bind(Decimal::from_u32(q.reward).unwrap())
+                .bind(user_id as i64)
+                .execute(&mut *tx)
+                .await?;
+
                 if quest_notifications {
-                    if let Some(q) = quest_def {
-                        let embed = serenity::CreateEmbed::new()
-                            .title(format!("Квест {} выполнен!", q.name))
-                            .description(format!(
-                                "Вы успешно выполнили квест **{}**!\nНаграда: {} бебр",
-                                q.name, q.reward
-                            ))
-                            .color(serenity::colours::branding::GREEN);
+                    let embed = serenity::CreateEmbed::new()
+                        .title(format!("Квест {} выполнен!", q.name))
+                        .description(format!(
+                            "Вы успешно выполнили квест **{}**!\nНаграда: {} бебр",
+                            q.name, q.reward
+                        ))
+                        .color(serenity::colours::branding::GREEN);
 
-                        let dm_user_id = serenity::UserId::new(user_id);
-                        let _ = dm_user_id
-                            .dm(
-                                ctx,
-                                serenity::CreateMessage::new()
-                                    .embed(embed)
-                                    .components(get_notifications_button(false)),
-                            )
-                            .await;
+                    let dm_user_id = serenity::UserId::new(user_id);
+                    let _ = dm_user_id
+                        .dm(
+                            ctx,
+                            serenity::CreateMessage::new()
+                                .embed(embed)
+                                .components(get_notifications_button(false)),
+                        )
+                        .await;
 
-                        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
-                    }
+                    tokio::time::sleep(std::time::Duration::from_millis(300)).await;
                 }
             } else {
                 sqlx::query(
                     "UPDATE user_quests \
-                     SET progress = $1, users = $2 \
-                     WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
+                    SET progress = $1, users = $2 \
+                    WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
                 )
                 .bind(new_progress)
                 .bind(new_users)
