@@ -57,6 +57,7 @@ async fn transfer(
             .await?;
 
     if author_balance < amount {
+        tx.rollback().await?;
         ctx.say("У вас не хватает бебр").await?;
         return Ok(());
     }

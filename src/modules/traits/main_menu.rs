@@ -45,7 +45,7 @@ async fn get_main_menu(pool: &sqlx::PgPool, user_id: u64) -> Result<(Vec<serenit
 
     let [first_trait, second_trait, third_trait] = [0, 1, 2].map(|index|
         user_traits.get(index).cloned().unwrap_or_else(|| UserTrait {
-            trait_id: if user_unlocked_slots > index as i16 { "empty" } else { "locked" }.to_string(),
+            trait_id: if user_unlocked_slots > index as i16 { "!empty" } else { "!locked" }.to_string(),
             slot_index: index as i16,
         })
     );
