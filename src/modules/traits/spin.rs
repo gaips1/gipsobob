@@ -104,10 +104,7 @@ pub async fn handle_traits_spin_button(
 
         let embed = serenity::CreateEmbed::new()
             .title("Мутации")
-            .description(format!(
-                "{}\n\nВыберите слот, в который хотите вколоть мутацию.\n**Выбранный слот будет перезаписан**",
-                dialogue.content
-            ))
+            .description(dialogue.content)
             .colour(serenity::colours::branding::RED);
 
         crate::create_edit_response!(
@@ -115,6 +112,7 @@ pub async fn handle_traits_spin_button(
             press,
             serenity::CreateInteractionResponseMessage::new()
                 .embed(embed)
+                .components(dialogue.buttons)
         );
         return Ok(());
     }
@@ -153,7 +151,11 @@ pub async fn handle_traits_spin_button(
     let embed = serenity::CreateEmbed::new()
         .title("Мутации")
         .description(format!(
-            "💉 Доктор Хальцер набирает в шприц зелёную жидкость из 3-литровой банки...\n\n{} 🎉",
+            "{}\n\n{} 🎉",
+            if is_inserted
+                { "💉 Доктор Хальцер набирает в шприц зелёную жидкость из 3-литровой банки..." }
+            else
+                { "🪚 Доктор Хальцер достает клизму и огромный отсос:" },
             dialogue.content
         ))
         .colour(serenity::colours::branding::GREEN);
@@ -163,15 +165,7 @@ pub async fn handle_traits_spin_button(
         press,
         serenity::CreateInteractionResponseMessage::new()
             .embed(embed)
-            .components(vec![
-                serenity::CreateActionRow::Buttons(
-                    vec![
-                        serenity::CreateButton::new("traits:mm")
-                            .label("В главное меню")
-                            .style(serenity::ButtonStyle::Secondary)
-                    ]
-                )
-            ])
+            .components(dialogue.buttons)
     );
 
     Ok(())

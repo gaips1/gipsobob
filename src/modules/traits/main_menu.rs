@@ -98,6 +98,8 @@ pub async fn handle_traits_buttons(
         )
     } else if press.data.custom_id.starts_with("traits:spin") {
         super::spin::handle_traits_spin_button(ctx, press, data).await?
+    } else if press.data.custom_id == "traits:upgrade" {
+        super::upgrade::handle_traits_upgrade_button(ctx, press, data).await?
     }
 
     Ok(())

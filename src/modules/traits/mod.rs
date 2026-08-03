@@ -5,6 +5,7 @@ use std::sync::OnceLock;
 
 pub mod main_menu;
 mod spin;
+mod upgrade;
 
 #[derive(Debug, FromRow, Clone)]
 pub struct UserTrait {
