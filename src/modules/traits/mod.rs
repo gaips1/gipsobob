@@ -30,6 +30,16 @@ pub fn get_traits() -> &'static HashMap<String, String> {
     })
 }
 
+pub async fn check_user_trait(pool: &sqlx::PgPool, user_id: u64, trait_id: &str) -> Result<bool, sqlx::Error> {
+    sqlx::query_scalar::<_, bool>(
+        "SELECT EXISTS ( SELECT 1 FROM user_traits WHERE user_id = $1 AND trait_id = $2 )"
+    )
+    .bind(user_id as i64)
+    .bind(trait_id)
+    .fetch_one(pool)
+    .await
+}
+
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
     vec![main_menu::traits()]
 }
