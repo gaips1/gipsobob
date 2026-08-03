@@ -3,6 +3,17 @@ use rust_decimal::Decimal;
 
 use crate::{modules::{dialogues, traits::{UserTrait, main_menu::format_user_trait}}, types::*};
 
+fn get_trait_rarity_weight(trait_text: &str) -> u32 {
+    let first_char = trait_text.chars().next().unwrap_or('⚪');
+    match first_char {
+        '🟡' => 3,
+        '🔵' => 12,
+        '🟢' => 30,
+        '⚪' => 55,
+        _ => 50,
+    }
+}
+
 pub async fn handle_traits_spin_button(
     ctx: &serenity::Context,
     press: &serenity::ComponentInteraction,
@@ -122,10 +133,12 @@ pub async fn handle_traits_spin_button(
         .execute(&mut *tx)
         .await?;
 
-    let all_traits: Vec<_> = all_traits.iter().filter(|t| !t.0.starts_with("!")).collect();
+    let non_system_traits: Vec<_> = all_traits.iter().filter(|t| !t.0.starts_with("!")).collect();
     let random_trait = {
         let mut rng = rand::rng();
-        all_traits.choose(&mut rng).unwrap()
+        non_system_traits
+            .choose_weighted(&mut rng, |t| get_trait_rarity_weight(t.1))
+            .expect("traits list is empty")
     };
 
     let is_inserted: bool = sqlx::query_scalar(
