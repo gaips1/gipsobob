@@ -405,6 +405,7 @@ pub async fn handle_giveaway_buttons(
 /// Создать розыгрыш
 #[poise::command(
     slash_command,
+    ephemeral,
     rename = "розыгрыш",
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
