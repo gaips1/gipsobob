@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::ops::Mul as _;
 
 use crate::buttons::{handle_button, handle_buttons};
+use crate::modules::traits::get_user_traits;
 use crate::types::*;
 use poise::CreateReply;
 use rust_decimal::Decimal;
@@ -315,8 +316,35 @@ pub async fn rps(
 
     let choices = choices.lock().await;
 
-    let author_choice = *choices.get(&ctx.author().id.get()).unwrap();
-    let user_choice = *choices.get(&user.id.get()).unwrap();
+    let mut author_choice = *choices.get(&ctx.author().id.get()).unwrap();
+    let mut user_choice = *choices.get(&user.id.get()).unwrap();
+
+    // 🟡 rps_prophet: шанс угадать и перебить ход соперника в цуефа (5%)
+    // Если игрок сейчас проигрывает и у него этот трейт — есть шанс,
+    // что он "предугадал" ход и подменил свой выбор на выигрышный.
+    if author_choice != user_choice {
+        let author_traits = get_user_traits(pool, ctx.author().id.get()).await?;
+        let user_traits = get_user_traits(pool, user.id.get()).await?;
+        if user_choice.beats(author_choice)
+            && author_traits.contains(&"rps_prophet".to_string())
+            && rand::random_bool(0.05)
+        {
+            author_choice = match user_choice {
+                RpsChoice::Rock => RpsChoice::Paper,
+                RpsChoice::Paper => RpsChoice::Scissors,
+                RpsChoice::Scissors => RpsChoice::Rock,
+            };
+        } else if author_choice.beats(user_choice)
+            && user_traits.contains(&"rps_prophet".to_string())
+            && rand::random_bool(0.05)
+        {
+            user_choice = match author_choice {
+                RpsChoice::Rock => RpsChoice::Paper,
+                RpsChoice::Paper => RpsChoice::Scissors,
+                RpsChoice::Scissors => RpsChoice::Rock,
+            };
+        }
+    }
 
     let mut embed = serenity::CreateEmbed::new().title(format!(
         "Цуефа {} VS {}",

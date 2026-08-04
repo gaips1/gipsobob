@@ -1,5 +1,6 @@
 use crate::types::*;
 
+use crate::modules::dialogues::buttons::handle_dialogue_buttons;
 use crate::modules::dromland::handle_dromland_buttons;
 use crate::modules::fun::kys::handle_kys_button;
 use crate::modules::giveaways::handle_giveaway_buttons;
@@ -9,6 +10,7 @@ use crate::modules::quests::handle_quests_buttons;
 use crate::modules::quests::handle_quests_select;
 use crate::modules::sbp::casino::handle_casino_buttons;
 use crate::modules::sbp::handle_sbp_buttons;
+use crate::modules::traits::main_menu::handle_traits_buttons;
 
 pub async fn route_button_interaction(
     ctx: &serenity::Context,
@@ -26,7 +28,9 @@ pub async fn route_button_interaction(
         "dl" => handle_dromland_buttons(ctx, component, data).await?,
         "giveaway" => handle_giveaway_buttons(ctx, component, data).await?,
         "quests" => handle_quests_buttons(ctx, component, data).await?,
-        "kys_btn" => handle_kys_button(ctx, component).await?,
+        "dialogue" => handle_dialogue_buttons(ctx, component).await?,
+        "traits" => handle_traits_buttons(ctx, component, data).await?,
+        "kys_btn" => handle_kys_button(ctx, component, data).await?,
         _ => {}
     }
 

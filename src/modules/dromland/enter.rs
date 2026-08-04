@@ -1,4 +1,5 @@
 use crate::modules::dromland::game::get_main_menu_buttons;
+use crate::modules::traits::get_user_traits;
 use crate::types::*;
 use rand::seq::IndexedRandom as _;
 use std::time::Duration;
@@ -116,8 +117,34 @@ pub async fn handle_enter_button(
     let mut user_health = dl_user.health;
     let mut monster_health = monster.health;
 
+    let user_traits = get_user_traits(&data.pool, user_id as u64).await?;
+    // 🔵 vampire: 10% нанесённого урона возвращается в виде здоровья
+    let has_vampire = user_traits.contains(&"vampire".to_string());
+    // 🔵 thick_skin: снижает входящий урон на 5%
+    let has_thick_skin = user_traits.contains(&"thick_skin".to_string());
+    // 🟡 berserk: 3% шанс нанести x3 урон
+    let has_berserk = user_traits.contains(&"berserk".to_string());
+    // 🟡 dromland_god (One punch man): 5% шанс мгновенно убить монстра одним ударом
+    let has_dromland_god = user_traits.contains(&"dromland_god".to_string());
+    // 🟢 loot_goblin: +5% к награде за победу
+    let has_loot_goblin = user_traits.contains(&"loot_goblin".to_string());
+    let mut actual_reward = monster.reward as i32;
+
     let loose: Option<i32> = loop {
-        monster_health -= dl_user.damage as i16;
+        let mut hit_damage = dl_user.damage;
+
+        if has_dromland_god && rand::random_bool(0.05) {
+            hit_damage = monster_health as i32;
+        } else if has_berserk && rand::random_bool(0.03) {
+            hit_damage *= 3;
+        }
+
+        monster_health -= hit_damage as i16;
+
+        if has_vampire {
+            user_health = (user_health + (hit_damage as f64 * 0.1).round() as i32)
+                .min(dl_user.health);
+        }
 
         sleep(Duration::from_secs(2)).await;
 
@@ -134,8 +161,14 @@ pub async fn handle_enter_button(
         sleep(Duration::from_secs(2)).await;
 
         if monster_health <= 0 {
+            let mut reward = monster.reward as i32;
+            if has_loot_goblin {
+                reward += (reward as f64 * 0.05).round() as i32;
+            }
+            actual_reward = reward;
+
             sqlx::query("UPDATE dl_users SET balance = balance + $1 WHERE id = $2")
-                .bind(monster.reward)
+                .bind(reward)
                 .bind(user_id)
                 .execute(&data.pool)
                 .await?;
@@ -170,7 +203,12 @@ pub async fn handle_enter_button(
 
         sleep(Duration::from_secs(2)).await;
 
-        user_health -= monster.damage as i32;
+        let mut monster_damage = monster.damage as i32;
+        if has_thick_skin {
+            monster_damage -= (monster_damage as f64 * 0.05).round() as i32;
+        }
+
+        user_health -= monster_damage;
 
         if user_health <= 0 {
             let loose = rand::random_range(1..=100);
@@ -207,7 +245,7 @@ pub async fn handle_enter_button(
             .title(&monster.name)
             .description(format!(
                 "**Ты победил! За победу тебе выдали `{}` монет!**",
-                monster.reward
+                actual_reward
             ))
             .color(serenity::colours::branding::BLURPLE)
             .image("");

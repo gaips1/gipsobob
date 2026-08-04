@@ -6,6 +6,7 @@ use std::ops::Mul;
 use tokio::time::sleep;
 
 use crate::checks::sbp_check;
+use crate::modules::traits::get_user_traits;
 use crate::types::*;
 
 /// Казино "У Снюсоеда"
@@ -89,12 +90,17 @@ async fn handle_slots_button(
         return Ok(());
     };
 
-    if stavka < 300 {
+    // 🟢 cheap_date: -5% к минимальной ставке в казино
+    let user_traits = get_user_traits(&data.pool, interaction.user.id.get()).await?;
+    let has_cheap_date = user_traits.contains(&"cheap_date".to_string());
+    let min_slots_bet: u64 = if has_cheap_date { 285 } else { 300 };
+
+    if stavka < min_slots_bet {
         crate::create_response!(
             ctx,
             response.interaction,
             serenity::CreateInteractionResponseMessage::new()
-                .content("Минимальная ставка 300 бебр")
+                .content(format!("Минимальная ставка {min_slots_bet} бебр"))
                 .ephemeral(true)
         );
         return Ok(());
@@ -102,18 +108,37 @@ async fn handle_slots_button(
 
     let stavka: Decimal = stavka.into();
     let emojis_pool = ["7️⃣", "☢️", "#️⃣", "🔥", "⚛️", "🦑", "🧪"];
-    let slots: [&str; 3] = {
+    let mut slots: [&str; 3] = {
         let mut rng = rand::rng();
         std::array::from_fn(|_| *emojis_pool.choose(&mut rng).unwrap())
     };
 
-    let win: Option<Decimal> = if slots[0] == slots[1] && slots[1] == slots[2] {
+    // 🟢 gambler: +3% шанс, что казино сжалится и подгонит третий символ под первые два
+    if user_traits.contains(&"gambler".to_string())
+        && slots[0] != slots[1]
+        && slots[1] != slots[2]
+        && slots[0] != slots[2]
+        && rand::random_bool(0.03)
+    {
+        slots[2] = slots[0];
+    }
+
+    let mut win: Option<Decimal> = if slots[0] == slots[1] && slots[1] == slots[2] {
         Some(stavka * Decimal::from_f64(3.5).unwrap())
     } else if slots[0] == slots[1] || slots[1] == slots[2] || slots[0] == slots[2] {
         Some(stavka * Decimal::TWO)
     } else {
         None
     };
+
+    // 🟡 casino_king: 3% шанс при победе в слотах сорвать куш x2
+    if let Some(w) = win {
+        if user_traits.contains(&"casino_king".to_string())
+            && rand::random_bool(0.03)
+        {
+            win = Some(w * Decimal::TWO);
+        }
+    }
 
     let delta = match win {
         Some(w) => w - stavka,
@@ -269,12 +294,17 @@ async fn handle_guess_button(
         return Ok(());
     };
 
-    if stavka < 100 {
+    // 🟢 cheap_date: -5% к минимальной ставке в казино
+    let user_traits = get_user_traits(&data.pool, interaction.user.id.get()).await?;
+    let has_cheap_date = user_traits.contains(&"cheap_date".to_string());
+    let min_guess_bet: u64 = if has_cheap_date { 95 } else { 100 };
+
+    if stavka < min_guess_bet {
         crate::create_response!(
             ctx,
             response.interaction,
             serenity::CreateInteractionResponseMessage::new()
-                .content("Минимальная ставка 100 бебр")
+                .content(format!("Минимальная ставка {min_guess_bet} бебр"))
                 .ephemeral(true)
         );
         return Ok(());
@@ -326,7 +356,16 @@ async fn handle_guess_button(
         return Ok(());
     }
 
-    let rand_num = rand::random_range(1..=range);
+    let mut rand_num = rand::random_range(1..=range);
+
+    // 🟢 gambler: +3% шанс, что казино "промахнётся" и загаданное число совпадёт с вашим
+    if rand_num != number
+        && user_traits.contains(&"gambler".to_string())
+        && rand::random_bool(0.03)
+    {
+        rand_num = number;
+    }
+
     let win: Option<Decimal> = if rand_num == number {
         Some(
             stavka

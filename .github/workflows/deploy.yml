@@ -29,8 +29,10 @@ jobs:
             cargo build --release
 
             echo ">>> Copying JSONs..."
-            cp src/modules/fun/kys.json target/release/
-            cp src/modules/quests/quests.json target/release/
+            mkdir -p target/release/bot_data
+            cp src/modules/fun/kys.json target/release/bot_data/
+            cp src/modules/quests/quests.json target/release/bot_data/
+            cp src/modules/traits/traits.json target/release/bot_data/
 
             echo ">>> Restarting service..."
             sudo systemctl restart gipsobob
