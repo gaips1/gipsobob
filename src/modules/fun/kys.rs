@@ -1,4 +1,4 @@
-use crate::{helpers::resolve_data_path, types::*};
+use crate::{helpers::resolve_data_path, modules::traits::get_user_traits, types::*};
 use poise::CreateReply;
 use rand::prelude::*;
 use std::sync::OnceLock;
@@ -23,6 +23,26 @@ pub async fn kys(ctx: Context<'_>) -> Result<(), Error> {
         list.choose(&mut rng).unwrap()
     };
 
+    // 🟡 phoenix: 0.1% шанс выжить и отнять 500 бебр у Смерти
+    let user_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
+    if user_traits.contains(&"phoenix".to_string())
+        && rand::random_bool(0.001)
+    {
+        let _ = sqlx::query("UPDATE sbp_users SET balance = balance + 500 WHERE id = $1")
+            .bind::<i64>(ctx.author().id.into())
+            .execute(&ctx.data().pool)
+            .await;
+
+        ctx.send(
+            CreateReply::default()
+                .content("Вы восстали из пепла прямо перед Смертью и отняли у неё 500 бебр! Феникс не умирает просто так.")
+                .ephemeral(true),
+        )
+        .await?;
+
+        return Ok(());
+    }
+
     ctx.send(
         CreateReply::default()
             .content(format!("Вы {}. Поздравляю со смертью!", choice))
@@ -42,6 +62,7 @@ pub async fn kys(ctx: Context<'_>) -> Result<(), Error> {
 pub async fn handle_kys_button(
     ctx: &serenity::Context,
     interaction: &serenity::ComponentInteraction,
+    data: &Data,
 ) -> Result<(), Error> {
     let list = get_kys_list();
 
@@ -49,6 +70,26 @@ pub async fn handle_kys_button(
         let mut rng = rand::rng();
         list.choose(&mut rng).unwrap()
     };
+
+    // 🟡 phoenix: 0.1% шанс выжить и отнять 500 бебр у Смерти
+    let user_traits = get_user_traits(&data.pool, interaction.user.id.get()).await?;
+    if user_traits.contains(&"phoenix".to_string())
+        && rand::random_bool(0.001)
+    {
+        let _ = sqlx::query("UPDATE sbp_users SET balance = balance + 500 WHERE id = $1")
+            .bind::<i64>(interaction.user.id.into())
+            .execute(&data.pool)
+            .await;
+
+        crate::create_edit_response!(
+            ctx,
+            interaction,
+            serenity::CreateInteractionResponseMessage::default()
+                .content("Вы восстали из пепла прямо перед Смертью и отняли у неё 500 бебр! Феникс не умирает просто так.")
+                .components(Vec::new())
+        );
+        return Ok(());
+    }
 
     crate::create_edit_response!(
         ctx,

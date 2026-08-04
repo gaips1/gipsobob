@@ -30,13 +30,12 @@ pub fn get_traits() -> &'static HashMap<String, String> {
     })
 }
 
-pub async fn check_user_trait(pool: &sqlx::PgPool, user_id: u64, trait_id: &str) -> Result<bool, sqlx::Error> {
-    sqlx::query_scalar::<_, bool>(
-        "SELECT EXISTS ( SELECT 1 FROM user_traits WHERE user_id = $1 AND trait_id = $2 )"
+pub async fn get_user_traits(pool: &sqlx::PgPool, user_id: u64) -> Result<Vec<String>, sqlx::Error> {
+    sqlx::query_scalar::<_, String>(
+        "SELECT trait_id FROM user_traits WHERE user_id = $1"
     )
     .bind(user_id as i64)
-    .bind(trait_id)
-    .fetch_one(pool)
+    .fetch_all(pool)
     .await
 }
 
