@@ -75,11 +75,11 @@ pub async fn add_user_quest_progress(
 
     let active_quests: Vec<UserQuest> = sqlx::query_as(
         "SELECT user_id, quest_id, progress, users, ends_at, status \
-         FROM user_quests \
-         WHERE user_id = $1 \
-         AND quest_id = ANY($2) \
-         AND status = 'active' \
-         FOR UPDATE",
+        FROM user_quests \
+        WHERE user_id = $1 \
+        AND quest_id = ANY($2) \
+        AND status = 'active' \
+        FOR UPDATE",
     )
     .bind(user_id as i64)
     .bind(&quests)
@@ -121,8 +121,8 @@ pub async fn add_user_quest_progress(
             if is_completed {
                 sqlx::query(
                     "UPDATE user_quests \
-                     SET progress = $1, users = $2, status = 'completed' \
-                     WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
+                    SET progress = $1, users = $2, status = 'completed' \
+                    WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
                 )
                 .bind(new_progress)
                 .bind(new_users)
@@ -157,8 +157,8 @@ pub async fn add_user_quest_progress(
             } else {
                 sqlx::query(
                     "UPDATE user_quests \
-                     SET progress = $1, users = $2 \
-                     WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
+                    SET progress = $1, users = $2 \
+                    WHERE user_id = $3 AND quest_id = $4 AND status = 'active'",
                 )
                 .bind(new_progress)
                 .bind(new_users)

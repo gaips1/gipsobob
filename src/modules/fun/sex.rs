@@ -1,4 +1,5 @@
 use crate::buttons::handle_buttons;
+use crate::modules::traits::get_user_traits;
 use crate::types::*;
 use poise::CreateReply;
 use poise::serenity_prelude::Mentionable;
@@ -40,6 +41,55 @@ pub async fn sex(
         return Ok(());
     }
 
+    // 🟡 sex_god: рейпит
+    let author_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
+
+    if author_traits.contains(&"sex_god".to_string()) {
+        let _ = add_user_quest_progress(
+            &ctx.data().pool,
+            ctx.serenity_context(),
+            ctx.author().id.get(),
+            "sex",
+            Some(user.id.get()),
+            if author_traits.contains(&"giga_chad".to_string()) { Some(2) } else { None },
+        )
+        .await;
+
+        let mut whore_note = String::new();
+        if author_traits.contains(&"whore".to_string())
+            && rand::random_bool(0.03)
+        {
+            let bebry = rand::random_range(10..=50);
+            let result = sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = $2")
+                .bind(bebry)
+                .bind(ctx.author().id.get() as i64)
+                .execute(&ctx.data().pool)
+                .await?;
+
+            if result.rows_affected() > 0 {
+                whore_note = format!("\n{} получил(а) {} бебр за секс, так как владеет мутацией `Путана`.", user.display_name(), bebry);
+            }
+        }
+
+        let gif = {
+            let mut rng = rand::rng();
+            *GIFS.choose(&mut rng).unwrap()
+        };
+
+        let embed = serenity::CreateEmbed::default()
+            .title(format!(
+                "{} изнасиловал(а) {}",
+                ctx.author().display_name(),
+                user.display_name()
+            ))
+            .description(format!("Согласие — понятие растяжимое.{whore_note}"))
+            .image(gif)
+            .colour(serenity::colours::branding::GREEN);
+
+        ctx.send(CreateReply::default().embed(embed)).await?;
+        return Ok(());
+    }
+
     let mut buttons = vec![serenity::CreateActionRow::Buttons(vec![
         serenity::CreateButton::new(format!("{}:sex:yes", ctx.id()))
             .label("Да")
@@ -52,11 +102,8 @@ pub async fn sex(
     let embed = serenity::CreateEmbed::default()
         .title(format!(
             "{}, {} предложил Вам секс, Вы согласны?",
-            user.global_name.as_deref().unwrap_or_else(|| &user.name),
-            ctx.author()
-                .global_name
-                .as_deref()
-                .unwrap_or_else(|| &ctx.author().name)
+            user.display_name(),
+            ctx.author().display_name()
         ))
         .colour(serenity::colours::branding::GREEN);
 
@@ -82,6 +129,7 @@ pub async fn sex(
         format!("{}:sex:", ctx.id()).as_str(),
         300,
         move |press, relative_id| {
+            let author_traits = author_traits.clone();
             let user = press_user.clone();
             let buttons = buttons.clone();
 
@@ -114,6 +162,32 @@ pub async fn sex(
                     )
                     .await;
 
+                    let _ = add_user_quest_progress(
+                        &ctx.data().pool,
+                        ctx.serenity_context(),
+                        ctx.author().id.get(),
+                        "sex",
+                        Some(user.id.get()),
+                        if author_traits.contains(&"giga_chad".to_string()) { Some(2) } else { None },
+                    )
+                    .await;
+
+                    let mut whore_note = String::new();
+                    if author_traits.contains(&"whore".to_string())
+                        && rand::random_bool(0.03)
+                    {
+                        let bebry = rand::random_range(10..=50);
+                        let result = sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = $2")
+                            .bind(bebry)
+                            .bind(ctx.author().id.get() as i64)
+                            .execute(&ctx.data().pool)
+                            .await?;
+
+                        if result.rows_affected() > 0 {
+                            whore_note = format!("\n{} получил(а) {} бебр за секс, так как владеет мутацией `Путана`.", user.display_name(), bebry);
+                        }
+                    }
+
                     let gif = {
                         let mut rng = rand::rng();
                         *GIFS.choose(&mut rng).unwrap()
@@ -122,12 +196,10 @@ pub async fn sex(
                     let embed = serenity::CreateEmbed::default()
                         .title(format!(
                             "{} согласился на секс с {}",
-                            user.global_name.as_deref().unwrap_or_else(|| &user.name),
-                            ctx.author()
-                                .global_name
-                                .as_deref()
-                                .unwrap_or_else(|| &ctx.author().name)
+                            user.display_name(),
+                            ctx.author().display_name()
                         ))
+                        .description(whore_note)
                         .image(gif)
                         .colour(serenity::colours::branding::GREEN);
 

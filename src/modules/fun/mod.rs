@@ -2,6 +2,7 @@ pub mod kys;
 mod rps;
 mod sex;
 
+use crate::modules::traits::get_user_traits;
 use crate::types::*;
 use poise::CreateReply;
 use rand::prelude::*;
@@ -32,9 +33,14 @@ async fn yes_or_no(ctx: Context<'_>) -> Result<(), Error> {
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
 async fn monetka(ctx: Context<'_>) -> Result<(), Error> {
+    // 🔵 lucky_coin: шанс выпадения ребра увеличен
+    let author_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
+    let has_lucky_coin = author_traits.contains(&"lucky_coin".to_string());
+    let edge_weight: u32 = if has_lucky_coin { 20 } else { 10 };
+
     let choice = {
         let mut rng = rand::rng();
-        [("Орёл!", 45), ("Решка!", 45), ("Ребро!", 10)]
+        [("Орёл!", 45), ("Решка!", 45), ("Ребро!", edge_weight)]
             .choose_weighted(&mut rng, |item| item.1)
             .unwrap()
             .0
@@ -70,7 +76,15 @@ async fn russian_roulette(ctx: Context<'_>) -> Result<(), Error> {
     msg.edit(ctx, CreateReply::default().content("Раскручиваю барабан.."))
         .await?;
     sleep(Duration::from_millis(1_500)).await;
-    let is_dead = rand::random_bool(0.167);
+
+    let mut death_chance: f64 = 0.167;
+    // 🔵 bulletproof_skull: 10% шанс выжить при выстреле в русской рулетке
+    let author_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
+    if author_traits.contains(&"bulletproof_skull".to_string()) {
+        death_chance = (death_chance - 0.1).max(0.0);
+    }
+
+    let is_dead = rand::random_bool(death_chance);
     if is_dead {
         let _ = add_user_quest_progress(
             &ctx.data().pool,
@@ -104,9 +118,19 @@ async fn russian_roulette(ctx: Context<'_>) -> Result<(), Error> {
 async fn kosti(ctx: Context<'_>) -> Result<(), Error> {
     let msg = ctx.say("Кидаю...").await?;
     sleep(Duration::from_millis(2_500)).await;
+
+    // 🟡 loaded_dice: минимальное выпадение гарантированно не ниже 3
+    let author_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
+    let has_loaded_dice = author_traits.contains(&"loaded_dice".to_string());
+    let roll = if has_loaded_dice {
+        rand::random_range(3..=6)
+    } else {
+        rand::random_range(1..=6)
+    };
+
     msg.edit(
         ctx,
-        CreateReply::default().content(format!("Выпало число {}", rand::random_range(1..=6))),
+        CreateReply::default().content(format!("Выпало число {}", roll)),
     )
     .await?;
     Ok(())
@@ -141,10 +165,28 @@ async fn uzbii(ctx: Context<'_>) -> Result<(), Error> {
         None,
     )
     .await;
+
+    // 🟢 uzbii_fan: 3% шанс получить 10 бебр за прославление Узбии
+    let mut description = String::new();
+    let author_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
+    if author_traits.contains(&"uzbii_fan".to_string())
+        && rand::random_bool(0.03)
+    {
+        let result = sqlx::query("UPDATE sbp_users SET balance = balance + 10 WHERE id = $1")
+            .bind::<i64>(ctx.author().id.into())
+            .execute(&ctx.data().pool)
+            .await?;
+
+        if result.rows_affected() > 0 {
+            description = "Узбия услышала и кинула 10 бебр на карман!".to_string();
+        }
+    }
+
     ctx.send(
         CreateReply::default().embed(
             serenity::CreateEmbed::default()
                 .title("Слава узбии!")
+                .description(description)
                 .color(serenity::colours::branding::RED),
         ),
     )
@@ -320,6 +362,28 @@ pub async fn punch(
         return Ok(());
     }
 
+    // 🔵 ninja_dodge: у жертвы +20% шанс увернуться от удара
+    let victim_traits = get_user_traits(&ctx.data().pool, user.id.get()).await?;
+    let victim_dodged = victim_traits.contains(&"ninja_dodge".to_string())
+        && rand::random_bool(0.2);
+
+    if victim_dodged {
+        ctx.send(CreateReply::default().embed(
+            serenity::CreateEmbed::default()
+                .title(format!(
+                    "{} попытался(ась) ударить {}, но тот увернулся как ниндзя!",
+                    ctx.author()
+                        .global_name
+                        .as_deref()
+                        .unwrap_or_else(|| &ctx.author().name),
+                    user.global_name.as_deref().unwrap_or_else(|| &user.name),
+                ))
+                .colour(serenity::colours::branding::YELLOW),
+        ))
+        .await?;
+        return Ok(());
+    }
+
     let _ = add_user_quest_progress(
         &ctx.data().pool,
         ctx.serenity_context(),
@@ -329,6 +393,24 @@ pub async fn punch(
         None,
     )
     .await;
+
+    // 🔵 toxic_tongue: у жертвы 5% шанс получить 50 бебр компенсации за моральный ущерб
+    let mut compensation_note = String::new();
+    if victim_traits.contains(&"toxic_tongue".to_string())
+        && rand::random_bool(0.05)
+    {
+        let result = sqlx::query("UPDATE sbp_users SET balance = balance + 50 WHERE id = $1")
+            .bind::<i64>(user.id.get() as i64)
+            .execute(&ctx.data().pool)
+            .await?;
+
+        if result.rows_affected() > 0 {
+            compensation_note = format!(
+                "\n{} отсудил(а) 50 бебр компенсации за моральный ущерб!",
+                user.global_name.as_deref().unwrap_or_else(|| &user.name)
+            );
+        }
+    }
 
     let gif = {
         let mut rng = rand::rng();
@@ -344,6 +426,7 @@ pub async fn punch(
                 .unwrap_or_else(|| &ctx.author().name),
             user.global_name.as_deref().unwrap_or_else(|| &user.name),
         ))
+        .description(compensation_note)
         .image(gif)
         .colour(serenity::colours::branding::GREEN);
 
@@ -393,9 +476,46 @@ pub async fn cumshot(
             ))
             .await?;
         sleep(Duration::from_millis(1_500)).await;
-        if rand::random_bool(0.5) {
+
+        let pool = &ctx.data().pool;
+
+        // 🔵 rubber_body: у жертвы 15% шанс отразить камшот обратно в атакующего
+        let victim_traits = get_user_traits(pool, user.id.get()).await?;
+        let author_traits = get_user_traits(pool, ctx.author().id.get()).await?;
+        if victim_traits.contains(&"rubber_body".to_string()) && rand::random_bool(0.15) {
+            msg.edit(
+                ctx,
+                CreateReply::default().content(format!(
+                    "Резиновая плоть {} отражает вашу же сперму прямо вам в глаз!",
+                    user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                )),
+            )
+            .await?;
+            return Ok(());
+        }
+
+        // 🟡 cum_god: гарантированное попадание, минуя всё
+        let has_cum_god = author_traits.contains(&"cum_god".to_string());
+
+        let mut hit_chance: f64 = 0.5;
+        // 🔵 sperm_sniper: +25% к шансу попасть
+        if author_traits.contains(&"sperm_sniper".to_string()) {
+            hit_chance += 0.25;
+        }
+        // 🔵 ninja_dodge: у жертвы +20% к уклонению
+        if victim_traits.contains(&"ninja_dodge".to_string()) {
+            hit_chance -= 0.2;
+        }
+        // 🟢 cheap_skincare: у жертвы -10% шанс словить камшот в лицо
+        if victim_traits.contains(&"cheap_skincare".to_string()) {
+            hit_chance -= 0.1;
+        }
+
+        let is_hit = has_cum_god || rand::random_bool(hit_chance.clamp(0.0, 1.0));
+
+        if is_hit {
             let _ = add_user_quest_progress(
-                &ctx.data().pool,
+                pool,
                 ctx.serenity_context(),
                 ctx.author().id.get(),
                 "cumshot",
@@ -477,7 +597,15 @@ pub async fn blowjob(
             ))
             .await?;
         sleep(Duration::from_millis(3_500)).await;
-        if rand::random_bool(0.5) {
+
+        // 🔵 vacuum_throat: +20% к шансу успешного минета
+        let mut success_chance: f64 = 0.5;
+        let author_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
+        if author_traits.contains(&"vacuum_throat".to_string()) {
+            success_chance += 0.2;
+        }
+
+        if rand::random_bool(success_chance.min(1.0)) {
             let _ = add_user_quest_progress(
                 &ctx.data().pool,
                 ctx.serenity_context(),
@@ -546,7 +674,14 @@ pub async fn footjob(
         .await?;
     sleep(Duration::from_millis(3_500)).await;
 
-    if rand::random_bool(0.5) {
+    // 🔵 footjober: +20% к шансу успешного футджоба
+    let mut success_chance: f64 = 0.5;
+    let author_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
+    if author_traits.contains(&"footjober".to_string()) {
+        success_chance += 0.2;
+    }
+
+    if rand::random_bool(success_chance.min(1.0)) {
         let _ = add_user_quest_progress(
             &ctx.data().pool,
             ctx.serenity_context(),
