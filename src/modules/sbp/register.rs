@@ -16,7 +16,7 @@ pub async fn sbp_register(
                 ctx,
                 interaction,
                 serenity::CreateInteractionResponseMessage::default()
-                    .content("Вы успешно зарегистрированы! Посмотрите свой баланс используя команду `/account`!")
+                    .content("Вы успешно зарегистрированы! Посмотрите свой баланс используя команду `/сбп аккаунт`!")
                     .ephemeral(true)
                     .components(Vec::new())
             );
@@ -67,7 +67,7 @@ pub async fn reg(ctx: Context<'_>) -> Result<(), Error> {
     match sbp_user {
         Ok(_) => {
             ctx.say(
-                "Вы успешно зарегистрированы! Посмотрите свой баланс используя команду `/account`!",
+                "Вы успешно зарегистрированы! Посмотрите свой баланс используя команду `/сбп аккаунт`!",
             )
             .await?;
         }
