@@ -155,31 +155,70 @@ pub async fn handle_traits_spin_button(
         .await?;
 
     tx.commit().await?;
+     
+    let text = 
+        if is_inserted
+            { "💉 Доктор Хальцер набирает в шприц зелёную жидкость из 3-литровой банки...\n\n".to_string() }
+        else
+            { "🪚 Доктор Хальцер достает клизму и огромный отсос...\n\n".to_string() };
+
+    let mut embed = serenity::CreateEmbed::new()
+        .title("[▱▱▱▱▱▱▱▱▱▱▱▱▱▱]")
+        .description(&text)
+        .colour(serenity::colours::branding::BLURPLE);
+
+    crate::create_edit_response!(
+        ctx,
+        press,
+        serenity::CreateInteractionResponseMessage::new()
+            .embed(embed.clone())
+            .components(Vec::new())
+    );
+
+    tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
+
+    embed = embed.title("[▰▰▰▰▱▱▱▱▱▱▱▱▱▱]");
+
+    press.edit_response(ctx,
+        serenity::EditInteractionResponse::new()
+            .embed(embed.clone())
+    ).await?;
+
+    tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
+
+    embed = embed.title("[▰▰▰▰▰▰▰▱▱▱▱▱▱▱]");
+
+    press.edit_response(ctx,
+        serenity::EditInteractionResponse::new()
+            .embed(embed.clone())
+    ).await?;
+
+    tokio::time::sleep(tokio::time::Duration::from_millis(900)).await;
+
+    embed = embed.title("[▰▰▰▰▰▰▰▰▰▰▰▱▱▱]");
+
+    press.edit_response(ctx,
+        serenity::EditInteractionResponse::new()
+            .embed(embed.clone())
+    ).await?;
+
+    tokio::time::sleep(tokio::time::Duration::from_millis(1_000)).await;
 
     let dialogue = dialogues::get_dialogue_with_vars(
         if is_inserted { "traits:spin:empty" } else { "traits:spin:replace" },
         &[("trait_name", random_trait.1)]
     ).unwrap();
 
-    let embed = serenity::CreateEmbed::new()
-        .title("Мутации")
-        .description(format!(
-            "{}\n\n{} 🎉",
-            if is_inserted
-                { "💉 Доктор Хальцер набирает в шприц зелёную жидкость из 3-литровой банки..." }
-            else
-                { "🪚 Доктор Хальцер достает клизму и огромный отсос:" },
-            dialogue.content
-        ))
+    embed = embed
+        .title("[▰▰▰▰▰▰▰▰▰▰▰▰▰▰]")
+        .description(text + &dialogue.content)
         .colour(serenity::colours::branding::GREEN);
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
+    press.edit_response(ctx,
+        serenity::EditInteractionResponse::new()
             .embed(embed)
             .components(dialogue.buttons)
-    );
+    ).await?;
 
     Ok(())
 }
