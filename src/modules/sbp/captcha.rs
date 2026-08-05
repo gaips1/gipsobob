@@ -98,7 +98,7 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
 
                 let entered = response.inputs.first().map(|s| s.as_str()).unwrap_or("");
                 if entered == image_text {
-                    sqlx::query("UPDATE sbp_users SET balance = balance + 10 WHERE id = $1")
+                    sqlx::query("UPDATE sbp_users SET balance = balance + 30 WHERE id = $1")
                         .bind::<i64>(press.user.id.into())
                         .execute(pool)
                         .await?;
@@ -117,7 +117,7 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
                         ctx,
                         response.interaction,
                         serenity::CreateInteractionResponseMessage::new()
-                            .content("✅ Капча пройдена! Вы получили 10 бебр.")
+                            .content("✅ Капча пройдена! Вы получили 30 бебр.")
                             .components(Vec::new())
                             .ephemeral(true)
                     );

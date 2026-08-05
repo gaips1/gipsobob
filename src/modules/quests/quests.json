@@ -15,46 +15,28 @@
     "action": "kiss",
     "max_progress": 15,
     "users_required_type": "different",
-    "reward": 300,
+    "reward": 700,
     "ends": 48
   },
   {
     "id": "sex_bomba",
     "name": "Секс Бомба",
-    "description": "Поебитесь с 30 людьми (разными)",
+    "description": "Поебитесь с 15 людьми (разными)",
     "action": "sex",
-    "max_progress": 30,
+    "max_progress": 15,
     "users_required_type": "different",
-    "reward": 2000,
+    "reward": 1500,
     "ends": 168
   },
   {
     "id": "sex_master",
     "name": "Секс Мастер",
-    "description": "Поебитесь с 15 людьми (разными)",
+    "description": "Поебитесь с 5 людьми (разными)",
     "action": "sex",
-    "max_progress": 15,
+    "max_progress": 5,
     "users_required_type": "different",
     "reward": 500,
     "ends": 48
-  },
-  {
-    "id": "transfer-3500",
-    "name": "Переводчик",
-    "description": "Переведите людям в сумме 3500 бебр",
-    "action": "transfer",
-    "max_progress": 3500,
-    "reward": 1000,
-    "ends": 168
-  },
-  {
-    "id": "transfer-5000",
-    "name": "Переводчик-5000",
-    "description": "Переведите людям в сумме 5000 бебр",
-    "action": "transfer",
-    "max_progress": 5000,
-    "reward": 3000,
-    "ends": 168
   },
   {
     "id": "huges",
@@ -63,7 +45,7 @@
     "action": "hug",
     "max_progress": 15,
     "users_required_type": "different",
-    "reward": 300,
+    "reward": 1000,
     "ends": 48
   },
   {
@@ -73,7 +55,7 @@
     "action": "punch",
     "max_progress": 15,
     "users_required_type": "different",
-    "reward": 300,
+    "reward": 1100,
     "ends": 48
   },
   {
@@ -82,7 +64,7 @@
     "description": "Поиграйте в казино `/казино`",
     "action": "casino",
     "max_progress": 1,
-    "reward": 150,
+    "reward": 200,
     "ends": 24
   },
   {
@@ -91,7 +73,7 @@
     "description": "Убейте себя в русской рулетке `/русская-рулетка`",
     "action": "rr",
     "max_progress": 1,
-    "reward": 300,
+    "reward": 500,
     "ends": 24
   },
   {
@@ -100,7 +82,7 @@
     "description": "Пройти 10 капч `/капча`",
     "action": "captcha",
     "max_progress": 10,
-    "reward": 150,
+    "reward": 300,
     "ends": 24
   },
   {
@@ -109,7 +91,7 @@
     "description": "Кинуть монетку чтобы она упала на ребро `/монетка`",
     "action": "monetka",
     "max_progress": 1,
-    "reward": 150,
+    "reward": 300,
     "ends": 24
   },
   {
@@ -156,7 +138,7 @@
     "action": "cumshot",
     "max_progress": 15,
     "users_required_type": "different",
-    "reward": 300,
+    "reward": 1000,
     "ends": 48
   },
   {
@@ -166,7 +148,7 @@
     "action": "minet",
     "max_progress": 15,
     "users_required_type": "different",
-    "reward": 300,
+    "reward": 1000,
     "ends": 48
   },
   {
@@ -175,7 +157,7 @@
     "description": "Сделать само-отсос 15 раз `/минет`",
     "action": "self-minet",
     "max_progress": 15,
-    "reward": 300,
+    "reward": 500,
     "ends": 24
   },
   {
@@ -185,7 +167,16 @@
     "action": "footjob",
     "max_progress": 15,
     "users_required_type": "different",
-    "reward": 300,
+    "reward": 1000,
     "ends": 48
+  },
+  {
+    "id": "kys",
+    "name": "Любимчик Смерти",
+    "description": "Убейся 15 раз `/kys`",
+    "action": "kys",
+    "max_progress": 15,
+    "reward": 300,
+    "ends": 24
   }
 ]

@@ -43,6 +43,16 @@ pub async fn kys(ctx: Context<'_>) -> Result<(), Error> {
         return Ok(());
     }
 
+    let _ = add_user_quest_progress(
+        &ctx.data().pool,
+        ctx.serenity_context(),
+        ctx.author().id.get(),
+        "kys",
+        None,
+        None
+    )
+    .await;
+
     ctx.send(
         CreateReply::default()
             .content(format!("Вы {}. Поздравляю со смертью!", choice))
@@ -71,10 +81,10 @@ pub async fn handle_kys_button(
         list.choose(&mut rng).unwrap()
     };
 
-    // 🟡 phoenix: 0.1% шанс выжить и отнять 500 бебр у Смерти
+    // 🟡 phoenix: 1% шанс выжить и отнять 500 бебр у Смерти
     let user_traits = get_user_traits(&data.pool, interaction.user.id.get()).await?;
     if user_traits.contains(&"phoenix".to_string())
-        && rand::random_bool(0.001)
+        && rand::random_bool(0.01)
     {
         let _ = sqlx::query("UPDATE sbp_users SET balance = balance + 500 WHERE id = $1")
             .bind::<i64>(interaction.user.id.into())
@@ -90,6 +100,16 @@ pub async fn handle_kys_button(
         );
         return Ok(());
     }
+
+    let _ = add_user_quest_progress(
+        &data.pool,
+        ctx,
+        interaction.user.id.get(),
+        "kys",
+        None,
+        None
+    )
+    .await;
 
     crate::create_edit_response!(
         ctx,
