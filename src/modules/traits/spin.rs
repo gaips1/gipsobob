@@ -136,7 +136,7 @@ pub async fn handle_traits_spin_button(
         return Ok(());
     }
 
-    if rows.1 > 5 {
+    if rows.1 > 4 {
         tx.rollback().await?;
 
         let dialogue = dialogues::get_dialogue("traits:spin:max_spins").unwrap();
@@ -212,8 +212,17 @@ pub async fn handle_traits_spin_button(
     .fetch_one(&mut *tx)
     .await?;
 
-    sqlx::query("UPDATE traits_users SET spins_today = spins_today + 1 WHERE id = $1")
+    sqlx::query(
+        "UPDATE traits_users SET \
+        spins_today = spins_today + 1, \
+        spinned_traits = CASE \
+            WHEN $2 = ANY(spinned_traits) THEN spinned_traits \
+            ELSE array_append(spinned_traits, $2) \
+        END \
+        WHERE id = $1"
+    )
         .bind(user_id)
+        .bind(random_trait.0)
         .execute(&mut *tx)
         .await?;
 

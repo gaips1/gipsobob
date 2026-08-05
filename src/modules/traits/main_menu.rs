@@ -88,14 +88,21 @@ async fn get_main_menu(
         ))
         .colour(serenity::colours::branding::BLURPLE);
 
-    let buttons = vec![serenity::CreateActionRow::Buttons(vec![
-        serenity::CreateButton::new("traits:spin")
-            .label("💉 Вколоть жижу (500 бебр)")
-            .style(serenity::ButtonStyle::Primary),
-        serenity::CreateButton::new("traits:upgrade")
-            .label("🔪 Раскроить еще один слот (3000 бебр)")
-            .style(serenity::ButtonStyle::Primary),
-    ])];
+    let buttons = vec![
+        serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new("traits:spin")
+                .label("💉 Вколоть жижу (500 бебр)")
+                .style(serenity::ButtonStyle::Primary),
+            serenity::CreateButton::new("traits:upgrade")
+                .label("🔪 Раскроить еще один слот (3000 бебр)")
+                .style(serenity::ButtonStyle::Primary)
+        ]),
+        serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new("traits:collection")
+                .label("🏆 Ваша коллекция мутаций")
+                .style(serenity::ButtonStyle::Success)
+        ])
+    ];
 
     Ok((buttons, embed))
 }
@@ -119,6 +126,8 @@ pub async fn handle_traits_buttons(
         super::spin::handle_traits_spin_button(ctx, press, data).await?
     } else if press.data.custom_id == "traits:upgrade" {
         super::upgrade::handle_traits_upgrade_button(ctx, press, data).await?
+    } else if press.data.custom_id == "traits:collection" {
+        super::collection::handle_traits_collection_button(ctx, press, data).await?
     }
 
     Ok(())
