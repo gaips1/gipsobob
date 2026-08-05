@@ -20,7 +20,7 @@ pub async fn handle_donate_button(
                     "Добро пожаловать в меню доната!
                     Чтобы перевести деньги из баланса **Дромляндии: Онлайн** на свой счёт СБП, нажмите кнопку `ДО в СБП`.
                     Чтобы перевести бебры из баланса **СБП** на свой счёт Дромляндии: Онлайн, нажмите кнопку `СБП в ДО`.
-                    Курс перевода из ДО в СБП - 10 к 1
+                    Курс перевода из ДО в СБП - 20 к 1
                     Курс перевода из СБП в ДО - 1 к 1.5"
                 )
                 .footer(serenity::CreateEmbedFooter::new("Дромляндия: Онлайн"))
@@ -54,12 +54,12 @@ pub async fn handle_donate_button(
         "dl:donate:to_sbp" => {
             let pool = &data.pool;
 
-            let modal = serenity::CreateQuickModal::new("Перевод ДО в СБП (10 к 1)")
+            let modal = serenity::CreateQuickModal::new("Перевод ДО в СБП (20 к 1)")
                 .timeout(std::time::Duration::from_secs(300))
                 .field(
                     serenity::CreateInputText::new(
                         serenity::InputTextStyle::Short,
-                        "Введи сумму в ДО (10 ДО к 1 СБП)",
+                        "Введи сумму в ДО (20 ДО к 1 СБП)",
                         "",
                     )
                     .min_length(3),
@@ -93,12 +93,12 @@ pub async fn handle_donate_button(
                 return Ok(());
             }
 
-            if amount.lt(&Decimal::from_i32(300).unwrap()) {
+            if amount.lt(&Decimal::from_i32(100).unwrap()) {
                 crate::create_response!(
                     ctx,
                     response.interaction,
                     serenity::CreateInteractionResponseMessage::default()
-                        .content("Минимальный перевод: 300 монет")
+                        .content("Минимальный перевод: 100 монет")
                         .ephemeral(true)
                 );
                 return Ok(());
@@ -143,7 +143,7 @@ pub async fn handle_donate_button(
                 return Ok(());
             }
 
-            let sbp_amount = amount / Decimal::from_i32(10).unwrap();
+            let sbp_amount = amount / Decimal::from_i32(20).unwrap();
 
             sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = $2")
                 .bind(sbp_amount)

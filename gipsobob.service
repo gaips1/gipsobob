@@ -12,5 +12,12 @@ EnvironmentFile=/opt/gipsobob/.env
 Restart=always
 RestartSec=5
 
+KillMode=control-group
+TimeoutStopSec=20
+KillSignal=SIGTERM
+SendSIGKILL=yes
+
+RemainAfterExit=no
+
 [Install]
 WantedBy=multi-user.target
