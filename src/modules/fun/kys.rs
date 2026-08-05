@@ -81,10 +81,10 @@ pub async fn handle_kys_button(
         list.choose(&mut rng).unwrap()
     };
 
-    // 🟡 phoenix: 1% шанс выжить и отнять 500 бебр у Смерти
+    // 🟡 phoenix: 0.1% шанс выжить и отнять 500 бебр у Смерти
     let user_traits = get_user_traits(&data.pool, interaction.user.id.get()).await?;
     if user_traits.contains(&"phoenix".to_string())
-        && rand::random_bool(0.01)
+        && rand::random_bool(0.001)
     {
         let _ = sqlx::query("UPDATE sbp_users SET balance = balance + 500 WHERE id = $1")
             .bind::<i64>(interaction.user.id.into())
