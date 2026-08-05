@@ -51,14 +51,16 @@ pub async fn sex(
             ctx.author().id.get(),
             "sex",
             Some(user.id.get()),
-            if author_traits.contains(&"giga_chad".to_string()) { Some(2) } else { None },
+            if author_traits.contains(&"giga_chad".to_string()) {
+                Some(2)
+            } else {
+                None
+            },
         )
         .await;
 
         let mut whore_note = String::new();
-        if author_traits.contains(&"whore".to_string())
-            && rand::random_bool(0.03)
-        {
+        if author_traits.contains(&"whore".to_string()) && rand::random_bool(0.03) {
             let bebry = rand::random_range(10..=50);
             let result = sqlx::query("UPDATE sbp_users SET balance = balance + $1 WHERE id = $2")
                 .bind(bebry)
@@ -67,7 +69,11 @@ pub async fn sex(
                 .await?;
 
             if result.rows_affected() > 0 {
-                whore_note = format!("\n{} получил(а) {} бебр за секс, так как владеет мутацией `Путана`.", user.display_name(), bebry);
+                whore_note = format!(
+                    "\n{} получил(а) {} бебр за секс, так как владеет мутацией `Путана`.",
+                    user.display_name(),
+                    bebry
+                );
             }
         }
 

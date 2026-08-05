@@ -169,9 +169,7 @@ async fn uzbii(ctx: Context<'_>) -> Result<(), Error> {
     // 🟢 uzbii_fan: 3% шанс получить 10 бебр за прославление Узбии
     let mut description = String::new();
     let author_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
-    if author_traits.contains(&"uzbii_fan".to_string())
-        && rand::random_bool(0.03)
-    {
+    if author_traits.contains(&"uzbii_fan".to_string()) && rand::random_bool(0.03) {
         let result = sqlx::query("UPDATE sbp_users SET balance = balance + 10 WHERE id = $1")
             .bind::<i64>(ctx.author().id.into())
             .execute(&ctx.data().pool)
@@ -364,22 +362,24 @@ pub async fn punch(
 
     // 🔵 ninja_dodge: у жертвы +20% шанс увернуться от удара
     let victim_traits = get_user_traits(&ctx.data().pool, user.id.get()).await?;
-    let victim_dodged = victim_traits.contains(&"ninja_dodge".to_string())
-        && rand::random_bool(0.2);
+    let victim_dodged =
+        victim_traits.contains(&"ninja_dodge".to_string()) && rand::random_bool(0.2);
 
     if victim_dodged {
-        ctx.send(CreateReply::default().embed(
-            serenity::CreateEmbed::default()
-                .title(format!(
-                    "{} попытался(ась) ударить {}, но тот увернулся как ниндзя!",
-                    ctx.author()
-                        .global_name
-                        .as_deref()
-                        .unwrap_or_else(|| &ctx.author().name),
-                    user.global_name.as_deref().unwrap_or_else(|| &user.name),
-                ))
-                .colour(serenity::colours::branding::YELLOW),
-        ))
+        ctx.send(
+            CreateReply::default().embed(
+                serenity::CreateEmbed::default()
+                    .title(format!(
+                        "{} попытался(ась) ударить {}, но тот увернулся как ниндзя!",
+                        ctx.author()
+                            .global_name
+                            .as_deref()
+                            .unwrap_or_else(|| &ctx.author().name),
+                        user.global_name.as_deref().unwrap_or_else(|| &user.name),
+                    ))
+                    .colour(serenity::colours::branding::YELLOW),
+            ),
+        )
         .await?;
         return Ok(());
     }
@@ -396,9 +396,7 @@ pub async fn punch(
 
     // 🔵 toxic_tongue: у жертвы 5% шанс получить 50 бебр компенсации за моральный ущерб
     let mut compensation_note = String::new();
-    if victim_traits.contains(&"toxic_tongue".to_string())
-        && rand::random_bool(0.05)
-    {
+    if victim_traits.contains(&"toxic_tongue".to_string()) && rand::random_bool(0.05) {
         let result = sqlx::query("UPDATE sbp_users SET balance = balance + 50 WHERE id = $1")
             .bind::<i64>(user.id.get() as i64)
             .execute(&ctx.data().pool)

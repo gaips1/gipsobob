@@ -1,5 +1,5 @@
-use rust_decimal::Decimal;
 use crate::{modules::dialogues, types::*};
+use rust_decimal::Decimal;
 
 pub async fn handle_traits_upgrade_button(
     ctx: &serenity::Context,
@@ -12,9 +12,9 @@ pub async fn handle_traits_upgrade_button(
 
     let unlocked_slots: i16 = sqlx::query_scalar(
         "SELECT unlocked_traits_slots \
-        FROM users \
+        FROM traits_users \
         WHERE id = $1 \
-        FOR UPDATE"
+        FOR UPDATE",
     )
     .bind(user_id)
     .fetch_one(&data.pool)
@@ -71,17 +71,22 @@ pub async fn handle_traits_upgrade_button(
         .execute(&mut *tx)
         .await?;
 
-    sqlx::query("UPDATE users SET unlocked_traits_slots = unlocked_traits_slots + 1 WHERE id = $1")
-        .bind(user_id)
-        .execute(&mut *tx)
-        .await?;
+    sqlx::query(
+        "UPDATE traits_users SET unlocked_traits_slots = unlocked_traits_slots + 1 WHERE id = $1",
+    )
+    .bind(user_id)
+    .execute(&mut *tx)
+    .await?;
 
     tx.commit().await?;
 
     let next_slot = unlocked_slots + 1;
-    let dialogue = dialogues::get_dialogue(
-        if next_slot == 2 { "traits:upgrade:second_slot" } else { "traits:upgrade:third_slot" }
-    ).unwrap();
+    let dialogue = dialogues::get_dialogue(if next_slot == 2 {
+        "traits:upgrade:second_slot"
+    } else {
+        "traits:upgrade:third_slot"
+    })
+    .unwrap();
 
     let embed = serenity::CreateEmbed::new()
         .title("Мутации")

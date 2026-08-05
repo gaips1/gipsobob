@@ -133,9 +133,7 @@ async fn handle_slots_button(
 
     // 🟡 casino_king: 3% шанс при победе в слотах сорвать куш x2
     if let Some(w) = win {
-        if user_traits.contains(&"casino_king".to_string())
-            && rand::random_bool(0.03)
-        {
+        if user_traits.contains(&"casino_king".to_string()) && rand::random_bool(0.03) {
             win = Some(w * Decimal::TWO);
         }
     }
@@ -359,9 +357,7 @@ async fn handle_guess_button(
     let mut rand_num = rand::random_range(1..=range);
 
     // 🟢 gambler: +3% шанс, что казино "промахнётся" и загаданное число совпадёт с вашим
-    if rand_num != number
-        && user_traits.contains(&"gambler".to_string())
-        && rand::random_bool(0.03)
+    if rand_num != number && user_traits.contains(&"gambler".to_string()) && rand::random_bool(0.03)
     {
         rand_num = number;
     }

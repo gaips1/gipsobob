@@ -90,13 +90,11 @@ pub async fn add_user_quest_progress(
 
     for active_quest in active_quests {
         let Some(q) = active_quest.to_quest() else {
-            sqlx::query(
-                "DELETE FROM user_quests WHERE quest_id = $1"
-            )
-            .bind(active_quest.quest_id)
-            .execute(&mut *tx)
-            .await?;
-        
+            sqlx::query("DELETE FROM user_quests WHERE quest_id = $1")
+                .bind(active_quest.quest_id)
+                .execute(&mut *tx)
+                .await?;
+
             continue;
         };
         let mut should_update = true;
@@ -317,10 +315,7 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
             for (id, notify, cnt) in &users {
                 let to_add = if *cnt <= 4 { 2 } else { 1 };
 
-                let selected: Vec<&Quest> = quests
-                    .sample(&mut rng, to_add)
-                    .copied()
-                    .collect();
+                let selected: Vec<&Quest> = quests.sample(&mut rng, to_add).copied().collect();
 
                 let mut user_notify_quests = Vec::new();
 

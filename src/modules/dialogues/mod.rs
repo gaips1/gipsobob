@@ -36,7 +36,6 @@ pub fn get_dialogue_with_vars(id: &str, vars: &[(&str, &str)]) -> Option<Dialogu
         content = content.replace(&placeholder, val);
     }
 
-
     let buttons = raw_dialogue
         .buttons
         .iter()

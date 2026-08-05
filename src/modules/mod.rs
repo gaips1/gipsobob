@@ -22,7 +22,7 @@ pub fn all() -> Vec<poise::Command<Data, Error>> {
         other::commands(),
         giveaways::commands(),
         quests::commands(),
-        traits::commands()
+        traits::commands(),
     ]
     .into_iter()
     .flatten()

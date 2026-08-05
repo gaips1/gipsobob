@@ -142,8 +142,8 @@ pub async fn handle_enter_button(
         monster_health -= hit_damage as i16;
 
         if has_vampire {
-            user_health = (user_health + (hit_damage as f64 * 0.1).round() as i32)
-                .min(dl_user.health);
+            user_health =
+                (user_health + (hit_damage as f64 * 0.1).round() as i32).min(dl_user.health);
         }
 
         sleep(Duration::from_secs(2)).await;

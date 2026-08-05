@@ -45,6 +45,7 @@ pub fn resolve_data_path(relative: &str) -> std::path::PathBuf {
     }
 }
 
+#[allow(dead_code)]
 pub async fn check_user_flag(pool: &sqlx::PgPool, user_id: u64, flag: &str) -> Result<bool, Error> {
     let result: bool = sqlx::query_scalar("SELECT $2 = ANY(flags) FROM users WHERE id = $1")
         .bind(user_id as i64)
@@ -56,10 +57,15 @@ pub async fn check_user_flag(pool: &sqlx::PgPool, user_id: u64, flag: &str) -> R
     Ok(result)
 }
 
-pub async fn set_user_flag(pool: &sqlx::PgPool, user_id: u64, flag: &str) -> Result<sqlx::postgres::PgQueryResult, sqlx::Error> {
+#[allow(dead_code)]
+pub async fn set_user_flag(
+    pool: &sqlx::PgPool,
+    user_id: u64,
+    flag: &str,
+) -> Result<sqlx::postgres::PgQueryResult, sqlx::Error> {
     sqlx::query(
         "UPDATE users SET flags = array_append(flags, $2) \
-        WHERE id = $1 AND NOT (flags @> ARRAY[$2]::text[])"
+        WHERE id = $1 AND NOT (flags @> ARRAY[$2]::text[])",
     )
     .bind(user_id as i64)
     .bind(flag)

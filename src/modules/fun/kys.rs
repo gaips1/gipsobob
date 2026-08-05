@@ -25,9 +25,7 @@ pub async fn kys(ctx: Context<'_>) -> Result<(), Error> {
 
     // 🟡 phoenix: 0.1% шанс выжить и отнять 500 бебр у Смерти
     let user_traits = get_user_traits(&ctx.data().pool, ctx.author().id.get()).await?;
-    if user_traits.contains(&"phoenix".to_string())
-        && rand::random_bool(0.001)
-    {
+    if user_traits.contains(&"phoenix".to_string()) && rand::random_bool(0.001) {
         let _ = sqlx::query("UPDATE sbp_users SET balance = balance + 500 WHERE id = $1")
             .bind::<i64>(ctx.author().id.into())
             .execute(&ctx.data().pool)
@@ -49,7 +47,7 @@ pub async fn kys(ctx: Context<'_>) -> Result<(), Error> {
         ctx.author().id.get(),
         "kys",
         None,
-        None
+        None,
     )
     .await;
 
@@ -83,9 +81,7 @@ pub async fn handle_kys_button(
 
     // 🟡 phoenix: 0.1% шанс выжить и отнять 500 бебр у Смерти
     let user_traits = get_user_traits(&data.pool, interaction.user.id.get()).await?;
-    if user_traits.contains(&"phoenix".to_string())
-        && rand::random_bool(0.001)
-    {
+    if user_traits.contains(&"phoenix".to_string()) && rand::random_bool(0.001) {
         let _ = sqlx::query("UPDATE sbp_users SET balance = balance + 500 WHERE id = $1")
             .bind::<i64>(interaction.user.id.into())
             .execute(&data.pool)
@@ -107,7 +103,7 @@ pub async fn handle_kys_button(
         interaction.user.id.get(),
         "kys",
         None,
-        None
+        None,
     )
     .await;
 

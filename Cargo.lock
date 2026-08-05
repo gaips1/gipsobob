@@ -1011,7 +1011,7 @@ dependencies = [
 
 [[package]]
 name = "gipsobob"
-version = "2.2.1"
+version = "2.2.2"
 dependencies = [
  "ab_glyph",
  "chrono",

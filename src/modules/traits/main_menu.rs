@@ -1,10 +1,15 @@
+use crate::{
+    modules::{dialogues::get_dialogue, traits::UserTrait},
+    types::*,
+};
 use std::collections::HashMap;
-use crate::{helpers::{check_user_flag, set_user_flag}, modules::{dialogues::get_dialogue, traits::UserTrait}, types::*};
 
-pub fn format_user_trait(all_traits: &'static HashMap<String, String>, user_trait: &UserTrait, with_text: bool) -> String {
-    let trait_text = all_traits
-        .get(&user_trait.trait_id)
-        .unwrap();
+pub fn format_user_trait(
+    all_traits: &'static HashMap<String, String>,
+    user_trait: &UserTrait,
+    with_text: bool,
+) -> String {
+    let trait_text = all_traits.get(&user_trait.trait_id).unwrap();
 
     let mut chars = trait_text.chars();
     let emoji = chars.next().unwrap_or('🟢');
@@ -19,7 +24,10 @@ pub fn format_user_trait(all_traits: &'static HashMap<String, String>, user_trai
     result
 }
 
-async fn get_main_menu(pool: &sqlx::PgPool, user_id: u64) -> Result<(Vec<serenity::CreateActionRow>, serenity::CreateEmbed), Error> {
+async fn get_main_menu(
+    pool: &sqlx::PgPool,
+    user_id: u64,
+) -> Result<(Vec<serenity::CreateActionRow>, serenity::CreateEmbed), Error> {
     let dialogue = get_dialogue("traits:main_menu").unwrap();
     let all_traits = super::get_traits();
 
@@ -28,7 +36,7 @@ async fn get_main_menu(pool: &sqlx::PgPool, user_id: u64) -> Result<(Vec<serenit
             u.unlocked_traits_slots, \
             ut.trait_id, \
             ut.slot_index \
-        FROM users u \
+        FROM traits_users u \
         LEFT JOIN user_traits ut ON u.id = ut.user_id \
         WHERE u.id = $1 \
         ORDER BY ut.slot_index ASC",
@@ -40,46 +48,53 @@ async fn get_main_menu(pool: &sqlx::PgPool, user_id: u64) -> Result<(Vec<serenit
     let user_unlocked_slots = rows.first().unwrap().0;
     let user_traits: Vec<UserTrait> = rows
         .into_iter()
-        .filter_map(|r| Some(UserTrait { trait_id: r.1?, slot_index: r.2? }))
+        .filter_map(|r| {
+            Some(UserTrait {
+                trait_id: r.1?,
+                slot_index: r.2?,
+            })
+        })
         .collect();
 
-    let [first_trait, second_trait, third_trait] = [0, 1, 2].map(|index|
+    let [first_trait, second_trait, third_trait] = [0, 1, 2].map(|index| {
         user_traits
             .iter()
             .find(|t| t.slot_index == index as i16)
             .cloned()
             .unwrap_or_else(|| UserTrait {
-                trait_id: if user_unlocked_slots > index as i16 { "!empty" } else { "!locked" }.to_string(),
+                trait_id: if user_unlocked_slots > index as i16 {
+                    "!empty"
+                } else {
+                    "!locked"
+                }
+                .to_string(),
                 slot_index: index as i16,
             })
-    );
+    });
 
     let embed = serenity::CreateEmbed::new()
         .title("Мутации")
-        .description(
-            format!(
-                "{}\n\n\
+        .description(format!(
+            "{}\n\n\
                 🧬 Твои мутации:\n\
                 **[ {} ]**\n\
                 **[ {} ]**\n\
                 **[ {} ]**\n\
                 ",
-                dialogue.content,
-                format_user_trait(all_traits, &first_trait, true),
-                format_user_trait(all_traits, &second_trait, true),
-                format_user_trait(all_traits, &third_trait, true)
-            )
-        )
+            dialogue.content,
+            format_user_trait(all_traits, &first_trait, true),
+            format_user_trait(all_traits, &second_trait, true),
+            format_user_trait(all_traits, &third_trait, true)
+        ))
         .colour(serenity::colours::branding::BLURPLE);
 
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
         serenity::CreateButton::new("traits:spin")
             .label("💉 Вколоть жижу (500 бебр)")
             .style(serenity::ButtonStyle::Primary),
-
         serenity::CreateButton::new("traits:upgrade")
             .label("🔪 Раскроить еще один слот (3000 бебр)")
-            .style(serenity::ButtonStyle::Primary)
+            .style(serenity::ButtonStyle::Primary),
     ])];
 
     Ok((buttons, embed))
@@ -117,16 +132,26 @@ pub async fn handle_traits_buttons(
     interaction_context = "Guild | BotDm | PrivateChannel"
 )]
 pub async fn traits(ctx: Context<'_>) -> Result<(), Error> {
-    if !check_user_flag(&ctx.data().pool, ctx.author().id.get(), "has_traits_opened").await? {
+    let is_traits_user_exists: bool =
+        sqlx::query_scalar("SELECT EXISTS ( SELECT 1 FROM traits_users WHERE id = $1 )")
+            .bind(ctx.author().id.get() as i64)
+            .fetch_one(&ctx.data().pool)
+            .await?;
+
+    if !is_traits_user_exists {
+        sqlx::query("INSERT INTO traits_users (id) VALUES ($1)")
+            .bind(ctx.author().id.get() as i64)
+            .execute(&ctx.data().pool)
+            .await?;
+
         let dialogue = get_dialogue("traits:first_hi").unwrap();
         ctx.send(
             poise::CreateReply::default()
                 .content(dialogue.content)
                 .components(dialogue.buttons)
-                .ephemeral(true)
-        ).await?;
-
-        set_user_flag(&ctx.data().pool, ctx.author().id.get(), "has_traits_opened").await?;
+                .ephemeral(true),
+        )
+        .await?;
 
         return Ok(());
     }
@@ -136,8 +161,9 @@ pub async fn traits(ctx: Context<'_>) -> Result<(), Error> {
         poise::CreateReply::default()
             .components(mm.0)
             .embed(mm.1)
-            .ephemeral(true)
-    ).await?;
+            .ephemeral(true),
+    )
+    .await?;
 
     Ok(())
 }
