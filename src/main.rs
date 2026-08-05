@@ -235,10 +235,16 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
         ..
     } = error
     {
+        let end_time = std::time::SystemTime::now() + remaining_cooldown;
+        let timestamp = end_time
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
         let _ = ctx
             .send(CreateReply::default().content(format!(
-                "Подожди ещё {:.1} секунд перед повторным использованием команды.",
-                remaining_cooldown.as_secs_f32()
+                "Вы сможете повторно использовать эту команды <t:{}:R>.",
+                timestamp
             )))
             .await;
         return;

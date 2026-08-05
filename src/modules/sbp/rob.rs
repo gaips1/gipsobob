@@ -1,4 +1,3 @@
-use crate::checks::sbp_check;
 use crate::types::*;
 
 /// Ограбить пользователя
@@ -6,7 +5,6 @@ use crate::types::*;
     slash_command,
     rename = "ограбить",
     user_cooldown = 86400,
-    check = "sbp_check",
     ephemeral,
     install_context = "User | Guild",
     interaction_context = "Guild | BotDm | PrivateChannel"
@@ -27,8 +25,8 @@ pub async fn rob(
         return Ok(());
     }
 
-    if rand::random_bool(0.3) {
-        let win = rand::random_range(150..=900);
+    if rand::random_bool(0.5) {
+        let win = rand::random_range(300..=900);
 
         let _ = add_user_quest_progress(
             pool,
