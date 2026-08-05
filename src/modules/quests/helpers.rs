@@ -276,7 +276,7 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
         let target_time = if !cfg!(debug_assertions) {
             chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap()
         } else {
-            chrono::NaiveTime::from_hms_opt(11, 52, 30).unwrap()
+            (now + chrono::TimeDelta::seconds(10)).time()
         };
 
         let mut next_run = now.date_naive().and_time(target_time);
@@ -291,8 +291,8 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
 
         tokio::time::sleep(std_duration).await;
 
-        let users: Vec<(i64, bool)> = sqlx::query_as(
-            "SELECT u.id, u.quest_notifications
+        let users: Vec<(i64, bool, i64)> = sqlx::query_as(
+            "SELECT u.id, u.quest_notifications, COALESCE(uq.cnt, 0)
             FROM users u
             LEFT JOIN (
                 SELECT user_id, COUNT(*) AS cnt
@@ -300,7 +300,7 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
                 WHERE status = 'active'
                 GROUP BY user_id
             ) uq ON uq.user_id = u.id
-            WHERE COALESCE(uq.cnt, 0) < 5",
+            WHERE COALESCE(uq.cnt, 0) < 6",
         )
         .fetch_all(&pool)
         .await
@@ -309,24 +309,37 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
         let (user_ids, quest_ids, ends_ats, notify_entries) = {
             let mut rng = rand::rng();
 
-            let mut user_ids = Vec::with_capacity(users.len());
-            let mut quest_ids = Vec::with_capacity(users.len());
-            let mut ends_ats = Vec::with_capacity(users.len());
-            let mut notify_entries = Vec::new();
+            let mut user_ids = Vec::with_capacity(users.len() * 2);
+            let mut quest_ids = Vec::with_capacity(users.len() * 2);
+            let mut ends_ats = Vec::with_capacity(users.len() * 2);
+            let mut notify_entries: Vec<(i64, Vec<&Quest>)> = Vec::new();
 
-            for (id, notify) in &users {
-                let quest = quests.choose(&mut rng).unwrap();
+            for (id, notify, cnt) in &users {
+                let to_add = if *cnt <= 4 { 2 } else { 1 };
 
-                user_ids.push(*id);
-                quest_ids.push(quest.id.clone());
-                ends_ats.push(
-                    quest
-                        .ends
-                        .map(|h| chrono::Utc::now() + chrono::Duration::hours(h as i64)),
-                );
+                let selected: Vec<&Quest> = quests
+                    .sample(&mut rng, to_add)
+                    .copied()
+                    .collect();
 
-                if *notify {
-                    notify_entries.push((*id, quest));
+                let mut user_notify_quests = Vec::new();
+
+                for quest in selected {
+                    user_ids.push(*id);
+                    quest_ids.push(quest.id.clone());
+                    ends_ats.push(
+                        quest
+                            .ends
+                            .map(|h| chrono::Utc::now() + chrono::Duration::hours(h as i64)),
+                    );
+
+                    if *notify {
+                        user_notify_quests.push(quest);
+                    }
+                }
+
+                if *notify && !user_notify_quests.is_empty() {
+                    notify_entries.push((*id, user_notify_quests));
                 }
             }
 
@@ -347,14 +360,20 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
             Err(e) => log::error!("failed to insert quests: {e}"),
         };
 
-        for (uid, quest) in notify_entries {
-            let embed = serenity::CreateEmbed::new()
-                .title("Новый квест!")
-                .description(format!(
-                    "Вам был добавлен новый квест: **{}**\nПодробнее в `/квесты`",
-                    quest.name
-                ))
+        for (uid, quests) in notify_entries {
+            let mut embed = serenity::CreateEmbed::new()
+                .title(if quests.len() == 1 {
+                    "Новый квест!"
+                } else {
+                    "Новые квесты!"
+                })
                 .color(serenity::colours::branding::GREEN);
+
+            for quest in &quests {
+                embed = embed.field("Новый квест:", &quest.name, false);
+            }
+
+            embed = embed.description("Подробнее в `/квесты`");
 
             let user_id = serenity::UserId::new(uid as u64);
             match user_id
