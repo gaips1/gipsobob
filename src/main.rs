@@ -221,7 +221,7 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 
         let _ = ctx
             .send(CreateReply::default().content(format!(
-                "Вы сможете повторно использовать эту команды <t:{}:R>.",
+                "Вы сможете повторно использовать эту команду <t:{}:R>.",
                 timestamp
             )))
             .await;

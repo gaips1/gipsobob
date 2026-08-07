@@ -11,6 +11,7 @@ mod other;
 pub mod quests;
 pub mod sbp;
 pub mod traits;
+mod mining;
 
 pub fn all() -> Vec<poise::Command<Data, Error>> {
     [
@@ -23,6 +24,7 @@ pub fn all() -> Vec<poise::Command<Data, Error>> {
         giveaways::commands(),
         quests::commands(),
         traits::commands(),
+        mining::commands()
     ]
     .into_iter()
     .flatten()

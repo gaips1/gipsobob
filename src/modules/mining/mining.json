@@ -1,0 +1,58 @@
+{
+  "videocards": {
+    "gtx760": { "name": "GTX 760", "earn_per_second": 0.001, "price": 10, "power": 100 },
+    "gtx1050ti": { "name": "GTX 1050 TI", "earn_per_second": 0.004, "price": 50, "power": 75 },
+    "gtx1650ti": { "name": "GTX 1650 TI", "earn_per_second": 0.012, "price": 200, "power": 55 },
+    "gtx1660super": { "name": "GTX 1660 SUPER", "earn_per_second": 0.025, "price": 450, "power": 125 },
+    "rtx2060": { "name": "RTX 2060", "earn_per_second": 0.045, "price": 900, "power": 160 },
+    "rtx2070super": { "name": "RTX 2070 SUPER", "earn_per_second": 0.08, "price": 1800, "power": 215 },
+    "rtx3060ti": { "name": "RTX 3060 TI", "earn_per_second": 0.15, "price": 3600, "power": 200 },
+    "rtx3080": { "name": "RTX 3080", "earn_per_second": 0.28, "price": 7200, "power": 320 },
+    "rtx3090ti": { "name": "RTX 3090 TI", "earn_per_second": 0.5, "price": 14000, "power": 450 },
+    "rtx4080": { "name": "RTX 4080", "earn_per_second": 0.85, "price": 26000, "power": 320 },
+    "rtx4090": { "name": "RTX 4090", "earn_per_second": 1.5, "price": 48000, "power": 450 },
+    "rtx4090ti": { "name": "RTX 4090 TI", "earn_per_second": 2.6, "price": 85000, "power": 600 },
+    "teslat4": { "name": "Tesla T4", "earn_per_second": 4.2, "price": 150000, "power": 70 },
+    "a100": { "name": "NVIDIA A100", "earn_per_second": 8, "price": 300000, "power": 400 },
+    "h100": { "name": "NVIDIA H100", "earn_per_second": 16, "price": 600000, "power": 700 },
+    "h200": { "name": "NVIDIA H200", "earn_per_second": 32, "price": 1200000, "power": 700 },
+    "b200": { "name": "NVIDIA B200", "earn_per_second": 65, "price": 2500000, "power": 1000 }
+  },
+  "locations": {
+    "apartment": {
+      "name": "Квартира",
+      "description": "Стартовая локация. Обычная бытовая проводка, соседи жалуются на гул и духоту.",
+      "max_power": 1500,
+      "price_per_kwh": 0.15,
+      "unlock_price": 0
+    },
+    "garage": {
+      "name": "Гараж",
+      "description": "Отдельная проводка, можно шуметь сколько угодно, но лимит всё ещё бытовой.",
+      "max_power": 5000,
+      "price_per_kwh": 0.13,
+      "unlock_price": 5000
+    },
+    "office": {
+      "name": "Арендованный офис",
+      "description": "Трёхфазное питание, кондиционер, никаких соседей.",
+      "max_power": 20000,
+      "price_per_kwh": 0.10,
+      "unlock_price": 100000
+    },
+    "warehouse": {
+      "name": "Складской ангар / майнинг-ферма",
+      "description": "Промышленный тариф на электричество, полноценное охлаждение.",
+      "max_power": 100000,
+      "price_per_kwh": 0.07,
+      "unlock_price": 2000000
+    },
+    "datacenter": {
+      "name": "Дата-центр",
+      "description": "Практически неограниченная мощность, промышленный тариф и профессиональное охлаждение.",
+      "max_power": 1000000,
+      "price_per_kwh": 0.05,
+      "unlock_price": 20000000
+    }
+  }
+}
