@@ -6,12 +6,11 @@ pub async fn handle_traits_collection_button(
     press: &serenity::ComponentInteraction,
     data: &Data,
 ) -> Result<(), Error> {
-    let user_spinned_traits: Vec<String> = sqlx::query_scalar(
-        "SELECT spinned_traits FROM traits_users WHERE id = $1"
-    )
-    .bind(press.user.id.get() as i64)
-    .fetch_one(&data.pool)
-    .await?;
+    let user_spinned_traits: Vec<String> =
+        sqlx::query_scalar("SELECT spinned_traits FROM traits_users WHERE id = $1")
+            .bind(press.user.id.get() as i64)
+            .fetch_one(&data.pool)
+            .await?;
 
     let mut text = String::from(
         "Добро пожаловать!\n\
@@ -20,7 +19,7 @@ pub async fn handle_traits_collection_button(
         🔵 - **Редкий**,\n\
         🟢 - **Необычный**,\n\
         ⚪ - **Бесполезный** (ничего не даёт)\n\n\
-        Мутации, которые вы однажды вкололи себе:\n"
+        Мутации, которые вы однажды вкололи себе:\n",
     );
 
     let traits_map = super::get_traits();
@@ -43,13 +42,11 @@ pub async fn handle_traits_collection_button(
         press,
         serenity::CreateInteractionResponseMessage::new()
             .embed(embed)
-            .components(vec![
-                serenity::CreateActionRow::Buttons(vec![
-                    serenity::CreateButton::new("traits:mm")
-                        .label("Назад")
-                        .style(serenity::ButtonStyle::Primary)
-                ])
-            ])
+            .components(vec![serenity::CreateActionRow::Buttons(vec![
+                serenity::CreateButton::new("traits:mm")
+                    .label("Назад")
+                    .style(serenity::ButtonStyle::Primary)
+            ])])
     );
 
     Ok(())

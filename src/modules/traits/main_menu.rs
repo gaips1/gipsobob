@@ -95,13 +95,13 @@ async fn get_main_menu(
                 .style(serenity::ButtonStyle::Primary),
             serenity::CreateButton::new("traits:upgrade")
                 .label("🔪 Раскроить еще один слот (3000 бебр)")
-                .style(serenity::ButtonStyle::Primary)
+                .style(serenity::ButtonStyle::Primary),
         ]),
         serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new("traits:collection")
                 .label("🏆 Ваша коллекция мутаций")
-                .style(serenity::ButtonStyle::Success)
-        ])
+                .style(serenity::ButtonStyle::Success),
+        ]),
     ];
 
     Ok((buttons, embed))

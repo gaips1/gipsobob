@@ -219,12 +219,12 @@ pub async fn handle_traits_spin_button(
             WHEN $2 = ANY(spinned_traits) THEN spinned_traits \
             ELSE array_append(spinned_traits, $2) \
         END \
-        WHERE id = $1"
+        WHERE id = $1",
     )
-        .bind(user_id)
-        .bind(random_trait.0)
-        .execute(&mut *tx)
-        .await?;
+    .bind(user_id)
+    .bind(random_trait.0)
+    .execute(&mut *tx)
+    .await?;
 
     tx.commit().await?;
 

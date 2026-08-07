@@ -4,10 +4,10 @@ use sqlx::prelude::FromRow;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
+mod collection;
 pub mod main_menu;
 mod spin;
 mod upgrade;
-mod collection;
 
 #[derive(Debug, FromRow, Clone)]
 pub struct UserTrait {

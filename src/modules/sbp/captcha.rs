@@ -39,7 +39,7 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
     let mut image: ImageBuffer<Rgb<u8>, Vec<u8>> =
         ImageBuffer::from_pixel(IMG_WIDTH, IMG_HEIGHT, Rgb([255u8, 255, 255]));
 
-    let font_data = include_bytes!("../../../arial.ttf") as &[u8];
+    let font_data = include_bytes!("../../../libre-sans.ttf") as &[u8];
     let font = ab_glyph::FontArc::try_from_slice(font_data).unwrap();
     let scale = PxScale { x: 28.0, y: 28.0 };
 
