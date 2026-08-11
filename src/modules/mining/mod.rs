@@ -2,6 +2,7 @@ use std::{collections::HashMap, sync::OnceLock};
 use crate::{helpers::resolve_data_path, types::*};
 
 mod types;
+mod main_menu;
 
 static VIDEOCARDS: OnceLock<HashMap<String, types::Videocard>> = OnceLock::new();
 pub fn get_videocards() -> &'static HashMap<String, types::Videocard> {

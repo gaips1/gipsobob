@@ -56,6 +56,7 @@ async fn main() {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
 
                 modules::dialogues::load("src/modules/traits/traits.json")?;
+                modules::dialogues::load("src/modules/mining/mining.json")?;
 
                 tasks::run_tasks(ctx, &pool);
 
