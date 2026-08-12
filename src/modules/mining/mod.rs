@@ -1,8 +1,10 @@
-use std::{collections::HashMap, sync::OnceLock};
 use crate::{helpers::resolve_data_path, types::*};
+use std::{collections::HashMap, sync::OnceLock};
 
-mod types;
+pub mod helpers;
 mod main_menu;
+mod types;
+pub mod buttons;
 
 static VIDEOCARDS: OnceLock<HashMap<String, types::Videocard>> = OnceLock::new();
 pub fn get_videocards() -> &'static HashMap<String, types::Videocard> {
@@ -13,7 +15,9 @@ pub fn get_videocards() -> &'static HashMap<String, types::Videocard> {
         let parsed: serde_json::Value =
             serde_json::from_str(&data).expect("failed to parse mining.json");
 
-        let json = parsed.get("videocards").expect("not found 'videocards' column");
+        let json = parsed
+            .get("videocards")
+            .expect("not found 'videocards' column");
 
         serde_json::from_value(json.clone()).expect("failed to deserialize object")
     })
@@ -28,12 +32,14 @@ pub fn get_locations() -> &'static HashMap<String, types::Location> {
         let parsed: serde_json::Value =
             serde_json::from_str(&data).expect("failed to parse mining.json");
 
-        let json = parsed.get("locations").expect("not found 'locations' column");
+        let json = parsed
+            .get("locations")
+            .expect("not found 'locations' column");
 
         serde_json::from_value(json.clone()).expect("failed to deserialize object")
     })
 }
 
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
-    vec![]
+    vec![main_menu::mining()]
 }

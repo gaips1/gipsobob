@@ -12,7 +12,7 @@ pub enum ButtonStyle {
     Danger,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum Content {
     Single(String),
@@ -38,19 +38,24 @@ pub struct Button {
     pub style: ButtonStyle,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct RawDialogue {
     pub content: Content,
     pub buttons: Vec<Button>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct DialoguesFile {
     pub dialogues: HashMap<String, RawDialogue>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Dialogue {
     pub content: String,
     pub buttons: Vec<serenity::CreateActionRow>,
+}
+
+#[derive(Default)]
+pub struct DialoguesBuilder {
+    pub dialogues: HashMap<String, RawDialogue>,
 }

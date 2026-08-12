@@ -11,6 +11,7 @@ use crate::modules::quests::handle_quests_select;
 use crate::modules::sbp::casino::handle_casino_buttons;
 use crate::modules::sbp::handle_sbp_buttons;
 use crate::modules::traits::main_menu::handle_traits_buttons;
+use crate::modules::mining::buttons::handle_mining_buttons;
 
 pub async fn route_button_interaction(
     ctx: &serenity::Context,
@@ -30,6 +31,7 @@ pub async fn route_button_interaction(
         "quests" => handle_quests_buttons(ctx, component, data).await?,
         "dialogue" => handle_dialogue_buttons(ctx, component).await?,
         "traits" => handle_traits_buttons(ctx, component, data).await?,
+        "mining" => handle_mining_buttons(ctx, component, data).await?,
         "kys_btn" => handle_kys_button(ctx, component, data).await?,
         _ => {}
     }
