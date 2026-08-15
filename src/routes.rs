@@ -6,12 +6,12 @@ use crate::modules::fun::kys::handle_kys_button;
 use crate::modules::giveaways::handle_giveaway_buttons;
 use crate::modules::harems::handle_harems_buttons;
 use crate::modules::marriages::handle_marriages_buttons;
+use crate::modules::mining::buttons::handle_mining_buttons;
 use crate::modules::quests::handle_quests_buttons;
 use crate::modules::quests::handle_quests_select;
 use crate::modules::sbp::casino::handle_casino_buttons;
 use crate::modules::sbp::handle_sbp_buttons;
 use crate::modules::traits::main_menu::handle_traits_buttons;
-use crate::modules::mining::buttons::handle_mining_buttons;
 
 pub async fn route_button_interaction(
     ctx: &serenity::Context,

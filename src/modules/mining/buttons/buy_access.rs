@@ -10,7 +10,7 @@ pub async fn handle_buy_access_button(
     let result = sqlx::query(
         "UPDATE sbp_users \
         SET balance = balance - 7000 \
-        WHERE id = $1 AND balance >= 7000"
+        WHERE id = $1 AND balance >= 7000",
     )
     .bind(press.user.id.get() as i64)
     .execute(&mut *tx)
@@ -31,16 +31,14 @@ pub async fn handle_buy_access_button(
 
         return Ok(());
     }
-    
-    let result = sqlx::query(
-        "INSERT INTO mining_users (id) VALUES ($1)"
-    )
-    .bind(press.user.id.get() as i64)
-    .execute(&mut *tx)
-    .await;
+
+    let result = sqlx::query("INSERT INTO mining_users (id) VALUES ($1)")
+        .bind(press.user.id.get() as i64)
+        .execute(&mut *tx)
+        .await;
 
     match result {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() => {
             tx.rollback().await?;
             crate::create_edit_response!(

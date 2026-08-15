@@ -1,10 +1,10 @@
 use crate::{helpers::resolve_data_path, types::*};
 use std::{collections::HashMap, sync::OnceLock};
 
+pub mod buttons;
 pub mod helpers;
 mod main_menu;
 mod types;
-pub mod buttons;
 
 static VIDEOCARDS: OnceLock<HashMap<String, types::Videocard>> = OnceLock::new();
 pub fn get_videocards() -> &'static HashMap<String, types::Videocard> {
