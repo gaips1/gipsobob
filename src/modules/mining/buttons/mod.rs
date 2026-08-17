@@ -4,6 +4,7 @@ pub use super::types::*;
 
 mod buy_access;
 mod main_menu;
+mod restart;
 
 pub use super::main_menu::get_main_menu;
 
@@ -35,6 +36,7 @@ pub async fn handle_mining_buttons(
 
     match custom_id {
         "mining:mm" => main_menu::handle_main_menu_button(ctx, press, data, mining_user).await?,
+        "mining:restart" => restart::handle_restart_button(ctx, press, data).await?,
         _ => {}
     }
 

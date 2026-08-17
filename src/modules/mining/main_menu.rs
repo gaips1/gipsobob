@@ -10,30 +10,54 @@ use crate::{
 pub fn get_main_menu(
     user: MiningUser<'_>,
 ) -> (serenity::CreateEmbed, Vec<serenity::CreateActionRow>) {
-    let embed = serenity::CreateEmbed::new()
+    let time_until_restart = chrono::Utc::now() - user.restarted_at;
+    let hours_until_restart = time_until_restart.num_hours();
+
+    let mut embed = serenity::CreateEmbed::new()
         .title(format!("{} · {} UCS", user.location.name, user.balance))
-        .description(format!(
-            "⚡ Энергопотребление {} {}/{} Вт\n\
-            💰 Чистый доход:   +{} UCS/сек\n",
-            bar(
-                user.videocards_power_sum() as f64,
-                user.location.max_power as f64,
-                10
+        .field(
+            "⚡ Энергопотребление",
+            format!(
+                "{} {}/{} Вт",
+                bar(
+                    user.videocards_power_sum() as f64,
+                    user.location.max_power as f64,
+                    10
+                ),
+                user.videocards_power_sum(),
+                user.location.max_power,
             ),
-            user.videocards_power_sum(),
-            user.location.max_power,
-            user.videocards_earn_per_second_sum(),
-        ))
+            false,
+        )
+        .field(
+            "💰 Чистый доход",
+            format!("+{} UCS/сек", user.videocards_earn_per_second_sum(),),
+            false,
+        )
         .colour(serenity::colours::branding::BLURPLE);
+
+    if hours_until_restart >= 24 {
+        embed = embed.field("💥 Ваш сервер перегружен! 💥",
+        "Видеокарты перегрелись и больше не могут работать, перезапустите сервер!\n\
+        ||Спасибо `Cool'Cold'у` за программу, которая автоматически выключает видеокарты, иначё всё бы сгорело...||",
+        false
+        );
+    } else {
+        embed = embed.field(
+            "💥 Перегрузка сервера",
+            bar(hours_until_restart as f64, 24.0, 14),
+            false,
+        )
+    }
 
     let buttons = vec![
         serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new("mining:take_money")
                 .label("🔨 Забрать доход")
                 .style(serenity::ButtonStyle::Success),
-            serenity::CreateButton::new("mining:shop")
-                .label("🛒 Магазин карт")
-                .style(serenity::ButtonStyle::Primary),
+            serenity::CreateButton::new("mining:restart")
+                .label("🔁 Перезагрузить сервер")
+                .style(serenity::ButtonStyle::Success),
         ]),
         serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new("mining:locations")
@@ -46,6 +70,9 @@ pub fn get_main_menu(
         serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new("mining:trading")
                 .label("🔁 Обменник")
+                .style(serenity::ButtonStyle::Primary),
+            serenity::CreateButton::new("mining:shop")
+                .label("🛒 Магазин карт")
                 .style(serenity::ButtonStyle::Primary),
         ]),
     ];

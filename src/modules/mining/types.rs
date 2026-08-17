@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use crate::types::*;
-
 #[derive(Debug, serde::Deserialize, Clone)]
 pub struct Videocard {
     pub name: String,
@@ -32,8 +30,8 @@ pub struct Location {
 }
 
 pub struct MiningUser<'a> {
-    pub serenity_user: &'a serenity::User,
     pub balance: u64,
     pub location: &'a Location,
     pub videocards: HashMap<&'a Videocard, u64>,
+    pub restarted_at: chrono::DateTime<chrono::Utc>,
 }

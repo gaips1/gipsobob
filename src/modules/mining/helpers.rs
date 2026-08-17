@@ -12,14 +12,20 @@ pub fn bar(current: f64, max: f64, width: usize) -> String {
 
 impl<'a> MiningUser<'a> {
     pub async fn get(pool: &sqlx::PgPool, user: &'a serenity::User) -> Option<Self> {
-        let row: Option<(i64, String, Json<HashMap<String, u64>>)> =
-            sqlx::query_as("SELECT balance, location, videocards FROM mining_users WHERE id = $1")
-                .bind(user.id.get() as i64)
-                .fetch_optional(pool)
-                .await
-                .ok()?;
+        let row: Option<(
+            i64,
+            String,
+            Json<HashMap<String, u64>>,
+            chrono::DateTime<chrono::Utc>,
+        )> = sqlx::query_as(
+            "SELECT balance, location, videocards, restarted_at FROM mining_users WHERE id = $1",
+        )
+        .bind(user.id.get() as i64)
+        .fetch_optional(pool)
+        .await
+        .ok()?;
 
-        let Some((balance, location, Json(user_videocards))) = row else {
+        let Some((balance, location, Json(user_videocards), restarted_at)) = row else {
             return None;
         };
 
@@ -27,7 +33,6 @@ impl<'a> MiningUser<'a> {
         let all_locations = super::get_locations();
 
         Some(MiningUser {
-            serenity_user: user,
             balance: balance as u64,
             location: all_locations
                 .get(&location)
@@ -41,6 +46,7 @@ impl<'a> MiningUser<'a> {
                     )
                 })
                 .collect(),
+            restarted_at,
         })
     }
 
