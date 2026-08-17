@@ -1018,6 +1018,7 @@ dependencies = [
  "dotenvy",
  "image",
  "imageproc",
+ "indexmap",
  "log",
  "poise",
  "pretty_decimal",

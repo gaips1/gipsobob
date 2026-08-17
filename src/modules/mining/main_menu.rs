@@ -52,12 +52,12 @@ pub fn get_main_menu(
 
     let buttons = vec![
         serenity::CreateActionRow::Buttons(vec![
-            serenity::CreateButton::new("mining:take_money")
-                .label("🔨 Забрать доход")
-                .style(serenity::ButtonStyle::Success),
             serenity::CreateButton::new("mining:restart")
                 .label("🔁 Перезагрузить сервер")
                 .style(serenity::ButtonStyle::Success),
+            serenity::CreateButton::new("mining:shop")
+                .label("🛒 Магазин карт")
+                .style(serenity::ButtonStyle::Primary),
         ]),
         serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new("mining:locations")
@@ -70,10 +70,7 @@ pub fn get_main_menu(
         serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new("mining:trading")
                 .label("🔁 Обменник")
-                .style(serenity::ButtonStyle::Primary),
-            serenity::CreateButton::new("mining:shop")
-                .label("🛒 Магазин карт")
-                .style(serenity::ButtonStyle::Primary),
+                .style(serenity::ButtonStyle::Primary)
         ]),
     ];
 

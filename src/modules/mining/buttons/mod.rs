@@ -1,12 +1,13 @@
-use crate::{modules::dialogues::get_dialogue, types::*};
+use crate::modules::dialogues::get_dialogue;
 
 pub use super::types::*;
+pub use super::main_menu::get_main_menu;
+pub use super::*;
 
 mod buy_access;
 mod main_menu;
 mod restart;
-
-pub use super::main_menu::get_main_menu;
+mod locations;
 
 pub async fn handle_mining_buttons(
     ctx: &serenity::Context,
@@ -37,6 +38,7 @@ pub async fn handle_mining_buttons(
     match custom_id {
         "mining:mm" => main_menu::handle_main_menu_button(ctx, press, data, mining_user).await?,
         "mining:restart" => restart::handle_restart_button(ctx, press, data).await?,
+        "mining:locations" => locations::handle_locations_button(ctx, press, data, mining_user).await?,
         _ => {}
     }
 

@@ -1,13 +1,14 @@
+use indexmap::IndexMap;
 use crate::{helpers::resolve_data_path, types::*};
-use std::{collections::HashMap, sync::OnceLock};
+use std::sync::OnceLock;
 
 pub mod buttons;
 pub mod helpers;
 mod main_menu;
 mod types;
 
-static VIDEOCARDS: OnceLock<HashMap<String, types::Videocard>> = OnceLock::new();
-pub fn get_videocards() -> &'static HashMap<String, types::Videocard> {
+static VIDEOCARDS: OnceLock<IndexMap<String, types::Videocard>> = OnceLock::new();
+pub fn get_videocards() -> &'static IndexMap<String, types::Videocard> {
     VIDEOCARDS.get_or_init(|| {
         let data =
             std::fs::read_to_string(resolve_data_path("src/modules/mining/mining.json")).unwrap();
@@ -23,20 +24,16 @@ pub fn get_videocards() -> &'static HashMap<String, types::Videocard> {
     })
 }
 
-static LOCATIONS: OnceLock<HashMap<String, types::Location>> = OnceLock::new();
-pub fn get_locations() -> &'static HashMap<String, types::Location> {
+#[derive(serde::Deserialize)]
+struct MiningConfig {
+    locations: IndexMap<String, types::Location>,
+}
+static LOCATIONS: OnceLock<IndexMap<String, types::Location>> = OnceLock::new();
+pub fn get_locations() -> &'static IndexMap<String, types::Location> {
     LOCATIONS.get_or_init(|| {
-        let data =
-            std::fs::read_to_string(resolve_data_path("src/modules/mining/mining.json")).unwrap();
-
-        let parsed: serde_json::Value =
-            serde_json::from_str(&data).expect("failed to parse mining.json");
-
-        let json = parsed
-            .get("locations")
-            .expect("not found 'locations' column");
-
-        serde_json::from_value(json.clone()).expect("failed to deserialize object")
+        let data = std::fs::read_to_string(resolve_data_path("src/modules/mining/mining.json")).unwrap();
+        let config: MiningConfig = serde_json::from_str(&data).expect("failed to parse mining.json");
+        config.locations
     })
 }
 

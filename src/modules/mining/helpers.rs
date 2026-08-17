@@ -1,5 +1,6 @@
-use sqlx::types::Json;
 use std::collections::HashMap;
+use indexmap::IndexMap;
+use sqlx::types::Json;
 
 use super::types::*;
 use crate::types::*;
@@ -62,5 +63,9 @@ impl<'a> MiningUser<'a> {
             .iter()
             .map(|(card, &count)| card.earn_per_second as u64 * count)
             .sum()
+    }
+
+    pub fn location_index(&self, locations: &IndexMap<String, Location>) -> usize {
+        locations.values().position(|k| k.name == self.location.name).unwrap_or(0)
     }
 }
