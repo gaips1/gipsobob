@@ -1020,6 +1020,7 @@ dependencies = [
  "imageproc",
  "indexmap",
  "log",
+ "num-format",
  "poise",
  "pretty_decimal",
  "pretty_env_logger",
@@ -1834,6 +1835,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "num-format"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a652d9771a63711fd3c3deb670acfbe5c30a4072e664d7a3bf5a9e1056ac72c3"
+dependencies = [
+ "arrayvec",
+ "itoa",
 ]
 
 [[package]]

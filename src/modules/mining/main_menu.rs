@@ -1,3 +1,6 @@
+use pretty_decimal::PrettyDecimal;
+use rust_decimal::Decimal;
+
 use crate::checks::sbp_check;
 use crate::{
     modules::{
@@ -13,12 +16,21 @@ pub fn get_main_menu(
     let time_until_restart = chrono::Utc::now() - user.restarted_at;
     let hours_until_restart = time_until_restart.num_hours();
 
+    let user_earn = user.earn_per_second().round_dp(3);
+    let user_earn = if user_earn > Decimal::ZERO {
+        format!("+{} UCS/сек", PrettyDecimal::comma3dot(user_earn))
+    } else if user_earn < Decimal::ZERO {
+        format!("{} UCS/сек", PrettyDecimal::comma3dot(user_earn))
+    } else {
+        "0 UCS/сек".to_string()
+    };
+
     let mut embed = serenity::CreateEmbed::new()
-        .title(format!("{} · {} UCS", user.location.name, user.balance))
+        .title(format!("{} · {} UCS", user.location.name, PrettyDecimal::comma3dot(user.balance)))
         .field(
             "⚡ Энергопотребление",
             format!(
-                "{} {}/{} Вт",
+                "{} {}/{} Ватт",
                 bar(
                     user.videocards_power_sum() as f64,
                     user.location.max_power as f64,
@@ -29,19 +41,22 @@ pub fn get_main_menu(
             ),
             false,
         )
-        .field(
-            "💰 Чистый доход",
-            format!("+{} UCS/сек", user.videocards_earn_per_second_sum(),),
-            false,
-        )
+        .field("💰 Чистый доход", user_earn, false)
         .colour(serenity::colours::branding::BLURPLE);
 
     if hours_until_restart >= 24 {
         embed = embed.field("💥 Ваш сервер перегружен! 💥",
-        "Видеокарты перегрелись и больше не могут работать, перезапустите сервер!\n\
+            "Видеокарты перегрелись и больше не могут работать, перезапустите сервер!\n\
         ||Спасибо `Cool'Cold'у` за программу, которая автоматически выключает видеокарты, иначё всё бы сгорело...||",
-        false
+            false
         );
+    } else if user.videocards_power_sum() > user.location.max_power as u64 {
+        embed = embed.field(
+            "💥 Ваш сервер перегружен! 💥",
+            "Вы превысили максимальное энергопотребление на вашей локации!\n\
+            Переедьте в новую локацию или продайте видеокарты, чтобы продолжить майнить.",
+            false,
+        )
     } else {
         embed = embed.field(
             "💥 Перегрузка сервера",
@@ -70,7 +85,7 @@ pub fn get_main_menu(
         serenity::CreateActionRow::Buttons(vec![
             serenity::CreateButton::new("mining:trading")
                 .label("🔁 Обменник")
-                .style(serenity::ButtonStyle::Primary)
+                .style(serenity::ButtonStyle::Primary),
         ]),
     ];
 

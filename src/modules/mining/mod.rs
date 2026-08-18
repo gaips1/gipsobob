@@ -1,5 +1,5 @@
-use indexmap::IndexMap;
 use crate::{helpers::resolve_data_path, types::*};
+use indexmap::IndexMap;
 use std::sync::OnceLock;
 
 pub mod buttons;
@@ -31,8 +31,10 @@ struct MiningConfig {
 static LOCATIONS: OnceLock<IndexMap<String, types::Location>> = OnceLock::new();
 pub fn get_locations() -> &'static IndexMap<String, types::Location> {
     LOCATIONS.get_or_init(|| {
-        let data = std::fs::read_to_string(resolve_data_path("src/modules/mining/mining.json")).unwrap();
-        let config: MiningConfig = serde_json::from_str(&data).expect("failed to parse mining.json");
+        let data =
+            std::fs::read_to_string(resolve_data_path("src/modules/mining/mining.json")).unwrap();
+        let config: MiningConfig =
+            serde_json::from_str(&data).expect("failed to parse mining.json");
         config.locations
     })
 }
