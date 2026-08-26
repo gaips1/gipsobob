@@ -39,6 +39,17 @@ pub fn get_locations() -> &'static IndexMap<String, types::Location> {
     })
 }
 
+pub async fn run_mining_profit_poller(ctx: serenity::Context, pool: sqlx::PgPool) {
+    log::info!("mining profit poller started");
+
+    let mut ticker = tokio::time::interval(std::time::Duration::from_mins(1));
+    ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+
+    loop {
+        ticker.tick().await;
+    }
+}
+
 pub fn commands() -> Vec<poise::Command<Data, Error>> {
     vec![main_menu::mining()]
 }

@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use rust_decimal::{Decimal, prelude::FromPrimitive};
+use rust_decimal::Decimal;
 use sqlx::types::Json;
 use std::collections::HashMap;
 

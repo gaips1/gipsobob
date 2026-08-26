@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use rust_decimal::Decimal;
+use std::collections::HashMap;
 
 #[derive(Debug, serde::Deserialize, Clone, Eq, PartialEq, Hash)]
 pub struct Videocard {

@@ -16,17 +16,21 @@ pub fn get_main_menu(
     let time_until_restart = chrono::Utc::now() - user.restarted_at;
     let hours_until_restart = time_until_restart.num_hours();
 
-    let user_earn = user.earn_per_second().round_dp(3);
+    let user_earn = user.earn_per_second().round_dp(3) * Decimal::from(60);
     let user_earn = if user_earn > Decimal::ZERO {
-        format!("+{} UCS/сек", PrettyDecimal::comma3dot(user_earn))
+        format!("+{} UCS/мин", PrettyDecimal::comma3dot(user_earn))
     } else if user_earn < Decimal::ZERO {
-        format!("{} UCS/сек", PrettyDecimal::comma3dot(user_earn))
+        format!("{} UCS/мин", PrettyDecimal::comma3dot(user_earn))
     } else {
-        "0 UCS/сек".to_string()
+        "0 UCS/мин".to_string()
     };
 
     let mut embed = serenity::CreateEmbed::new()
-        .title(format!("{} · {} UCS", user.location.name, PrettyDecimal::comma3dot(user.balance)))
+        .title(format!(
+            "{} · {} UCS",
+            user.location.name,
+            PrettyDecimal::comma3dot(user.balance)
+        ))
         .field(
             "⚡ Энергопотребление",
             format!(
