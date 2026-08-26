@@ -81,12 +81,12 @@ async fn main() {
 }
 
 const NEW_MEMBER_GIFS: [&str; 6] = [
-    "https://tenor.com/view/lucky-star-wave-hello-gif-3561948478976684501",
+    "https://media1.tenor.com/m/MW6VRQWl8dUAAAAd/lucky-star-wave.gif",
     "https://media.tenor.com/3o2hRDX8vw0AAAAC/hello-cute.gif",
     "https://media.tenor.com/J_JT8JsNDlUAAAAC/hello-anime.gif",
     "https://media.tenor.com/Q1dW7INg5ioAAAAC/hello-anime.gif",
     "https://media.tenor.com/mIteh_Sas9QAAAAd/anime-hello.gif",
-    "https://tenor.com/view/ranma-anime-hello-chat-hi-hi-chat-gif-6124024137643951182",
+    "https://media.tenor.com/m/VPzngbgvhE4AAAAd/ranma-anime.gif",
 ];
 
 const DELETED_MEMBER_GIFS: [&str; 5] = [

@@ -258,13 +258,12 @@ pub async fn kiss(
     Ok(())
 }
 
-const HUG_GIFS: [&str; 6] = [
+const HUG_GIFS: [&str; 5] = [
     "https://media.tenor.com/hwsbuAcG8UQAAAAM/foxplushy-foxy.gif",
-    "https://tenor.com/view/hugtrip-gif-2490966530865073004",
+    "https://media1.tenor.com/m/IpGw3LOZi2wAAAAd/hugtrip.gif",
     "https://media.tenor.com/BmbTYhCZ5UsAAAAM/yuri-sleeping-yuri-sleep.gif",
     "https://media.tenor.com/MApGHq5Kvj0AAAAM/anime-hug.gif",
-    "https://tenor.com/view/hugtrip-gif-2490966530865073004",
-    "https://tenor.com/view/anime-comfort-hug-anime-hug-anime-wrap-hands-anime-hands-around-neck-anime-side-hug-gif-1321262205202367944",
+    "https://media1.tenor.com/m/ElYQ-aw8hcgAAAAd/anime-comfort-hug-anime-hug.gif",
 ];
 /// Обнять пользователя
 #[poise::command(
@@ -326,11 +325,11 @@ pub async fn hug(
 }
 
 const PUNCH_GIFS: [&str; 5] = [
-    "https://tenor.com/view/spy-family-spy-x-family-anya-cute-punch-gif-25751847",
-    "https://tenor.com/view/smash-wall-smash-gif-16637040950689804334",
-    "https://tenor.com/view/hxh-hunter-x-hunter-hxh1999-hunter-x-hunter1999-gon-gif-26633516",
-    "https://tenor.com/view/vr-anime-girl-punch-gif-15917695959769675167",
-    "https://tenor.com/view/some-guy-getting-punch-anime-punching-some-guy-anime-anime-punch-punch-anime-gif-22671439",
+    "https://media1.tenor.com/m/54vXJe6Jj3kAAAAd/spy-family-spy-x-family.gif",
+    "https://media1.tenor.com/m/5uKkmQt-MC4AAAAd/smash-wall-smash.gif",
+    "https://media1.tenor.com/m/yA_KtmPI1EMAAAAd/hxh-hunter-x-hunter.gif",
+    "https://media1.tenor.com/m/3OcEI8y99Z8AAAAd/vr-anime-girl.gif",
+    "https://media1.tenor.com/m/wYyB8BBA8fIAAAAd/some-guy-getting-punch-anime-punching-some-guy-anime.gif",
 ];
 /// Ударить пользователя
 #[poise::command(

@@ -45,7 +45,7 @@
     "action": "hug",
     "max_progress": 15,
     "users_required_type": "different",
-    "reward": 1000,
+    "reward": 700,
     "ends": 48
   },
   {
@@ -55,7 +55,7 @@
     "action": "punch",
     "max_progress": 15,
     "users_required_type": "different",
-    "reward": 1100,
+    "reward": 700,
     "ends": 48
   },
   {
@@ -118,7 +118,7 @@
     "description": "Успешно ограбить человека",
     "action": "rob",
     "max_progress": 1,
-    "reward": 300,
+    "reward": 500,
     "ends": 120
   },
   {
@@ -167,7 +167,7 @@
     "action": "footjob",
     "max_progress": 15,
     "users_required_type": "different",
-    "reward": 1000,
+    "reward": 700,
     "ends": 48
   },
   {
