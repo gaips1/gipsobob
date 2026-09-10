@@ -16,6 +16,7 @@ pub struct Location {
     pub max_power: u32,
     pub price_per_kwh: Decimal,
     pub price: u32,
+    pub trading_limit: u32,
 }
 
 pub struct MiningUser<'a> {
@@ -23,4 +24,5 @@ pub struct MiningUser<'a> {
     pub location: &'a Location,
     pub videocards: HashMap<&'a Videocard, u64>,
     pub restarted_at: chrono::DateTime<chrono::Utc>,
+    pub traded_today: Decimal,
 }

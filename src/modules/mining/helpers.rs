@@ -19,15 +19,17 @@ impl<'a> MiningUser<'a> {
             String,
             Json<HashMap<String, u64>>,
             chrono::DateTime<chrono::Utc>,
+            Decimal
         )> = sqlx::query_as(
-            "SELECT balance, location, videocards, restarted_at FROM mining_users WHERE id = $1",
+            "SELECT balance, location, videocards, restarted_at, traded_today FROM mining_users WHERE id = $1",
         )
         .bind(user.id.get() as i64)
         .fetch_optional(pool)
         .await
         .ok()?;
 
-        let Some((balance, location, Json(user_videocards), restarted_at)) = row else {
+        let Some((balance, location, Json(user_videocards), restarted_at, traded_today)) = row
+        else {
             return None;
         };
 
@@ -49,6 +51,7 @@ impl<'a> MiningUser<'a> {
                 })
                 .collect(),
             restarted_at,
+            traded_today,
         })
     }
 

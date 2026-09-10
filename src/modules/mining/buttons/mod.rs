@@ -8,6 +8,7 @@ mod buy_access;
 mod locations;
 mod main_menu;
 mod restart;
+mod trading;
 
 pub async fn handle_mining_buttons(
     ctx: &serenity::Context,
@@ -37,6 +38,9 @@ pub async fn handle_mining_buttons(
 
     if custom_id.starts_with("mining:locations") {
         locations::handle_locations_buttons(ctx, press, data, mining_user).await?;
+        return Ok(());
+    } else if custom_id.starts_with("mining:trading") {
+        trading::handle_trading_button(ctx, press, data, mining_user).await?;
         return Ok(());
     }
 
