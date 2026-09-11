@@ -18,7 +18,7 @@ pub async fn handle_trading_buttons(
     match custom_id {
         "mining:trading" => handle_trading_button(ctx, press, mining_user).await?,
         "mining:trading:trade" => {
-            handle_trading_trade_button(ctx, press, data).await?
+            handle_trading_trade_button(ctx, press, data, mining_user).await?
         }
         _ => {}
     }
@@ -62,7 +62,8 @@ pub async fn handle_trading_button(
             .style(serenity::ButtonStyle::Danger),
         serenity::CreateButton::new("mining:trading:trade")
             .label("Обменять")
-            .style(serenity::ButtonStyle::Success),
+            .style(serenity::ButtonStyle::Success)
+            .disabled(mining_user.traded_today >= Decimal::from(mining_user.location.trading_limit)),
     ])];
 
     crate::create_edit_response!(
@@ -81,15 +82,27 @@ pub async fn handle_trading_button(
 #[name = "💱 Обменник UCS → Бебры"]
 struct TradeModal {
     #[name = "Количество UCS"]
-    #[placeholder = "10.01"]
+    #[placeholder = "10.1"]
     amount: String,
 }
 
 pub async fn handle_trading_trade_button(
     ctx: &serenity::Context,
     press: &serenity::ComponentInteraction,
-    data: &Data
+    data: &Data,
+    mining_user: super::MiningUser<'_>,
 ) -> Result<(), Error> {
+    if mining_user.traded_today >= Decimal::from(mining_user.location.trading_limit) {
+        crate::create_response!(
+            ctx,
+            press,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("Превышен лимит на обмен валют в день")
+                .ephemeral(true)
+        );
+        return Ok(());
+    }
+
     let modal_response = poise::execute_modal_on_component_interaction::<TradeModal>(
         Cow::Borrowed(ctx),
         press.clone(),
@@ -135,15 +148,15 @@ pub async fn handle_trading_trade_button(
                 .await?;
             return Ok(());
         }
-
+        
         let mut tx = data.pool.begin().await?;
-        let user_balance: Decimal =
-            sqlx::query_scalar("SELECT balance FROM mining_users WHERE id = $1 FOR UPDATE")
+        let user: (Decimal, Decimal) =
+            sqlx::query_as("SELECT balance, traded_today FROM mining_users WHERE id = $1 FOR UPDATE")
                 .bind(press.user.id.get() as i64)
                 .fetch_one(&mut *tx)
                 .await?;
 
-        if user_balance < amount {
+        if user.0 < amount {
             tx.rollback().await?;
             press
                 .create_followup(
@@ -157,9 +170,22 @@ pub async fn handle_trading_trade_button(
         }
 
         let bebrs = amount * exchange_rate;
+        if (user.1 + bebrs) > Decimal::from(mining_user.location.trading_limit) {
+            tx.rollback().await?;
+            press
+                .create_followup(
+                    &ctx.http,
+                    serenity::CreateInteractionResponseFollowup::new()
+                        .content("Превышен лимит на обмен валют в день")
+                        .ephemeral(true),
+                )
+                .await?;
+            return Ok(());
+        }
 
-        sqlx::query("UPDATE mining_users SET balance = balance - $1 WHERE id = $2")
+        sqlx::query("UPDATE mining_users SET balance = balance - $1, traded_today = traded_today + $2 WHERE id = $3")
             .bind(amount)
+            .bind(bebrs)
             .bind(press.user.id.get() as i64)
             .execute(&mut *tx)
             .await?;

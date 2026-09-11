@@ -89,7 +89,7 @@ pub async fn run_mining_profit_task(pool: sqlx::PgPool) -> Result<(), Error> {
     }
 }
 
-pub async fn run_exchange_rate_randomizer_task() -> Result<(), Error> {
+pub async fn run_mining_exchange_rate_randomizer_task() -> Result<(), Error> {
     log::info!("mining exchange rate randomizer task started");
 
     let mut ticker = tokio::time::interval(std::time::Duration::from_hours(6));
@@ -99,5 +99,39 @@ pub async fn run_exchange_rate_randomizer_task() -> Result<(), Error> {
         let value = rand::random_range(0.008..0.012);
         let _ = ExchangeRate::set(Decimal::from_f64(value).unwrap().round_dp(3));
         ticker.tick().await;
+    }
+}
+
+pub async fn run_mining_trade_limit_reset_task(pool: sqlx::PgPool) -> Result<(), Error> {
+    log::info!("mining trade limit reset task started");
+
+    loop {
+        let now = chrono::Local::now();
+
+        let target_time = if !cfg!(debug_assertions) {
+            chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap()
+        } else {
+            (now + chrono::TimeDelta::seconds(60)).time()
+        };
+
+        let mut next_run = now.date_naive().and_time(target_time);
+        if now.naive_local() >= next_run {
+            next_run += chrono::Duration::days(1);
+        }
+
+        let duration_until = next_run - now.naive_local();
+        let std_duration = duration_until
+            .to_std()
+            .unwrap_or(std::time::Duration::from_secs(0));
+
+        tokio::time::sleep(std_duration).await;
+
+        match sqlx::query("UPDATE mining_users SET traded_today = 0")
+            .execute(&pool)
+            .await
+        {
+            Ok(_) => {}
+            Err(e) => log::error!("failed to reset traded_today in mining users: {e}"),
+        }
     }
 }
