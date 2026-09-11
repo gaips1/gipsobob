@@ -40,7 +40,7 @@ pub async fn handle_mining_buttons(
         locations::handle_locations_buttons(ctx, press, data, mining_user).await?;
         return Ok(());
     } else if custom_id.starts_with("mining:trading") {
-        trading::handle_trading_button(ctx, press, data, mining_user).await?;
+        trading::handle_trading_buttons(ctx, press, data, mining_user).await?;
         return Ok(());
     }
 

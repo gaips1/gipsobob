@@ -24,35 +24,40 @@
       "description": "Стартовая локация. Обычная бытовая проводка, соседи жалуются на гул и духоту.",
       "max_power": 1500,
       "price_per_kwh": 0.15,
-      "price": 0
+      "price": 0,
+      "trading_limit": 350
     },
     "garage": {
       "name": "🛠️ Гараж",
       "description": "Отдельная проводка, можно шуметь сколько угодно, но лимит всё ещё бытовой.",
       "max_power": 5000,
       "price_per_kwh": 0.13,
-      "price": 5000
+      "price": 5000,
+      "trading_limit": 500
     },
     "office": {
       "name": "🏢 Арендованный офис",
       "description": "Трёхфазное питание, кондиционер, никаких соседей.",
       "max_power": 20000,
       "price_per_kwh": 0.10,
-      "price": 100000
+      "price": 100000,
+      "trading_limit": 800
     },
     "warehouse": {
       "name": "🏭 Складской ангар",
       "description": "Промышленный тариф на электричество, полноценное охлаждение.",
       "max_power": 100000,
       "price_per_kwh": 0.07,
-      "price": 2000000
+      "price": 2000000,
+      "trading_limit": 1500
     },
     "datacenter": {
       "name": "🏬 Дата-центр",
       "description": "Практически неограниченная мощность, промышленный тариф и профессиональное охлаждение.",
       "max_power": 1000000,
       "price_per_kwh": 0.05,
-      "price": 20000000
+      "price": 20000000,
+      "trading_limit": 3000
     }
   },
   

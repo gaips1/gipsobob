@@ -1,6 +1,9 @@
-use std::collections::HashMap;
+use crate::{
+    modules::mining::{exchange_rate::ExchangeRate, get_videocards, types::Videocard},
+    types::*,
+};
 use rust_decimal::{Decimal, prelude::FromPrimitive};
-use crate::{modules::mining::{exchange_rate::ExchangeRate, get_videocards, types::Videocard}, types::*};
+use std::collections::HashMap;
 
 pub async fn run_mining_profit_task(pool: sqlx::PgPool) -> Result<(), Error> {
     log::info!("mining profit task started");
@@ -94,7 +97,7 @@ pub async fn run_exchange_rate_randomizer_task() -> Result<(), Error> {
 
     loop {
         let value = rand::random_range(0.008..0.012);
-        let _ = ExchangeRate::set(Decimal::from_f64(value).unwrap());
+        let _ = ExchangeRate::set(Decimal::from_f64(value).unwrap().round_dp(3));
         ticker.tick().await;
     }
 }

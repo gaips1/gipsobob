@@ -3,10 +3,10 @@ use indexmap::IndexMap;
 use std::sync::OnceLock;
 
 pub mod buttons;
-pub mod helpers;
 pub mod exchange_rate;
-pub mod tasks;
+pub mod helpers;
 mod main_menu;
+pub mod tasks;
 mod types;
 
 static VIDEOCARDS: OnceLock<IndexMap<String, types::Videocard>> = OnceLock::new();
