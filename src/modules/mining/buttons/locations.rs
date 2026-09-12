@@ -114,6 +114,11 @@ async fn location_info(
                 "💰 Цена за киловатт",
                 format!("{} UCS", location.price_per_kwh),
                 true,
+            )
+            .field(
+                "💰 Лимит на обмен в день",
+                format!("{} бебр", location.trading_limit),
+                false,
             );
 
         let buttons = vec![

@@ -7,6 +7,7 @@ pub use super::*;
 mod buy_access;
 mod locations;
 mod main_menu;
+mod power_info;
 mod restart;
 mod trading;
 
@@ -47,6 +48,9 @@ pub async fn handle_mining_buttons(
     match custom_id {
         "mining:mm" => main_menu::handle_main_menu_button(ctx, press, data, mining_user).await?,
         "mining:restart" => restart::handle_restart_button(ctx, press, data).await?,
+        "mining:power_info" => {
+            power_info::handle_power_info_button(ctx, press, mining_user).await?
+        }
         _ => {}
     }
 

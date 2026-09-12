@@ -63,7 +63,9 @@ pub async fn handle_trading_button(
         serenity::CreateButton::new("mining:trading:trade")
             .label("Обменять")
             .style(serenity::ButtonStyle::Success)
-            .disabled(mining_user.traded_today >= Decimal::from(mining_user.location.trading_limit)),
+            .disabled(
+                mining_user.traded_today >= Decimal::from(mining_user.location.trading_limit),
+            ),
     ])];
 
     crate::create_edit_response!(
@@ -148,13 +150,14 @@ pub async fn handle_trading_trade_button(
                 .await?;
             return Ok(());
         }
-        
+
         let mut tx = data.pool.begin().await?;
-        let user: (Decimal, Decimal) =
-            sqlx::query_as("SELECT balance, traded_today FROM mining_users WHERE id = $1 FOR UPDATE")
-                .bind(press.user.id.get() as i64)
-                .fetch_one(&mut *tx)
-                .await?;
+        let user: (Decimal, Decimal) = sqlx::query_as(
+            "SELECT balance, traded_today FROM mining_users WHERE id = $1 FOR UPDATE",
+        )
+        .bind(press.user.id.get() as i64)
+        .fetch_one(&mut *tx)
+        .await?;
 
         if user.0 < amount {
             tx.rollback().await?;
