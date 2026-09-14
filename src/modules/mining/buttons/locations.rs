@@ -118,7 +118,7 @@ async fn location_info(
             .field(
                 "💰 Лимит на обмен в день",
                 format!("{} бебр", location.trading_limit),
-                false,
+                true,
             );
 
         let buttons = vec![

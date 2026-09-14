@@ -12,17 +12,19 @@ mod types;
 static VIDEOCARDS: OnceLock<IndexMap<String, types::Videocard>> = OnceLock::new();
 pub fn get_videocards() -> &'static IndexMap<String, types::Videocard> {
     VIDEOCARDS.get_or_init(|| {
-        let data =
-            std::fs::read_to_string(resolve_data_path("src/modules/mining/mining.json")).unwrap();
+        #[derive(serde::Deserialize)]
+        struct MiningConfig {
+            videocards: IndexMap<String, types::Videocard>,
+        }
 
-        let parsed: serde_json::Value =
-            serde_json::from_str(&data).expect("failed to parse mining.json");
+        let path = resolve_data_path("src/modules/mining/mining.json");
+        let data = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("failed to read mining.json: {e}"));
 
-        let json = parsed
-            .get("videocards")
-            .expect("not found 'videocards' column");
+        let config: MiningConfig =
+            serde_json::from_str(&data).expect("failed to parse videocards from mining.json");
 
-        serde_json::from_value(json.clone()).expect("failed to deserialize object")
+        config.videocards
     })
 }
 

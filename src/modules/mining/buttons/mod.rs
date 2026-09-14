@@ -9,6 +9,7 @@ mod locations;
 mod main_menu;
 mod power_info;
 mod restart;
+mod shop;
 mod trading;
 
 pub async fn handle_mining_buttons(
@@ -42,6 +43,9 @@ pub async fn handle_mining_buttons(
         return Ok(());
     } else if custom_id.starts_with("mining:trading") {
         trading::handle_trading_buttons(ctx, press, data, mining_user).await?;
+        return Ok(());
+    } else if custom_id.starts_with("mining:shop") {
+        shop::handle_shop_buttons(ctx, press, data, mining_user).await?;
         return Ok(());
     }
 

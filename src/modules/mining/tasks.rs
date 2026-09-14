@@ -96,9 +96,9 @@ pub async fn run_mining_exchange_rate_randomizer_task() -> Result<(), Error> {
     ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
 
     loop {
+        ticker.tick().await;
         let value = rand::random_range(0.008..0.012);
         let _ = ExchangeRate::set(Decimal::from_f64(value).unwrap().round_dp(3));
-        ticker.tick().await;
     }
 }
 
