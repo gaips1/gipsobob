@@ -82,6 +82,7 @@ fn videocard_info(
 ) -> Option<(serenity::CreateEmbed, Vec<serenity::CreateActionRow>)> {
     let videocard = super::get_videocards().get(videocard_id)?;
     let user_count = user_videocards.get(videocard).copied().unwrap_or_default();
+    let total_videocards: u64 = user_videocards.values().sum();
     let sell_price = videocard.price / 2;
 
     let embed = serenity::CreateEmbed::new()
@@ -126,7 +127,7 @@ fn videocard_info(
                     "Продать Б/У (+{} UCS)",
                     sell_price.to_formatted_string(&Locale::ru)
                 ))
-                .disabled(user_count == 0),
+                .disabled(user_count == 0 || total_videocards <= 1),
         ]),
     ];
 
@@ -202,6 +203,18 @@ async fn sell_videocard(
         return Ok(());
     };
 
+    let total_videocards: u64 = mining_user.videocards.values().sum();
+    if total_videocards <= 1 {
+        crate::create_response!(
+            ctx,
+            press,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("❌ Вы не можете продать свою последнюю видеокарту!")
+                .ephemeral(true)
+        );
+        return Ok(());
+    }
+
     let sell_price = (videocard.price / 2) as i64;
 
     let result = sqlx::query(
@@ -212,7 +225,9 @@ async fn sell_videocard(
                 WHEN COALESCE((videocards->>$2)::bigint, 0) <= 1 THEN videocards - $2
                 ELSE jsonb_set(videocards, ARRAY[$2], to_jsonb((videocards->>$2)::bigint - 1))
             END
-        WHERE COALESCE((videocards->>$2)::bigint, 0) > 0 AND id = $3
+        WHERE COALESCE((videocards->>$2)::bigint, 0) > 0
+          AND (SELECT COALESCE(SUM(v::bigint), 0) FROM jsonb_each_text(COALESCE(videocards, '{}'::jsonb)) AS t(k, v)) > 1
+          AND id = $3
         "#,
     )
     .bind(sell_price)
