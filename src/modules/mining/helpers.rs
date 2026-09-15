@@ -7,7 +7,11 @@ use super::types::*;
 use crate::types::*;
 
 pub fn bar(current: f64, max: f64, width: usize) -> String {
-    let filled = ((current / max) * width as f64).round() as usize;
+    if max <= 0.0 || current.is_nan() || max.is_nan() {
+        return format!("[{}]", "▱".repeat(width));
+    }
+    let ratio = (current / max).clamp(0.0, 1.0);
+    let filled = (ratio * width as f64).round() as usize;
     let filled = filled.min(width);
     format!("[{}{}]", "▰".repeat(filled), "▱".repeat(width - filled))
 }
@@ -20,13 +24,19 @@ impl<'a> MiningUser<'a> {
             Json<HashMap<String, u64>>,
             chrono::DateTime<chrono::Utc>,
             Decimal
-        )> = sqlx::query_as(
+        )> = match sqlx::query_as(
             "SELECT balance, location, videocards, restarted_at, traded_today FROM mining_users WHERE id = $1",
         )
         .bind(user.id.get() as i64)
         .fetch_optional(pool)
         .await
-        .ok()?;
+        {
+            Ok(row) => row,
+            Err(e) => {
+                log::error!("failed to fetch mining user: {e}");
+                return None;
+            }
+        };
 
         let Some((balance, location, Json(user_videocards), restarted_at, traded_today)) = row
         else {
@@ -36,18 +46,19 @@ impl<'a> MiningUser<'a> {
         let all_videocards = super::get_videocards();
         let all_locations = super::get_locations();
 
+        let location = all_locations.get(&location)?;
+
         Some(MiningUser {
-            balance: balance,
-            location: all_locations
-                .get(&location)
-                .expect("unknown location in DB"),
+            balance,
+            location,
             videocards: user_videocards
                 .into_iter()
-                .map(|(id, count)| {
-                    (
-                        all_videocards.get(&id).expect("unknown videocard in DB"),
-                        count,
-                    )
+                .filter_map(|(id, count)| {
+                    if count == 0 {
+                        return None;
+                    }
+                    let card = all_videocards.get(&id)?;
+                    Some((card, count))
                 })
                 .collect(),
             restarted_at,

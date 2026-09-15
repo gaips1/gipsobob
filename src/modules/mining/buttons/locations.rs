@@ -90,9 +90,11 @@ async fn location_info(
     let locations = super::get_locations();
 
     let location_parts: Vec<&str> = location_parts.split(":").collect();
-    let location_id = *location_parts.first().unwrap();
+    let location_id = *location_parts.first().unwrap_or(&"");
 
-    let location = &locations[location_id];
+    let Some(location) = locations.get(location_id) else {
+        return Ok(());
+    };
 
     let Some(action) = location_parts.get(1) else {
         let formatted_price = &location.price.to_formatted_string(&Locale::ru);
@@ -158,7 +160,9 @@ async fn buy_location(
     location_id: &str,
 ) -> Result<(), Error> {
     let locations = super::get_locations();
-    let location = &locations[location_id];
+    let Some(location) = locations.get(location_id) else {
+        return Ok(());
+    };
 
     if location.index(locations) <= mining_user.location.index(locations) {
         crate::create_edit_response!(
@@ -180,7 +184,7 @@ async fn buy_location(
         WHERE id = $1 AND balance >= $2",
     )
     .bind(press.user.id.get() as i64)
-    .bind(location.price as i32)
+    .bind(location.price as i64)
     .execute(&mut *tx)
     .await?;
 

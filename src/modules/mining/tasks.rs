@@ -3,8 +3,8 @@ use crate::{
     types::*,
 };
 use rust_decimal::{Decimal, prelude::FromPrimitive};
-use tokio::time::{MissedTickBehavior, interval};
 use std::{collections::HashMap, time::Duration};
+use tokio::time::{MissedTickBehavior, interval};
 
 const SECONDS_PER_MINUTE: Decimal = Decimal::from_parts(60, 0, 0, false, 0);
 
@@ -16,7 +16,7 @@ pub async fn run_mining_profit_task(pool: sqlx::PgPool) -> Result<(), Error> {
 
     let mut ticker = interval(Duration::from_secs(60));
     ticker.set_missed_tick_behavior(MissedTickBehavior::Delay);
-    
+
     ticker.tick().await;
 
     loop {
@@ -68,16 +68,17 @@ pub async fn run_mining_profit_task(pool: sqlx::PgPool) -> Result<(), Error> {
                 continue;
             }
 
-            if !profit_sum.is_zero() {
+            let watts_dec = Decimal::from(power_sum);
+            let power_cost_per_minute = (watts_dec / Decimal::from(60000)) * location.price_per_kwh;
+            profit_sum -= power_cost_per_minute;
+
+            if profit_sum > Decimal::ZERO {
                 user_ids.push(user_id);
                 profits.push(profit_sum);
             }
         }
 
-        for (ids_chunk, profits_chunk) in user_ids
-            .chunks(2000)
-            .zip(profits.chunks(2000))
-        {
+        for (ids_chunk, profits_chunk) in user_ids.chunks(2000).zip(profits.chunks(2000)) {
             let res = sqlx::query(
                 "UPDATE mining_users AS m \
                 SET balance = m.balance + u.profit \

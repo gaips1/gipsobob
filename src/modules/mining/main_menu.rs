@@ -17,10 +17,11 @@ pub fn get_main_menu(
     let hours_until_restart = time_until_restart.num_hours();
 
     let user_earn = user.earn_per_second().round_dp(3) * Decimal::from(60);
-    let user_earn = if user.videocards_power_sum() > user.location.max_power as u64 {
+    let user_earn = if hours_until_restart >= 24 {
+        "0 UCS/мин (сервер перегружен)".to_string()
+    } else if user.videocards_power_sum() > user.location.max_power as u64 {
         "💥 Превышено максимальное энергопотребление локации! Видеокарты выключены. 💥".to_string()
-    }
-    else if user_earn > Decimal::ZERO {
+    } else if user_earn > Decimal::ZERO {
         format!("+{} UCS/мин", PrettyDecimal::comma3dot(user_earn))
     } else if user_earn < Decimal::ZERO {
         format!("{} UCS/мин", PrettyDecimal::comma3dot(user_earn))

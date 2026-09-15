@@ -139,17 +139,6 @@ pub async fn handle_trading_trade_button(
         }
 
         let exchange_rate = ExchangeRate::get();
-        if amount <= exchange_rate {
-            press
-                .create_followup(
-                    &ctx.http,
-                    serenity::CreateInteractionResponseFollowup::new()
-                        .content(format!("Введите число которое больше действительного курса (1 UCS = {exchange_rate} бебр)"))
-                        .ephemeral(true),
-                )
-                .await?;
-            return Ok(());
-        }
 
         let mut tx = data.pool.begin().await?;
         let user: (Decimal, Decimal) = sqlx::query_as(

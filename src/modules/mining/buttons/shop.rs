@@ -111,22 +111,24 @@ fn videocard_info(
         )
         .colour(serenity::colours::branding::BLURPLE);
 
-    let buttons = vec![serenity::CreateActionRow::Buttons(vec![
-        serenity::CreateButton::new("mining:shop")
-            .label(format!("Назад"))
-            .style(serenity::ButtonStyle::Danger),
-        serenity::CreateButton::new(format!("mining:shop:{videocard_id}:buy"))
-            .label(format!("Купить [у вас {user_count} шт.]",))
-            .style(serenity::ButtonStyle::Success),
-    ]),
-    serenity::CreateActionRow::Buttons(vec![
-        serenity::CreateButton::new(format!("mining:shop:{videocard_id}:sell"))
-            .label(format!(
-                "Продать Б/У (+{} UCS)",
-                sell_price.to_formatted_string(&Locale::ru)
-            ))
-            .disabled(user_count == 0)
-    ]),];
+    let buttons = vec![
+        serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new("mining:shop")
+                .label(format!("Назад"))
+                .style(serenity::ButtonStyle::Danger),
+            serenity::CreateButton::new(format!("mining:shop:{videocard_id}:buy"))
+                .label(format!("Купить [у вас {user_count} шт.]",))
+                .style(serenity::ButtonStyle::Success),
+        ]),
+        serenity::CreateActionRow::Buttons(vec![
+            serenity::CreateButton::new(format!("mining:shop:{videocard_id}:sell"))
+                .label(format!(
+                    "Продать Б/У (+{} UCS)",
+                    sell_price.to_formatted_string(&Locale::ru)
+                ))
+                .disabled(user_count == 0),
+        ]),
+    ];
 
     Some((embed, buttons))
 }
@@ -206,11 +208,10 @@ async fn sell_videocard(
         r#"
         UPDATE mining_users
         SET balance = balance + $1,
-            videocards = jsonb_set(
-                COALESCE(videocards, '{}'::jsonb),
-                ARRAY[$2],
-                to_jsonb(GREATEST(COALESCE((videocards->>$2)::bigint, 0) - 1, 0))
-            )
+            videocards = CASE
+                WHEN COALESCE((videocards->>$2)::bigint, 0) <= 1 THEN videocards - $2
+                ELSE jsonb_set(videocards, ARRAY[$2], to_jsonb((videocards->>$2)::bigint - 1))
+            END
         WHERE COALESCE((videocards->>$2)::bigint, 0) > 0 AND id = $3
         "#,
     )
@@ -233,6 +234,9 @@ async fn sell_videocard(
 
     if let Some(count) = mining_user.videocards.get_mut(videocard) {
         *count = count.saturating_sub(1);
+        if *count == 0 {
+            mining_user.videocards.remove(videocard);
+        }
     }
 
     let Some((embed, buttons)) = videocard_info(videocard_id, &mining_user.videocards) else {

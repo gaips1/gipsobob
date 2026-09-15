@@ -9,6 +9,9 @@ pub async fn handle_power_info_button(
     let mut text = String::new();
 
     for (v, count) in &mining_user.videocards {
+        if *count == 0 {
+            continue;
+        }
         write!(
             &mut text,
             "{}x {}: {} Вт\n",

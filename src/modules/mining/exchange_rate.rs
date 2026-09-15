@@ -20,12 +20,12 @@ impl ExchangeRate {
     }
 
     pub fn get() -> Decimal {
-        *Self::lock().read().unwrap()
+        *Self::lock().read().unwrap_or_else(|e| e.into_inner())
     }
 
     pub fn set(value: Decimal) -> Result<(), Error> {
         fs::write(resolve_data_path(PATH), value.to_string())?;
-        *Self::lock().write().unwrap() = value;
+        *Self::lock().write().unwrap_or_else(|e| e.into_inner()) = value;
         Ok(())
     }
 }
