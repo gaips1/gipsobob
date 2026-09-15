@@ -1,23 +1,30 @@
 use crate::{
-    modules::mining::{exchange_rate::ExchangeRate, get_videocards, types::Videocard},
+    modules::mining::{exchange_rate::ExchangeRate, get_videocards},
     types::*,
 };
 use rust_decimal::{Decimal, prelude::FromPrimitive};
-use std::collections::HashMap;
+use tokio::time::{MissedTickBehavior, interval};
+use std::{collections::HashMap, time::Duration};
+
+const SECONDS_PER_MINUTE: Decimal = Decimal::from_parts(60, 0, 0, false, 0);
 
 pub async fn run_mining_profit_task(pool: sqlx::PgPool) -> Result<(), Error> {
     log::info!("mining profit task started");
 
     let all_videocards = get_videocards();
-    let mut ticker = tokio::time::interval(std::time::Duration::from_mins(1));
-    ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+    let locations = super::get_locations();
+
+    let mut ticker = interval(Duration::from_secs(60));
+    ticker.set_missed_tick_behavior(MissedTickBehavior::Delay);
+    
+    ticker.tick().await;
 
     loop {
         ticker.tick().await;
 
-        let users: Vec<(i64, sqlx::types::Json<HashMap<String, i64>>, Decimal)> =
+        let users: Vec<(i64, sqlx::types::Json<HashMap<String, u64>>, String)> =
             match sqlx::query_as(
-                "SELECT id, videocards, balance FROM mining_users \
+                "SELECT id, videocards, location FROM mining_users \
                 WHERE NOW() - restarted_at < INTERVAL '1 day'",
             )
             .fetch_all(&pool)
@@ -30,62 +37,62 @@ pub async fn run_mining_profit_task(pool: sqlx::PgPool) -> Result<(), Error> {
                 }
             };
 
-        let users: Vec<(i64, HashMap<&Videocard, i64>, Decimal)> = users
-            .iter()
-            .filter_map(|u| {
-                let mut videocards = HashMap::with_capacity(u.1.len());
-
-                for (name, count) in u.1.iter() {
-                    match all_videocards.get(name) {
-                        Some(vc) => {
-                            videocards.insert(vc, *count);
-                        }
-                        None => {
-                            log::warn!("unknown videocard for user {} [{name}]", u.0);
-                            return None;
-                        }
-                    }
-                }
-
-                Some((u.0, videocards, u.2))
-            })
-            .collect();
-
         if users.is_empty() {
             continue;
         }
 
-        let (user_ids, balances) = {
-            let mut user_ids = Vec::with_capacity(users.len() * 2);
-            let mut balances: Vec<Decimal> = Vec::with_capacity(users.len() * 2);
+        let mut user_ids = Vec::with_capacity(users.len());
+        let mut profits = Vec::with_capacity(users.len());
 
-            for (id, videocards, mut balance) in users {
-                for (videocard, count) in videocards {
-                    balance +=
-                        (videocard.earn_per_second * Decimal::from(60)) * Decimal::from(count);
-                }
+        'user_loop: for (user_id, sqlx::types::Json(user_cards), location_name) in users {
+            let Some(location) = locations.get(&location_name) else {
+                log::warn!("unknown location for user {user_id} [{location_name}]");
+                continue;
+            };
 
-                user_ids.push(id);
-                balances.push(balance);
+            let mut power_sum: u64 = 0;
+            let mut profit_sum = Decimal::ZERO;
+
+            for (name, count) in user_cards {
+                let Some(vc) = all_videocards.get(&name) else {
+                    log::warn!("unknown videocard for user {user_id} [{name}]");
+                    continue 'user_loop;
+                };
+
+                let count_dec = Decimal::from(count);
+                power_sum = power_sum.saturating_add(vc.power as u64 * count);
+                profit_sum += (vc.earn_per_second * SECONDS_PER_MINUTE) * count_dec;
             }
 
-            (user_ids, balances)
-        };
+            if power_sum > location.max_power as u64 {
+                continue;
+            }
 
-        match sqlx::query(
-            "UPDATE mining_users AS m \
-            SET balance = u.balance \
-            FROM UNNEST($1::bigint[], $2::numeric[]) AS u(id, balance) \
-            WHERE m.id = u.id",
-        )
-        .bind(&user_ids)
-        .bind(&balances)
-        .execute(&pool)
-        .await
+            if !profit_sum.is_zero() {
+                user_ids.push(user_id);
+                profits.push(profit_sum);
+            }
+        }
+
+        for (ids_chunk, profits_chunk) in user_ids
+            .chunks(2000)
+            .zip(profits.chunks(2000))
         {
-            Ok(_) => {}
-            Err(e) => log::error!("failed to add balance to mining users: {e}"),
-        };
+            let res = sqlx::query(
+                "UPDATE mining_users AS m \
+                SET balance = m.balance + u.profit \
+                FROM UNNEST($1::bigint[], $2::numeric[]) AS u(id, profit) \
+                WHERE m.id = u.id",
+            )
+            .bind(ids_chunk)
+            .bind(profits_chunk)
+            .execute(&pool)
+            .await;
+
+            if let Err(e) = res {
+                log::error!("failed to add balance to mining users: {e}");
+            }
+        }
     }
 }
 

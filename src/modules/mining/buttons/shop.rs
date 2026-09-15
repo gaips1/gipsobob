@@ -25,9 +25,16 @@ pub async fn handle_shop_buttons(
         return Ok(());
     };
 
-    if custom_id.next() == Some("buy") {
-        buy_videocard(ctx, press, data, mining_user, videocard_id).await?;
-        return Ok(());
+    match custom_id.next() {
+        Some("buy") => {
+            buy_videocard(ctx, press, data, mining_user, videocard_id).await?;
+            return Ok(());
+        }
+        Some("sell") => {
+            sell_videocard(ctx, press, data, mining_user, videocard_id).await?;
+            return Ok(());
+        }
+        _ => {}
     }
 
     let Some((embed, buttons)) = videocard_info(videocard_id, &mining_user.videocards) else {
@@ -75,6 +82,7 @@ fn videocard_info(
 ) -> Option<(serenity::CreateEmbed, Vec<serenity::CreateActionRow>)> {
     let videocard = super::get_videocards().get(videocard_id)?;
     let user_count = user_videocards.get(videocard).copied().unwrap_or_default();
+    let sell_price = videocard.price / 2;
 
     let embed = serenity::CreateEmbed::new()
         .title(&videocard.name)
@@ -84,17 +92,22 @@ fn videocard_info(
             true,
         )
         .field(
+            "♻️ Продажа (Б/У)",
+            format!("{} UCS (-50%)", sell_price.to_formatted_string(&Locale::ru)),
+            true,
+        )
+        .field(
             "💰 Добыча UCS",
             format!(
                 "{} в минуту",
                 PrettyDecimal::comma3dot(videocard.earn_per_second * Decimal::from(60))
             ),
-            true,
+            false,
         )
         .field(
             "⚡ Энергопотребление",
             format!("{} Ватт", videocard.power.to_formatted_string(&Locale::ru)),
-            false,
+            true,
         )
         .colour(serenity::colours::branding::BLURPLE);
 
@@ -105,7 +118,15 @@ fn videocard_info(
         serenity::CreateButton::new(format!("mining:shop:{videocard_id}:buy"))
             .label(format!("Купить [у вас {user_count} шт.]",))
             .style(serenity::ButtonStyle::Success),
-    ])];
+    ]),
+    serenity::CreateActionRow::Buttons(vec![
+        serenity::CreateButton::new(format!("mining:shop:{videocard_id}:sell"))
+            .label(format!(
+                "Продать Б/У (+{} UCS)",
+                sell_price.to_formatted_string(&Locale::ru)
+            ))
+            .disabled(user_count == 0)
+    ]),];
 
     Some((embed, buttons))
 }
@@ -151,6 +172,68 @@ async fn buy_videocard(
     }
 
     *mining_user.videocards.entry(videocard).or_insert(0) += 1;
+
+    let Some((embed, buttons)) = videocard_info(videocard_id, &mining_user.videocards) else {
+        return Ok(());
+    };
+
+    crate::create_edit_response!(
+        ctx,
+        press,
+        serenity::CreateInteractionResponseMessage::new()
+            .content("")
+            .embed(embed)
+            .components(buttons)
+    );
+
+    Ok(())
+}
+
+async fn sell_videocard(
+    ctx: &serenity::Context,
+    press: &serenity::ComponentInteraction,
+    data: &Data,
+    mut mining_user: super::MiningUser<'_>,
+    videocard_id: &str,
+) -> Result<(), Error> {
+    let Some(videocard) = super::get_videocards().get(videocard_id) else {
+        return Ok(());
+    };
+
+    let sell_price = (videocard.price / 2) as i64;
+
+    let result = sqlx::query(
+        r#"
+        UPDATE mining_users
+        SET balance = balance + $1,
+            videocards = jsonb_set(
+                COALESCE(videocards, '{}'::jsonb),
+                ARRAY[$2],
+                to_jsonb(GREATEST(COALESCE((videocards->>$2)::bigint, 0) - 1, 0))
+            )
+        WHERE COALESCE((videocards->>$2)::bigint, 0) > 0 AND id = $3
+        "#,
+    )
+    .bind(sell_price)
+    .bind(videocard_id)
+    .bind(press.user.id.get() as i64)
+    .execute(&data.pool)
+    .await?;
+
+    if result.rows_affected() == 0 {
+        crate::create_response!(
+            ctx,
+            press,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("❌ У вас нет этой видеокарты для продажи!")
+                .ephemeral(true)
+        );
+        return Ok(());
+    }
+
+    if let Some(count) = mining_user.videocards.get_mut(videocard) {
+        *count = count.saturating_sub(1);
+    }
 
     let Some((embed, buttons)) = videocard_info(videocard_id, &mining_user.videocards) else {
         return Ok(());
