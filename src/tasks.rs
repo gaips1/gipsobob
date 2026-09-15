@@ -27,4 +27,10 @@ pub fn run_tasks(ctx: &serenity::Context, pool: &sqlx::PgPool) {
         pool.clone(),
     ));
     tokio::spawn(modules::traits::run_today_spins_reset_task(pool.clone()));
+
+    tokio::spawn(modules::mining::tasks::run_mining_profit_task(pool.clone()));
+    tokio::spawn(modules::mining::tasks::run_mining_trade_limit_reset_task(
+        pool.clone(),
+    ));
+    tokio::spawn(modules::mining::tasks::run_mining_exchange_rate_randomizer_task());
 }

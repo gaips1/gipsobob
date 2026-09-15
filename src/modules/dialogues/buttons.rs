@@ -4,7 +4,12 @@ pub async fn handle_dialogue_buttons(
     ctx: &serenity::Context,
     press: &serenity::ComponentInteraction,
 ) -> Result<(), Error> {
-    let custom_id = press.data.custom_id.strip_prefix("dialogue:").unwrap();
+    let custom_id = &press
+        .data
+        .custom_id
+        .strip_prefix("dialogue:")
+        .unwrap()
+        .replace("!", "");
 
     let Some(dialogue) = get_dialogue(custom_id) else {
         crate::create_edit_response!(

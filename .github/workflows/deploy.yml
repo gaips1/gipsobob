@@ -33,6 +33,8 @@ jobs:
             cp src/modules/fun/kys.json target/release/bot_data/
             cp src/modules/quests/quests.json target/release/bot_data/
             cp src/modules/traits/traits.json target/release/bot_data/
+            cp src/modules/mining/mining.json target/release/bot_data/
+            cp src/modules/mining/mining_exchange_rate target/release/bot_data/
 
             echo ">>> Restarting service..."
             sudo systemctl restart gipsobob

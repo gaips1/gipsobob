@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
 use std::sync::OnceLock;
+pub use types::*;
 
 use crate::helpers::resolve_data_path;
 use crate::types::*;
@@ -8,22 +9,22 @@ use crate::types::*;
 pub mod buttons;
 pub mod types;
 
-use types::*;
-
 static DIALOGUES_CACHE: OnceLock<HashMap<String, RawDialogue>> = OnceLock::new();
 
-pub fn load(data_path: &str) -> Result<(), Error> {
-    if DIALOGUES_CACHE.get().is_some() {
-        return Err("DialoguesManager error: Диалоги уже были загружены ранее!".into());
+impl DialoguesBuilder {
+    pub fn load(&mut self, data_path: &str) -> Result<(), Error> {
+        let file_content = fs::read_to_string(resolve_data_path(data_path))?;
+        let parsed: DialoguesFile = serde_json::from_str(&file_content)?;
+        self.dialogues.extend(parsed.dialogues);
+        Ok(())
     }
-    let file_content = fs::read_to_string(resolve_data_path(data_path))?;
-    let parsed: DialoguesFile = serde_json::from_str(&file_content)?;
 
-    DIALOGUES_CACHE
-        .set(parsed.dialogues)
-        .map_err(|_| "Не удалось записать данные в кеш (уже инициализировано)")?;
-
-    Ok(())
+    pub fn finish(self) -> Result<(), Error> {
+        DIALOGUES_CACHE
+            .set(self.dialogues)
+            .map_err(|_| "Не удалось записать данные в кеш (уже инициализировано)")?;
+        Ok(())
+    }
 }
 
 pub fn get_dialogue_with_vars(id: &str, vars: &[(&str, &str)]) -> Option<Dialogue> {
@@ -51,11 +52,15 @@ pub fn get_dialogue_with_vars(id: &str, vars: &[(&str, &str)]) -> Option<Dialogu
                 .label(&b.label)
                 .style(style)
         })
-        .collect();
+        .collect::<Vec<_>>();
 
     Some(Dialogue {
-        content: content,
-        buttons: vec![serenity::CreateActionRow::Buttons(buttons)],
+        content,
+        buttons: if buttons.is_empty() {
+            vec![]
+        } else {
+            vec![serenity::CreateActionRow::Buttons(buttons)]
+        },
     })
 }
 

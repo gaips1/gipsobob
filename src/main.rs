@@ -55,7 +55,10 @@ async fn main() {
 
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
 
-                modules::dialogues::load("src/modules/traits/traits.json")?;
+                let mut builder = modules::dialogues::DialoguesBuilder::default();
+                builder.load("src/modules/traits/traits.json")?;
+                builder.load("src/modules/mining/mining.json")?;
+                builder.finish()?;
 
                 tasks::run_tasks(ctx, &pool);
 
@@ -221,7 +224,7 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 
         let _ = ctx
             .send(CreateReply::default().content(format!(
-                "Вы сможете повторно использовать эту команды <t:{}:R>.",
+                "Вы сможете повторно использовать эту команду <t:{}:R>.",
                 timestamp
             )))
             .await;
