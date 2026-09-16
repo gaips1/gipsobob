@@ -52,13 +52,14 @@ pub async fn handle_traits_spin_button(
                 .description(dialogue.content)
                 .colour(serenity::colours::branding::RED);
 
-            crate::create_edit_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .embed(embed)
-                    .components(dialogue.buttons)
-            );
+            press
+                .edit_reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .embed(embed)
+                        .components(dialogue.buttons),
+                )
+                .await?;
 
             return Ok(());
         }
@@ -96,20 +97,21 @@ pub async fn handle_traits_spin_button(
             .description("Выберите слот, в который хотите вколоть мутацию.\n**Выбранный слот будет перезаписан**")
             .colour(serenity::colours::branding::BLURPLE);
 
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .embed(embed)
-                .components(vec![
-                    serenity::CreateActionRow::Buttons(buttons),
-                    serenity::CreateActionRow::Buttons(vec![
-                        serenity::CreateButton::new("traits:mm")
-                            .label("Назад")
-                            .style(serenity::ButtonStyle::Secondary)
-                    ])
-                ])
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(embed)
+                    .components(vec![
+                        serenity::CreateActionRow::Buttons(buttons),
+                        serenity::CreateActionRow::Buttons(vec![
+                            serenity::CreateButton::new("traits:mm")
+                                .label("Назад")
+                                .style(serenity::ButtonStyle::Secondary),
+                        ]),
+                    ]),
+            )
+            .await?;
         return Ok(());
     };
     let slot: u16 = slot.parse()?;
@@ -125,14 +127,15 @@ pub async fn handle_traits_spin_button(
     .await?;
 
     if slot + 1 > rows.0 as u16 {
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Кус, читерок")
-                .embeds(Vec::new())
-                .components(Vec::new())
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Кус, читерок")
+                    .embeds(Vec::new())
+                    .components(Vec::new()),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -146,13 +149,14 @@ pub async fn handle_traits_spin_button(
             .description(dialogue.content)
             .colour(serenity::colours::branding::RED);
 
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .embed(embed)
-                .components(dialogue.buttons)
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(embed)
+                    .components(dialogue.buttons),
+            )
+            .await?;
 
         return Ok(());
     }
@@ -173,13 +177,14 @@ pub async fn handle_traits_spin_button(
             .description(dialogue.content)
             .colour(serenity::colours::branding::RED);
 
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .embed(embed)
-                .components(dialogue.buttons)
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(embed)
+                    .components(dialogue.buttons),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -239,13 +244,14 @@ pub async fn handle_traits_spin_button(
         .description(&text)
         .colour(serenity::colours::branding::BLURPLE);
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .embed(embed.clone())
-            .components(Vec::new())
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .embed(embed.clone())
+                .components(Vec::new()),
+        )
+        .await?;
 
     tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
 

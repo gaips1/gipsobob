@@ -321,25 +321,27 @@ pub async fn handle_giveaway_buttons(
                     .style(serenity::ButtonStyle::Danger),
                 ])];
 
-                crate::create_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::new()
-                        .content("Вы уже участвуете в розыгрыше!")
-                        .components(buttons)
-                        .ephemeral(true)
-                );
+                press
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::new()
+                            .content("Вы уже участвуете в розыгрыше!")
+                            .components(buttons)
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             }
 
             Err(sqlx::Error::Database(db_err)) if db_err.is_foreign_key_violation() => {
-                crate::create_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::new()
-                        .content("Такого розыгрыша не существует")
-                        .ephemeral(true)
-                );
+                press
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::new()
+                            .content("Такого розыгрыша не существует")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             }
 
@@ -354,14 +356,15 @@ pub async fn handle_giveaway_buttons(
                 .style(serenity::ButtonStyle::Danger),
         ])];
 
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Успешно!")
-                .components(buttons)
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Успешно!")
+                    .components(buttons)
+                    .ephemeral(true),
+            )
+            .await?;
     } else if custom_id.starts_with("giveaway:leave:") {
         let giveaway_id: i64 = match custom_id.split(':').nth(2).and_then(|s| s.parse().ok()) {
             Some(id) => id,
@@ -379,23 +382,25 @@ pub async fn handle_giveaway_buttons(
         .await?;
 
         if result.rows_affected() == 0 {
-            crate::create_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .content("Вы не участвуете в этом розыгрыше")
-                    .ephemeral(true)
-            );
+            press
+                .reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .content("Вы не участвуете в этом розыгрыше")
+                        .ephemeral(true),
+                )
+                .await?;
             return Ok(());
         }
 
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Успешно!")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Успешно!")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 

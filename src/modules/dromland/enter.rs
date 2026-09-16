@@ -83,14 +83,15 @@ pub async fn handle_enter_button(
         armed: true,
     };
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content("Вы вошли в лабиринт.")
-            .embeds(Vec::new())
-            .components(Vec::new())
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("Вы вошли в лабиринт.")
+                .embeds(Vec::new())
+                .components(Vec::new()),
+        )
+        .await?;
 
     sleep(Duration::from_millis(1_500)).await;
 

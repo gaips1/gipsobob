@@ -114,14 +114,15 @@ pub async fn handle_traits_buttons(
 ) -> Result<(), Error> {
     if press.data.custom_id.starts_with("traits:mm") {
         let mm = get_main_menu(&data.pool, press.user.id.get()).await?;
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("")
-                .components(mm.0)
-                .embed(mm.1)
-        )
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("")
+                    .components(mm.0)
+                    .embed(mm.1),
+            )
+            .await?
     } else if press.data.custom_id.starts_with("traits:spin") {
         super::spin::handle_traits_spin_button(ctx, press, data).await?
     } else if press.data.custom_id == "traits:upgrade" {

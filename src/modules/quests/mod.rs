@@ -22,13 +22,14 @@ pub async fn handle_quests_select(
 
     let quests = helpers::get_user_quests(&data.pool, press.user.id.get(), status).await?;
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .embed(helpers::create_quests_embed(&quests))
-            .components(helpers::quests_select_menu(status))
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .embed(helpers::create_quests_embed(&quests))
+                .components(helpers::quests_select_menu(status)),
+        )
+        .await?;
 
     Ok(())
 }

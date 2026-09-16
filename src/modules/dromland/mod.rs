@@ -36,24 +36,26 @@ pub async fn handle_dromland_buttons(
         .await?;
 
     let Some(dl_user) = dl_user else {
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::default()
-                .content("Сначала создай персонажа")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::default()
+                    .content("Сначала создай персонажа")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     };
 
     if dl_user.in_game {
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::default()
-                .content("Вы в данный момент в лабиринте")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::default()
+                    .content("Вы в данный момент в лабиринте")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -64,18 +66,19 @@ pub async fn handle_dromland_buttons(
     } else {
         match custom_id {
             "dl:mm" => {
-                crate::create_edit_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::new()
-                        .content(format!(
-                            "Добро пожаловать обратно, {} {}",
-                            display_class(&dl_user.class).unwrap(),
-                            dl_user.name
-                        ))
-                        .components(game::get_main_menu_buttons())
-                        .embeds(Vec::new())
-                );
+                press
+                    .edit_reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::new()
+                            .content(format!(
+                                "Добро пожаловать обратно, {} {}",
+                                display_class(&dl_user.class).unwrap(),
+                                dl_user.name
+                            ))
+                            .components(game::get_main_menu_buttons())
+                            .embeds(Vec::new()),
+                    )
+                    .await?;
             }
             "dl:enter" => {
                 enter::handle_enter_button(ctx, press, data, dl_user).await?;

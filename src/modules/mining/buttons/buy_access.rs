@@ -21,13 +21,14 @@ pub async fn handle_buy_access_button(
 
         let dialogue = get_dialogue("mining:first_hi_4").unwrap();
 
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content(dialogue.content)
-                .components(Vec::new())
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content(dialogue.content)
+                    .components(Vec::new()),
+            )
+            .await?;
 
         return Ok(());
     }
@@ -41,26 +42,28 @@ pub async fn handle_buy_access_button(
         Ok(_) => {}
         Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() => {
             tx.rollback().await?;
-            crate::create_edit_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .content("Вы уже можете майнить!")
-                    .embeds(Vec::new())
-                    .components(Vec::new())
-            );
+            press
+                .edit_reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .content("Вы уже можете майнить!")
+                        .embeds(Vec::new())
+                        .components(Vec::new()),
+                )
+                .await?;
             return Ok(());
         }
         Err(_) => {
             tx.rollback().await?;
-            crate::create_edit_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .content("Произошла страшная ошибка")
-                    .embeds(Vec::new())
-                    .components(Vec::new())
-            );
+            press
+                .edit_reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .content("Произошла страшная ошибка")
+                        .embeds(Vec::new())
+                        .components(Vec::new()),
+                )
+                .await?;
             return Ok(());
         }
     }
@@ -68,13 +71,14 @@ pub async fn handle_buy_access_button(
     tx.commit().await?;
 
     let dialogue = get_dialogue("mining:successful_buy").unwrap();
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content(dialogue.content)
-            .components(dialogue.buttons)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content(dialogue.content)
+                .components(dialogue.buttons),
+        )
+        .await?;
 
     Ok(())
 }

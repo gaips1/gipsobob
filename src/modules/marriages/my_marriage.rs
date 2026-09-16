@@ -74,14 +74,15 @@ pub async fn handle_divorce_button(
                     .style(serenity::ButtonStyle::Danger),
             ])];
 
-            crate::create_response!(
-                ctx,
-                interaction,
-                serenity::CreateInteractionResponseMessage::default()
-                    .embed(embed)
-                    .components(buttons)
-                    .ephemeral(true)
-            );
+            interaction
+                .reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::default()
+                        .embed(embed)
+                        .components(buttons)
+                        .ephemeral(true),
+                )
+                .await?;
         }
 
         "marriage:divorce:yes" => {
@@ -93,15 +94,16 @@ pub async fn handle_divorce_button(
             .await?;
 
             let Some(row) = row else {
-                crate::create_edit_response!(
-                    ctx,
-                    interaction,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Вы в данный момент не в браке")
-                        .embeds(Vec::new())
-                        .components(Vec::new())
-                        .ephemeral(true)
-                );
+                interaction
+                    .edit_reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Вы в данный момент не в браке")
+                            .embeds(Vec::new())
+                            .components(Vec::new())
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             };
 
@@ -110,14 +112,15 @@ pub async fn handle_divorce_button(
                 .execute(&data.pool)
                 .await?;
 
-            crate::create_edit_response!(
-                ctx,
-                interaction,
-                serenity::CreateInteractionResponseMessage::default()
-                    .content("Вы успешно развелись :(")
-                    .embeds(Vec::new())
-                    .components(Vec::new())
-            );
+            interaction
+                .edit_reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::default()
+                        .content("Вы успешно развелись :(")
+                        .embeds(Vec::new())
+                        .components(Vec::new()),
+                )
+                .await?;
 
             let partner_id = if row.0 as u64 == interaction.user.id.get() {
                 row.1

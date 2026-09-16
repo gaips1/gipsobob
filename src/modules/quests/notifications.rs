@@ -13,12 +13,13 @@ pub async fn handle_notifications_button(
                 .execute(&data.pool)
                 .await?;
 
-            crate::create_edit_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .components(super::helpers::get_notifications_button(false))
-            );
+            press
+                .edit_reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .components(super::helpers::get_notifications_button(false)),
+                )
+                .await?;
         }
         "off" => {
             sqlx::query("UPDATE users SET quest_notifications = false WHERE id = $1")
@@ -26,12 +27,13 @@ pub async fn handle_notifications_button(
                 .execute(&data.pool)
                 .await?;
 
-            crate::create_edit_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .components(super::helpers::get_notifications_button(true))
-            );
+            press
+                .edit_reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .components(super::helpers::get_notifications_button(true)),
+                )
+                .await?;
         }
         _ => {}
     }

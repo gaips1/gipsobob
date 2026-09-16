@@ -40,15 +40,16 @@ pub async fn handle_donate_button(
                 ]),
             ];
 
-            crate::create_edit_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::default()
-                    .content("")
-                    .embed(embed)
-                    .components(buttons)
-                    .ephemeral(true)
-            );
+            press
+                .edit_reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::default()
+                        .content("")
+                        .embed(embed)
+                        .components(buttons)
+                        .ephemeral(true),
+                )
+                .await?;
         }
 
         "dl:donate:to_sbp" => {
@@ -72,35 +73,41 @@ pub async fn handle_donate_button(
             };
 
             let Ok(amount) = Decimal::from_str_exact(response.inputs[0].trim()) else {
-                crate::create_response!(
-                    ctx,
-                    response.interaction,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Введите число")
-                        .ephemeral(true)
-                );
+                response
+                    .interaction
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Введите число")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             };
 
             if amount.is_zero() || amount.is_sign_negative() {
-                crate::create_response!(
-                    ctx,
-                    response.interaction,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Введите нормальное число")
-                        .ephemeral(true)
-                );
+                response
+                    .interaction
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Введите нормальное число")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             }
 
             if amount.lt(&Decimal::from_i32(100).unwrap()) {
-                crate::create_response!(
-                    ctx,
-                    response.interaction,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Минимальный перевод: 100 монет")
-                        .ephemeral(true)
-                );
+                response
+                    .interaction
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Минимальный перевод: 100 монет")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             }
 
@@ -111,15 +118,11 @@ pub async fn handle_donate_button(
                     .await?;
 
             if !is_sbp_user_exists {
-                crate::create_response!(
-                    ctx,
-                    response.interaction,
-                    serenity::CreateInteractionResponseMessage::default()
+                response.interaction.reply(ctx, serenity::CreateInteractionResponseMessage::default()
                         .content(
                             "Сначала зарегистрируйся в СБП, используя команду `/сбп регистрация`"
                         )
-                        .ephemeral(true)
-                );
+                        .ephemeral(true)).await?;
                 return Ok(());
             }
 
@@ -133,13 +136,15 @@ pub async fn handle_donate_button(
 
             if user_balance.lt(&amount) {
                 tx.rollback().await?;
-                crate::create_response!(
-                    ctx,
-                    response.interaction,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("У вас недостаточно монет.")
-                        .ephemeral(true)
-                );
+                response
+                    .interaction
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("У вас недостаточно монет.")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             }
 
@@ -159,16 +164,18 @@ pub async fn handle_donate_button(
 
             tx.commit().await?;
 
-            crate::create_response!(
-                ctx,
-                response.interaction,
-                serenity::CreateInteractionResponseMessage::default()
-                    .content(format!(
-                        "Успешно! Перевёл `{}` бебр на ваш счёт СБП",
-                        PrettyDecimal::comma3dot(sbp_amount)
-                    ))
-                    .ephemeral(true)
-            );
+            response
+                .interaction
+                .reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::default()
+                        .content(format!(
+                            "Успешно! Перевёл `{}` бебр на ваш счёт СБП",
+                            PrettyDecimal::comma3dot(sbp_amount)
+                        ))
+                        .ephemeral(true),
+                )
+                .await?;
         }
 
         "dl:donate:from_sbp" => {
@@ -192,24 +199,28 @@ pub async fn handle_donate_button(
             };
 
             let Ok(amount) = Decimal::from_str_exact(response.inputs[0].trim()) else {
-                crate::create_response!(
-                    ctx,
-                    response.interaction,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Введите число")
-                        .ephemeral(true)
-                );
+                response
+                    .interaction
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Введите число")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             };
 
             if amount.is_zero() || amount.is_sign_negative() {
-                crate::create_response!(
-                    ctx,
-                    response.interaction,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Введите нормальное число")
-                        .ephemeral(true)
-                );
+                response
+                    .interaction
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Введите нормальное число")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             }
 
@@ -220,15 +231,11 @@ pub async fn handle_donate_button(
                     .await?;
 
             if !is_sbp_user_exists {
-                crate::create_response!(
-                    ctx,
-                    response.interaction,
-                    serenity::CreateInteractionResponseMessage::default()
+                response.interaction.reply(ctx, serenity::CreateInteractionResponseMessage::default()
                         .content(
                             "Сначала зарегистрируйся в СБП, используя команду `/сбп регистрация`"
                         )
-                        .ephemeral(true)
-                );
+                        .ephemeral(true)).await?;
                 return Ok(());
             }
 
@@ -242,13 +249,15 @@ pub async fn handle_donate_button(
 
             if sbp_balance.lt(&amount) {
                 tx.rollback().await?;
-                crate::create_response!(
-                    ctx,
-                    response.interaction,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("У вас недостаточно бебр.")
-                        .ephemeral(true)
-                );
+                response
+                    .interaction
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("У вас недостаточно бебр.")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             }
 
@@ -268,16 +277,18 @@ pub async fn handle_donate_button(
 
             tx.commit().await?;
 
-            crate::create_response!(
-                ctx,
-                response.interaction,
-                serenity::CreateInteractionResponseMessage::default()
-                    .content(format!(
-                        "Успешно! Перевёл `{}` монет на ваш счёт Дромляндии: Онлайн",
-                        PrettyDecimal::comma3dot(dl_amount)
-                    ))
-                    .ephemeral(true)
-            );
+            response
+                .interaction
+                .reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::default()
+                        .content(format!(
+                            "Успешно! Перевёл `{}` монет на ваш счёт Дромляндии: Онлайн",
+                            PrettyDecimal::comma3dot(dl_amount)
+                        ))
+                        .ephemeral(true),
+                )
+                .await?;
         }
 
         _ => {}

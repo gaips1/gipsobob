@@ -68,14 +68,15 @@ pub async fn handle_trading_button(
             ),
     ])];
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content("")
-            .embed(embed)
-            .components(buttons)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("")
+                .embed(embed)
+                .components(buttons),
+        )
+        .await?;
 
     Ok(())
 }
@@ -95,13 +96,14 @@ pub async fn handle_trading_trade_button(
     mining_user: super::MiningUser<'_>,
 ) -> Result<(), Error> {
     if mining_user.traded_today >= Decimal::from(mining_user.location.trading_limit) {
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Превышен лимит на обмен валют в день")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Превышен лимит на обмен валют в день")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 

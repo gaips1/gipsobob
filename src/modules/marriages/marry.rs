@@ -81,13 +81,9 @@ pub async fn marry(
             let user = user.clone();
             async move {
                 if press.user.id != user.id {
-                    crate::create_response!(
-                        ctx,
-                        press,
-                        serenity::CreateInteractionResponseMessage::default()
+                    press.reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default()
                             .content("Тише будь")
-                            .ephemeral(true)
-                    );
+                            .ephemeral(true)).await?;
                     return Ok(false);
                 }
 
@@ -99,13 +95,9 @@ pub async fn marry(
                     .await?;
 
                 if is_author_marriaged {
-                    crate::create_response!(
-                        ctx,
-                        press,
-                        serenity::CreateInteractionResponseMessage::default()
+                    press.reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default()
                             .content("Ты, чё, изменщик? KYS")
-                            .ephemeral(true)
-                    );
+                            .ephemeral(true)).await?;
                     return Ok(false);
                 }
 
@@ -117,13 +109,9 @@ pub async fn marry(
                     .await?;
 
                 if is_user_marriaged {
-                    crate::create_response!(
-                        ctx,
-                        press,
-                        serenity::CreateInteractionResponseMessage::default()
+                    press.reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default()
                             .content("Пользователь уже в браке")
-                            .ephemeral(true)
-                    );
+                            .ephemeral(true)).await?;
                     return Ok(false);
                 }
 
@@ -137,12 +125,8 @@ pub async fn marry(
                             .execute(pool)
                             .await?;
 
-                        crate::create_edit_response!(
-                            ctx,
-                            press,
-                            serenity::CreateInteractionResponseMessage::default()
-                                .components(Vec::new())
-                        );
+                        press.edit_reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default()
+                                .components(Vec::new())).await?;
 
                         press.create_followup(&ctx,
                             serenity::CreateInteractionResponseFollowup::new()
@@ -152,12 +136,8 @@ pub async fn marry(
                     }
 
                     "no" => {
-                        crate::create_edit_response!(
-                            ctx,
-                            press,
-                            serenity::CreateInteractionResponseMessage::default()
-                                .components(Vec::new())
-                        );
+                        press.edit_reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default()
+                                .components(Vec::new())).await?;
 
                         press.create_followup(&ctx,
                             serenity::CreateInteractionResponseFollowup::new()

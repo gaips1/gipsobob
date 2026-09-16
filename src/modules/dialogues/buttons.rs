@@ -12,25 +12,27 @@ pub async fn handle_dialogue_buttons(
         .replace("!", "");
 
     let Some(dialogue) = get_dialogue(custom_id) else {
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Диалог не найден. Попробуйте снова.")
-                .embeds(Vec::new())
-                .components(Vec::new())
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Диалог не найден. Попробуйте снова.")
+                    .embeds(Vec::new())
+                    .components(Vec::new()),
+            )
+            .await?;
         return Ok(());
     };
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content(dialogue.content)
-            .embeds(Vec::new())
-            .components(dialogue.buttons)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content(dialogue.content)
+                .embeds(Vec::new())
+                .components(dialogue.buttons),
+        )
+        .await?;
 
     Ok(())
 }

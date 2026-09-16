@@ -137,13 +137,9 @@ pub async fn rps(
             let user = accepted_user.clone();
             async move {
                 if press.user.id != user.id {
-                    crate::create_response!(
-                        ctx,
-                        press,
-                        serenity::CreateInteractionResponseMessage::default()
+                    press.reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default()
                             .content("Тише будь")
-                            .ephemeral(true)
-                    );
+                            .ephemeral(true)).await?;
                     return Ok(false);
                 }
 
@@ -158,13 +154,9 @@ pub async fn rps(
                         .await?;
 
                     if result.rows_affected() == 0 {
-                        crate::create_response!(
-                            ctx,
-                            press,
-                            serenity::CreateInteractionResponseMessage::default()
+                        press.reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default()
                                 .content("У Вас не хватает бебр на ставку, либо вы не зарегистрированы в СБП. Сделайте это, используя команду `/сбп регистрация`")
-                                .ephemeral(true)
-                        );
+                                .ephemeral(true)).await?;
                         return Ok(false);
                     }
                 }
@@ -180,13 +172,9 @@ pub async fn rps(
                     serenity::CreateButton::new(format!("{}:rps:choice:paper", ctx.id())).label("Бумага"),
                 ])];
 
-                crate::create_edit_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::default()
+                press.edit_reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default()
                         .components(choice_buttons)
-                        .embed(embed)
-                );
+                        .embed(embed)).await?;
 
                 Ok(true)
             }
@@ -228,13 +216,14 @@ pub async fn rps(
             let choices = button_choices.clone();
             async move {
                 if press.user.id != user.id && press.user.id != ctx.author().id {
-                    crate::create_response!(
-                        ctx,
-                        press,
-                        serenity::CreateInteractionResponseMessage::default()
-                            .content("Тише будь")
-                            .ephemeral(true)
-                    );
+                    press
+                        .reply(
+                            ctx.serenity_context(),
+                            serenity::CreateInteractionResponseMessage::default()
+                                .content("Тише будь")
+                                .ephemeral(true),
+                        )
+                        .await?;
                     return Ok(false);
                 }
 
@@ -248,34 +237,36 @@ pub async fn rps(
                 let mut choices = choices.lock().await;
 
                 if choices.contains_key(&press.user.id.get()) {
-                    crate::create_response!(
-                        ctx,
-                        press,
-                        serenity::CreateInteractionResponseMessage::default()
-                            .content("Ты уже выбрал")
-                            .ephemeral(true)
-                    );
+                    press
+                        .reply(
+                            ctx.serenity_context(),
+                            serenity::CreateInteractionResponseMessage::default()
+                                .content("Ты уже выбрал")
+                                .ephemeral(true),
+                        )
+                        .await?;
                     return Ok(false);
                 }
 
                 choices.insert(press.user.id.get(), choice);
 
-                crate::create_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content(format!(
-                            "Успешно выбрал {}",
-                            if let RpsChoice::Paper = choice {
-                                "бумагу"
-                            } else if let RpsChoice::Rock = choice {
-                                "камень"
-                            } else {
-                                "ножницы"
-                            }
-                        ))
-                        .ephemeral(true)
-                );
+                press
+                    .reply(
+                        ctx.serenity_context(),
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content(format!(
+                                "Успешно выбрал {}",
+                                if let RpsChoice::Paper = choice {
+                                    "бумагу"
+                                } else if let RpsChoice::Rock = choice {
+                                    "камень"
+                                } else {
+                                    "ножницы"
+                                }
+                            ))
+                            .ephemeral(true),
+                    )
+                    .await?;
 
                 Ok(choices.len() == 2)
             }

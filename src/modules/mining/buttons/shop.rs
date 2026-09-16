@@ -14,14 +14,15 @@ pub async fn handle_shop_buttons(
     let mut custom_id = press.data.custom_id.split(':');
 
     let Some(videocard_id) = custom_id.nth(2) else {
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("")
-                .embeds(Vec::new())
-                .components(videocards_buttons())
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("")
+                    .embeds(Vec::new())
+                    .components(videocards_buttons()),
+            )
+            .await?;
         return Ok(());
     };
 
@@ -41,14 +42,15 @@ pub async fn handle_shop_buttons(
         return Ok(());
     };
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content("")
-            .embed(embed)
-            .components(buttons)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("")
+                .embed(embed)
+                .components(buttons),
+        )
+        .await?;
 
     Ok(())
 }
@@ -164,13 +166,14 @@ async fn buy_videocard(
     .await?;
 
     if result.rows_affected() == 0 {
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("❌ Недостаточно средств для покупки!")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("❌ Недостаточно средств для покупки!")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -180,14 +183,15 @@ async fn buy_videocard(
         return Ok(());
     };
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content("")
-            .embed(embed)
-            .components(buttons)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("")
+                .embed(embed)
+                .components(buttons),
+        )
+        .await?;
 
     Ok(())
 }
@@ -205,13 +209,14 @@ async fn sell_videocard(
 
     let total_videocards: u64 = mining_user.videocards.values().sum();
     if total_videocards <= 1 {
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("❌ Вы не можете продать свою последнюю видеокарту!")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("❌ Вы не можете продать свою последнюю видеокарту!")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -237,13 +242,14 @@ async fn sell_videocard(
     .await?;
 
     if result.rows_affected() == 0 {
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("❌ У вас нет этой видеокарты для продажи!")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("❌ У вас нет этой видеокарты для продажи!")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -258,14 +264,15 @@ async fn sell_videocard(
         return Ok(());
     };
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content("")
-            .embed(embed)
-            .components(buttons)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("")
+                .embed(embed)
+                .components(buttons),
+        )
+        .await?;
 
     Ok(())
 }

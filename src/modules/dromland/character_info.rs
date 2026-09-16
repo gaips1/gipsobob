@@ -22,14 +22,15 @@ pub async fn handle_char_info_button(
         .footer(serenity::CreateEmbedFooter::new("Дромляндия: Онлайн"))
         .colour(serenity::colours::branding::BLURPLE);
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::default()
-            .content("")
-            .embed(embed)
-            .ephemeral(true)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::default()
+                .content("")
+                .embed(embed)
+                .ephemeral(true),
+        )
+        .await?;
 
     Ok(())
 }

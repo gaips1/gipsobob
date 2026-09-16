@@ -42,13 +42,14 @@ pub async fn handle_char_create_button(
     let char_class = response.inputs[1].trim();
 
     if char_name.len() <= 4 {
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Имя вашего персонажа слишком короткое")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Имя вашего персонажа слишком короткое")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -61,13 +62,14 @@ pub async fn handle_char_create_button(
         "танк" => CLASSES.iter().find(|&&(name, _)| name == "heavy").unwrap(),
 
         _ => {
-            crate::create_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .content("Неизвестный класс. Доступные классы: воин | маг | танк")
-                    .ephemeral(true)
-            );
+            press
+                .reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .content("Неизвестный класс. Доступные классы: воин | маг | танк")
+                        .ephemeral(true),
+                )
+                .await?;
             return Ok(());
         }
     };
@@ -85,29 +87,31 @@ pub async fn handle_char_create_button(
         .await?;
 
     if result.rows_affected() == 0 {
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Вы уже создали своего персонажа")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Вы уже создали своего персонажа")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content(format!(
-                "Добро пожаловать, {} {}",
-                display_class(char_class.0).unwrap(),
-                char_name
-            ))
-            .components(get_main_menu_buttons())
-            .embeds(Vec::new())
-            .ephemeral(true)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content(format!(
+                    "Добро пожаловать, {} {}",
+                    display_class(char_class.0).unwrap(),
+                    char_name
+                ))
+                .components(get_main_menu_buttons())
+                .embeds(Vec::new())
+                .ephemeral(true),
+        )
+        .await?;
 
     Ok(())
 }

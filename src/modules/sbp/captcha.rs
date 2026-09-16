@@ -113,25 +113,29 @@ pub async fn captcha(ctx: Context<'_>) -> Result<(), Error> {
                     )
                     .await;
 
-                    crate::create_edit_response!(
-                        ctx,
-                        response.interaction,
-                        serenity::CreateInteractionResponseMessage::new()
-                            .content("✅ Капча пройдена! Вы получили 30 бебр.")
-                            .components(Vec::new())
-                            .ephemeral(true)
-                    );
+                    response
+                        .interaction
+                        .edit_reply(
+                            ctx.serenity_context(),
+                            serenity::CreateInteractionResponseMessage::new()
+                                .content("✅ Капча пройдена! Вы получили 30 бебр.")
+                                .components(Vec::new())
+                                .ephemeral(true),
+                        )
+                        .await?;
 
                     return Ok(true);
                 } else {
-                    crate::create_edit_response!(
-                        ctx,
-                        response.interaction,
-                        serenity::CreateInteractionResponseMessage::new()
-                            .content("❌ Неверная капча. Попробуйте с новой капчой.")
-                            .components(Vec::new())
-                            .ephemeral(true)
-                    );
+                    response
+                        .interaction
+                        .edit_reply(
+                            ctx.serenity_context(),
+                            serenity::CreateInteractionResponseMessage::new()
+                                .content("❌ Неверная капча. Попробуйте с новой капчой.")
+                                .components(Vec::new())
+                                .ephemeral(true),
+                        )
+                        .await?;
 
                     return Ok(true);
                 }

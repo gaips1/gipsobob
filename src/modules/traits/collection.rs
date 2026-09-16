@@ -37,17 +37,18 @@ pub async fn handle_traits_collection_button(
         .description(text)
         .colour(serenity::colours::branding::YELLOW);
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .embed(embed)
-            .components(vec![serenity::CreateActionRow::Buttons(vec![
-                serenity::CreateButton::new("traits:mm")
-                    .label("Назад")
-                    .style(serenity::ButtonStyle::Primary)
-            ])])
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .embed(embed)
+                .components(vec![serenity::CreateActionRow::Buttons(vec![
+                    serenity::CreateButton::new("traits:mm")
+                        .label("Назад")
+                        .style(serenity::ButtonStyle::Primary),
+                ])]),
+        )
+        .await?;
 
     Ok(())
 }

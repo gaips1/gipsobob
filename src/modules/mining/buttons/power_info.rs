@@ -34,13 +34,14 @@ pub async fn handle_power_info_button(
         .description(text)
         .colour(serenity::colours::branding::BLURPLE);
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content("")
-            .embed(embed)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("")
+                .embed(embed),
+        )
+        .await?;
 
     Ok(())
 }

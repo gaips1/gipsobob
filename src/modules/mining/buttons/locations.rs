@@ -68,14 +68,15 @@ async fn all_locations(
             .style(serenity::ButtonStyle::Success),
     ]));
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content("")
-            .embed(embed)
-            .components(buttons)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("")
+                .embed(embed)
+                .components(buttons),
+        )
+        .await?;
 
     Ok(())
 }
@@ -134,13 +135,14 @@ async fn location_info(
             ]),
         ];
 
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .embed(embed)
-                .components(buttons)
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(embed)
+                    .components(buttons),
+            )
+            .await?;
 
         return Ok(());
     };
@@ -165,14 +167,15 @@ async fn buy_location(
     };
 
     if location.index(locations) <= mining_user.location.index(locations) {
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Кус")
-                .embeds(Vec::new())
-                .components(Vec::new())
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Кус")
+                    .embeds(Vec::new())
+                    .components(Vec::new()),
+            )
+            .await?;
         return Ok(());
     };
 
@@ -190,16 +193,17 @@ async fn buy_location(
 
     if result.rows_affected() == 0 {
         tx.rollback().await?;
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("У Вас не хватает УзбиКоинов!")
-                .embeds(Vec::new())
-                .components(vec![serenity::CreateActionRow::Buttons(vec![
-                    serenity::CreateButton::new("mining:mm").label("В главное меню")
-                ])])
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("У Вас не хватает УзбиКоинов!")
+                    .embeds(Vec::new())
+                    .components(vec![serenity::CreateActionRow::Buttons(vec![
+                        serenity::CreateButton::new("mining:mm").label("В главное меню"),
+                    ])]),
+            )
+            .await?;
 
         return Ok(());
     }
@@ -212,19 +216,20 @@ async fn buy_location(
 
     tx.commit().await?;
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content(format!(
-                "Поздравляю с покупкой! Вы переехали в `{}`",
-                location.name
-            ))
-            .embeds(Vec::new())
-            .components(vec![serenity::CreateActionRow::Buttons(vec![
-                serenity::CreateButton::new("mining:mm").label("В главное меню")
-            ])])
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content(format!(
+                    "Поздравляю с покупкой! Вы переехали в `{}`",
+                    location.name
+                ))
+                .embeds(Vec::new())
+                .components(vec![serenity::CreateActionRow::Buttons(vec![
+                    serenity::CreateButton::new("mining:mm").label("В главное меню"),
+                ])]),
+        )
+        .await?;
 
     Ok(())
 }

@@ -105,11 +105,12 @@ pub async fn handle_change_notifications_button(
         },
     ])];
 
-    crate::create_edit_response!(
-        ctx,
-        interaction,
-        serenity::CreateInteractionResponseMessage::default().components(buttons)
-    );
+    interaction
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::default().components(buttons),
+        )
+        .await?;
 
     Ok(())
 }

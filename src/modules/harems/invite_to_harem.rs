@@ -54,24 +54,26 @@ pub async fn invite_to_harem(ctx: Context<'_>) -> Result<(), Error> {
                     .await?;
 
             let Some(user_harem_id) = user_harem_id else {
-                crate::create_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Вы не зарегистрированы в боте. Напишите любую команду")
-                        .ephemeral(true)
-                );
+                press
+                    .reply(
+                        ctx.serenity_context(),
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Вы не зарегистрированы в боте. Напишите любую команду")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(false);
             };
 
             if user_harem_id.is_some() {
-                crate::create_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Вы в данный момент в чужом гареме")
-                        .ephemeral(true)
-                );
+                press
+                    .reply(
+                        ctx.serenity_context(),
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Вы в данный момент в чужом гареме")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(false);
             }
 
@@ -81,13 +83,16 @@ pub async fn invite_to_harem(ctx: Context<'_>) -> Result<(), Error> {
                 .execute(pool)
                 .await?;
 
-            crate::create_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::default()
-                    .content("Вы успешно присоединились к гарему. Подробнее в `/гарем управление`")
-                    .ephemeral(true)
-            );
+            press
+                .reply(
+                    ctx.serenity_context(),
+                    serenity::CreateInteractionResponseMessage::default()
+                        .content(
+                            "Вы успешно присоединились к гарему. Подробнее в `/гарем управление`",
+                        )
+                        .ephemeral(true),
+                )
+                .await?;
 
             Ok(false)
         },

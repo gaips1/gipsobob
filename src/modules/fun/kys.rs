@@ -87,13 +87,9 @@ pub async fn handle_kys_button(
             .execute(&data.pool)
             .await;
 
-        crate::create_edit_response!(
-            ctx,
-            interaction,
-            serenity::CreateInteractionResponseMessage::default()
+        interaction.edit_reply(ctx, serenity::CreateInteractionResponseMessage::default()
                 .content("Вы восстали из пепла прямо перед Смертью и отняли у неё 500 бебр! Феникс не умирает просто так.")
-                .components(Vec::new())
-        );
+                .components(Vec::new())).await?;
         return Ok(());
     }
 
@@ -107,17 +103,18 @@ pub async fn handle_kys_button(
     )
     .await;
 
-    crate::create_edit_response!(
-        ctx,
-        interaction,
-        serenity::CreateInteractionResponseMessage::default()
-            .content(format!("Вы {}. Поздравляю со смертью!", choice))
-            .components(vec![serenity::CreateActionRow::Buttons(vec![
-                serenity::CreateButton::new("kys_btn")
-                    .label("KYS")
-                    .emoji('☠')
-                    .style(serenity::ButtonStyle::Danger),
-            ])])
-    );
+    interaction
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::default()
+                .content(format!("Вы {}. Поздравляю со смертью!", choice))
+                .components(vec![serenity::CreateActionRow::Buttons(vec![
+                    serenity::CreateButton::new("kys_btn")
+                        .label("KYS")
+                        .emoji('☠')
+                        .style(serenity::ButtonStyle::Danger),
+                ])]),
+        )
+        .await?;
     Ok(())
 }

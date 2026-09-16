@@ -20,17 +20,18 @@ pub async fn handle_char_delete_button(
                     .style(serenity::ButtonStyle::Success),
             ])];
 
-            crate::create_edit_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .content(format!(
-                        "Вы действительно хотите удалить персонажа?\nВы потеряете {} монет!",
-                        PrettyDecimal::comma3dot(dl_user.balance)
-                    ))
-                    .components(buttons)
-                    .embeds(Vec::new())
-            );
+            press
+                .edit_reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .content(format!(
+                            "Вы действительно хотите удалить персонажа?\nВы потеряете {} монет!",
+                            PrettyDecimal::comma3dot(dl_user.balance)
+                        ))
+                        .components(buttons)
+                        .embeds(Vec::new()),
+                )
+                .await?;
         }
 
         "dl:char_delete:yes" => {
@@ -39,14 +40,15 @@ pub async fn handle_char_delete_button(
                 .execute(&data.pool)
                 .await;
 
-            crate::create_edit_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .content("Пока, путник!")
-                    .components(Vec::new())
-                    .embeds(Vec::new())
-            );
+            press
+                .edit_reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .content("Пока, путник!")
+                        .components(Vec::new())
+                        .embeds(Vec::new()),
+                )
+                .await?;
         }
         _ => {}
     }

@@ -31,13 +31,14 @@ pub async fn handle_shop_button(
         "мана" => "UPDATE dl_users SET mana = mana + 10 WHERE id = $1",
 
         _ => {
-            crate::create_response!(
-                ctx,
-                press,
-                serenity::CreateInteractionResponseMessage::new()
-                    .content("Неизвестный товар. Доступные товары: хп | урон | мана")
-                    .ephemeral(true)
-            );
+            press
+                .reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .content("Неизвестный товар. Доступные товары: хп | урон | мана")
+                        .ephemeral(true),
+                )
+                .await?;
             return Ok(());
         }
     };
@@ -53,25 +54,27 @@ pub async fn handle_shop_button(
 
     let Some(balance) = balance else {
         tx.rollback().await?;
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Сначала создай персонажа")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Сначала создай персонажа")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     };
 
     if balance < Decimal::from_u16(399).unwrap() {
         tx.rollback().await?;
-        crate::create_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("У вас не хватает денег!")
-                .ephemeral(true)
-        );
+        press
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("У вас не хватает денег!")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -87,13 +90,14 @@ pub async fn handle_shop_button(
 
     tx.commit().await?;
 
-    crate::create_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .content("Спасибо за покупку!")
-            .ephemeral(true)
-    );
+    press
+        .reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .content("Спасибо за покупку!")
+                .ephemeral(true),
+        )
+        .await?;
 
     Ok(())
 }

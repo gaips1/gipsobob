@@ -30,13 +30,14 @@ pub async fn handle_traits_upgrade_button(
             .description(dialogue.content)
             .colour(serenity::colours::branding::RED);
 
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .embed(embed)
-                .components(dialogue.buttons)
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(embed)
+                    .components(dialogue.buttons),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -56,13 +57,14 @@ pub async fn handle_traits_upgrade_button(
             .description(dialogue.content)
             .colour(serenity::colours::branding::RED);
 
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .embed(embed)
-                .components(dialogue.buttons)
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .embed(embed)
+                    .components(dialogue.buttons),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -97,13 +99,14 @@ pub async fn handle_traits_upgrade_button(
         ))
         .colour(serenity::colours::branding::GREEN);
 
-    crate::create_edit_response!(
-        ctx,
-        press,
-        serenity::CreateInteractionResponseMessage::new()
-            .embed(embed)
-            .components(dialogue.buttons)
-    );
+    press
+        .edit_reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .embed(embed)
+                .components(dialogue.buttons),
+        )
+        .await?;
 
     Ok(())
 }

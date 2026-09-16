@@ -26,14 +26,15 @@ pub async fn handle_mining_buttons(
     let Some(mining_user) = MiningUser::get(&data.pool, &press.user).await else {
         let dialogue = get_dialogue("mining:first_hi").unwrap();
 
-        crate::create_edit_response!(
-            ctx,
-            press,
-            serenity::CreateInteractionResponseMessage::new()
-                .content(dialogue.content)
-                .embeds(Vec::new())
-                .components(dialogue.buttons)
-        );
+        press
+            .edit_reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content(dialogue.content)
+                    .embeds(Vec::new())
+                    .components(dialogue.buttons),
+            )
+            .await?;
 
         return Ok(());
     };

@@ -141,22 +141,14 @@ pub async fn sex(
 
             async move {
                 if press.user.id != user.id {
-                    crate::create_response!(
-                        ctx,
-                        press,
-                        serenity::CreateInteractionResponseMessage::default()
+                    press.reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default()
                             .content("Завидуй молча, это не тебе секс предлагали")
-                            .ephemeral(true)
-                    );
+                            .ephemeral(true)).await?;
                     return Ok(false);
                 }
 
                 if relative_id == "yes" {
-                    crate::create_edit_response!(
-                        ctx,
-                        press,
-                        serenity::CreateInteractionResponseMessage::default().components(buttons)
-                    );
+                    press.edit_reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default().components(buttons)).await?;
 
                     let _ = add_user_quest_progress(
                         &ctx.data().pool,
@@ -216,11 +208,7 @@ pub async fn sex(
                         )
                         .await?;
                 } else if relative_id == "no" {
-                    crate::create_edit_response!(
-                        ctx,
-                        press,
-                        serenity::CreateInteractionResponseMessage::default().components(buttons)
-                    );
+                    press.edit_reply(ctx.serenity_context(), serenity::CreateInteractionResponseMessage::default().components(buttons)).await?;
 
                     press
                         .create_followup(

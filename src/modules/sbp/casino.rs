@@ -80,13 +80,15 @@ async fn handle_slots_button(
         .unwrap_or("")
         .parse::<u64>();
     let Ok(stavka) = stavka else {
-        crate::create_response!(
-            ctx,
-            response.interaction,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Ваша ставка не является числом")
-                .ephemeral(true)
-        );
+        response
+            .interaction
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваша ставка не является числом")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     };
 
@@ -96,13 +98,15 @@ async fn handle_slots_button(
     let min_slots_bet: u64 = if has_cheap_date { 285 } else { 300 };
 
     if stavka < min_slots_bet {
-        crate::create_response!(
-            ctx,
-            response.interaction,
-            serenity::CreateInteractionResponseMessage::new()
-                .content(format!("Минимальная ставка {min_slots_bet} бебр"))
-                .ephemeral(true)
-        );
+        response
+            .interaction
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content(format!("Минимальная ставка {min_slots_bet} бебр"))
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -155,13 +159,15 @@ async fn handle_slots_button(
     .await?;
 
     if result.rows_affected() == 0 {
-        crate::create_response!(
-            ctx,
-            response.interaction,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("У вас не хватает бебр")
-                .ephemeral(true)
-        );
+        response
+            .interaction
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("У вас не хватает бебр")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     };
 
@@ -175,18 +181,20 @@ async fn handle_slots_button(
     )
     .await;
 
-    crate::create_response!(
-        ctx,
-        response.interaction,
-        serenity::CreateInteractionResponseMessage::new()
-            .embed(
-                serenity::CreateEmbed::default()
-                    .title("Спасибо, ставка принята!")
-                    .description("Кручу барабан, подождите немного...")
-                    .colour(serenity::colours::branding::GREEN)
-            )
-            .ephemeral(true)
-    );
+    response
+        .interaction
+        .reply(
+            ctx,
+            serenity::CreateInteractionResponseMessage::new()
+                .embed(
+                    serenity::CreateEmbed::default()
+                        .title("Спасибо, ставка принята!")
+                        .description("Кручу барабан, подождите немного...")
+                        .colour(serenity::colours::branding::GREEN),
+                )
+                .ephemeral(true),
+        )
+        .await?;
 
     let mut revealed = String::new();
     for emoji in &slots {
@@ -282,13 +290,15 @@ async fn handle_guess_button(
         .unwrap_or("")
         .parse::<u64>();
     let Ok(stavka) = stavka else {
-        crate::create_response!(
-            ctx,
-            response.interaction,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Ваша ставка не является числом")
-                .ephemeral(true)
-        );
+        response
+            .interaction
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваша ставка не является числом")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     };
 
@@ -298,13 +308,15 @@ async fn handle_guess_button(
     let min_guess_bet: u64 = if has_cheap_date { 95 } else { 100 };
 
     if stavka < min_guess_bet {
-        crate::create_response!(
-            ctx,
-            response.interaction,
-            serenity::CreateInteractionResponseMessage::new()
-                .content(format!("Минимальная ставка {min_guess_bet} бебр"))
-                .ephemeral(true)
-        );
+        response
+            .interaction
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content(format!("Минимальная ставка {min_guess_bet} бебр"))
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
     let stavka: Decimal = stavka.into();
@@ -316,13 +328,15 @@ async fn handle_guess_button(
         .unwrap_or("")
         .parse::<u64>();
     let Ok(range) = range else {
-        crate::create_response!(
-            ctx,
-            response.interaction,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Ваше число не является числом")
-                .ephemeral(true)
-        );
+        response
+            .interaction
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваше число не является числом")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     };
 
@@ -333,24 +347,28 @@ async fn handle_guess_button(
         .unwrap_or("")
         .parse::<u64>();
     let Ok(number) = number else {
-        crate::create_response!(
-            ctx,
-            response.interaction,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Ваше число не является числом")
-                .ephemeral(true)
-        );
+        response
+            .interaction
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваше число не является числом")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     };
 
     if number < 1 || number > range {
-        crate::create_response!(
-            ctx,
-            response.interaction,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("Ваше число не входит в указанный диапазон!")
-                .ephemeral(true)
-        );
+        response
+            .interaction
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("Ваше число не входит в указанный диапазон!")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -389,13 +407,15 @@ async fn handle_guess_button(
     .await?;
 
     if result.rows_affected() == 0 {
-        crate::create_response!(
-            ctx,
-            response.interaction,
-            serenity::CreateInteractionResponseMessage::new()
-                .content("У вас не хватает бебр")
-                .ephemeral(true)
-        );
+        response
+            .interaction
+            .reply(
+                ctx,
+                serenity::CreateInteractionResponseMessage::new()
+                    .content("У вас не хватает бебр")
+                    .ephemeral(true),
+            )
+            .await?;
         return Ok(());
     };
 
@@ -411,39 +431,45 @@ async fn handle_guess_button(
 
     match win {
         Some(w) => {
-            crate::create_response!(
-                ctx,
-                response.interaction,
-                serenity::CreateInteractionResponseMessage::new()
-                    .embed(
-                        serenity::CreateEmbed::default()
-                            .title(format!("Вы выиграли!"))
-                            .description(format!("Ваша ставка: {stavka} бебр\nВыигрыш: {w} бебр"))
-                            .colour(serenity::colours::branding::GREEN)
-                    )
-                    .ephemeral(true)
-            );
+            response
+                .interaction
+                .reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .embed(
+                            serenity::CreateEmbed::default()
+                                .title(format!("Вы выиграли!"))
+                                .description(format!(
+                                    "Ваша ставка: {stavka} бебр\nВыигрыш: {w} бебр"
+                                ))
+                                .colour(serenity::colours::branding::GREEN),
+                        )
+                        .ephemeral(true),
+                )
+                .await?;
         }
 
         None => {
-            crate::create_response!(
-                ctx,
-                response.interaction,
-                serenity::CreateInteractionResponseMessage::new()
-                    .embed(
-                        serenity::CreateEmbed::default()
-                            .title(format!("Вы проиграли!"))
-                            .description(format!(
-                                "Я выдумал число {}\nВы могли бы выиграть {} бебр!",
-                                rand_num,
-                                stavka
-                                    .mul(Decimal::from_u64(range).unwrap())
-                                    .mul(Decimal::from_f64(0.2).unwrap())
-                            ))
-                            .colour(serenity::colours::branding::FUCHSIA)
-                    )
-                    .ephemeral(true)
-            );
+            response
+                .interaction
+                .reply(
+                    ctx,
+                    serenity::CreateInteractionResponseMessage::new()
+                        .embed(
+                            serenity::CreateEmbed::default()
+                                .title(format!("Вы проиграли!"))
+                                .description(format!(
+                                    "Я выдумал число {}\nВы могли бы выиграть {} бебр!",
+                                    rand_num,
+                                    stavka
+                                        .mul(Decimal::from_u64(range).unwrap())
+                                        .mul(Decimal::from_f64(0.2).unwrap())
+                                ))
+                                .colour(serenity::colours::branding::FUCHSIA),
+                        )
+                        .ephemeral(true),
+                )
+                .await?;
         }
     }
 

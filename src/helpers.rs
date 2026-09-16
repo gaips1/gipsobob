@@ -1,29 +1,41 @@
-use super::types::Error;
-pub use poise::serenity_prelude as serenity;
+use super::types::*;
 
-#[macro_export]
-macro_rules! create_response {
-    ($ctx:expr, $interaction:expr, $message:expr) => {
-        $interaction
-            .create_response(
-                $ctx,
-                $crate::helpers::serenity::CreateInteractionResponse::Message($message),
-            )
-            .await?
+use serenity::{CreateInteractionResponse, CreateInteractionResponseMessage};
+
+pub trait InteractionExt {
+    async fn reply(
+        &self,
+        ctx: &serenity::Context,
+        msg: serenity::CreateInteractionResponseMessage,
+    ) -> serenity::Result<()>;
+    async fn edit_reply(
+        &self,
+        ctx: &serenity::Context,
+        msg: serenity::CreateInteractionResponseMessage,
+    ) -> serenity::Result<()>;
+}
+
+macro_rules! impl_interaction_ext {
+    ($( $t:ty ),* $(,)?) => {
+        $(
+            impl InteractionExt for $t {
+                async fn reply(&self, ctx: &serenity::Context, msg: CreateInteractionResponseMessage) -> serenity::Result<()> {
+                    self.create_response(ctx, CreateInteractionResponse::Message(msg)).await
+                }
+
+                async fn edit_reply(&self, ctx: &serenity::Context, msg: CreateInteractionResponseMessage) -> serenity::Result<()> {
+                    self.create_response(ctx, CreateInteractionResponse::UpdateMessage(msg)).await
+                }
+            }
+        )*
     };
 }
 
-#[macro_export]
-macro_rules! create_edit_response {
-    ($ctx:expr, $interaction:expr, $message:expr) => {
-        $interaction
-            .create_response(
-                $ctx,
-                $crate::helpers::serenity::CreateInteractionResponse::UpdateMessage($message),
-            )
-            .await?
-    };
-}
+impl_interaction_ext!(
+    serenity::CommandInteraction,
+    serenity::ComponentInteraction,
+    serenity::ModalInteraction,
+);
 
 pub fn resolve_data_path(relative: &str) -> std::path::PathBuf {
     if cfg!(debug_assertions) {
@@ -43,32 +55,4 @@ pub fn resolve_data_path(relative: &str) -> std::path::PathBuf {
 
         exe_dir.join(file_name)
     }
-}
-
-#[allow(dead_code)]
-pub async fn check_user_flag(pool: &sqlx::PgPool, user_id: u64, flag: &str) -> Result<bool, Error> {
-    let result: bool = sqlx::query_scalar("SELECT $2 = ANY(flags) FROM users WHERE id = $1")
-        .bind(user_id as i64)
-        .bind(flag)
-        .fetch_optional(pool)
-        .await?
-        .unwrap_or(false);
-
-    Ok(result)
-}
-
-#[allow(dead_code)]
-pub async fn set_user_flag(
-    pool: &sqlx::PgPool,
-    user_id: u64,
-    flag: &str,
-) -> Result<sqlx::postgres::PgQueryResult, sqlx::Error> {
-    sqlx::query(
-        "UPDATE users SET flags = array_append(flags, $2) \
-        WHERE id = $1 AND NOT (flags @> ARRAY[$2]::text[])",
-    )
-    .bind(user_id as i64)
-    .bind(flag)
-    .execute(pool)
-    .await
 }

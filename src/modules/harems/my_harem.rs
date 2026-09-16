@@ -108,11 +108,10 @@ pub async fn handle_harem_leave_button(
                     .style(serenity::ButtonStyle::Danger),
             ])];
 
-            crate::create_response!(ctx, press, serenity::CreateInteractionResponseMessage::default()
+            press.reply(ctx, serenity::CreateInteractionResponseMessage::default()
                 .content("Вы уверены, что хотите покинуть гарем?\n## !! Если вы были его владельцем, он будет удалён. !!")
                 .components(buttons)
-                .ephemeral(true)
-            );
+                .ephemeral(true)).await?;
         }
 
         "harem:leave:yes" => {
@@ -127,13 +126,14 @@ pub async fn handle_harem_leave_button(
             .await?;
 
             let Some(user_harem) = user_harem else {
-                crate::create_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Вы в данный момент не в гареме")
-                        .ephemeral(true)
-                );
+                press
+                    .reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Вы в данный момент не в гареме")
+                            .ephemeral(true),
+                    )
+                    .await?;
                 return Ok(());
             };
 
@@ -143,14 +143,15 @@ pub async fn handle_harem_leave_button(
                     .execute(&data.pool)
                     .await?;
 
-                crate::create_edit_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Вы удалили свой гарем :(")
-                        .components(Vec::new())
-                        .ephemeral(true)
-                );
+                press
+                    .edit_reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Вы удалили свой гарем :(")
+                            .components(Vec::new())
+                            .ephemeral(true),
+                    )
+                    .await?;
 
                 // надо бы сделать уведомления для каждого пользователя, который входил в гарем, но мне так лееньь...
             } else {
@@ -159,14 +160,15 @@ pub async fn handle_harem_leave_button(
                     .execute(&data.pool)
                     .await?;
 
-                crate::create_edit_response!(
-                    ctx,
-                    press,
-                    serenity::CreateInteractionResponseMessage::default()
-                        .content("Вы покинули свой гарем :(")
-                        .components(Vec::new())
-                        .ephemeral(true)
-                );
+                press
+                    .edit_reply(
+                        ctx,
+                        serenity::CreateInteractionResponseMessage::default()
+                            .content("Вы покинули свой гарем :(")
+                            .components(Vec::new())
+                            .ephemeral(true),
+                    )
+                    .await?;
 
                 let harem_author = serenity::UserId::new(user_harem.0 as u64)
                     .to_user(ctx)
