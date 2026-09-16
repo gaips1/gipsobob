@@ -1,7 +1,7 @@
 pub mod kys;
+mod pat;
 mod rps;
 mod sex;
-mod pat;
 
 use crate::modules::traits::get_user_traits;
 use crate::types::*;
@@ -459,10 +459,7 @@ pub async fn cumshot(
         }
     } else {
         let msg = ctx
-            .say(format!(
-                "Выпускаю сперму в {}...",
-                user.display_name()
-            ))
+            .say(format!("Выпускаю сперму в {}...", user.display_name()))
             .await?;
         sleep(Duration::from_millis(1_500)).await;
 
@@ -523,10 +520,8 @@ pub async fn cumshot(
         } else {
             msg.edit(
                 ctx,
-                CreateReply::default().content(format!(
-                    "{} уворачивается от спермы!",
-                    user.display_name()
-                )),
+                CreateReply::default()
+                    .content(format!("{} уворачивается от спермы!", user.display_name())),
             )
             .await?;
         }
@@ -580,10 +575,7 @@ pub async fn blowjob(
         }
     } else {
         let msg = ctx
-            .say(format!(
-                "Вы сосёте {}...",
-                user.display_name()
-            ))
+            .say(format!("Вы сосёте {}...", user.display_name()))
             .await?;
         sleep(Duration::from_millis(3_500)).await;
 
