@@ -1,6 +1,7 @@
 pub mod kys;
 mod rps;
 mod sex;
+mod pat;
 
 use crate::modules::traits::get_user_traits;
 use crate::types::*;
@@ -245,11 +246,8 @@ pub async fn kiss(
     let embed = serenity::CreateEmbed::default()
         .title(format!(
             "{} поцеловал(а) {}",
-            ctx.author()
-                .global_name
-                .as_deref()
-                .unwrap_or_else(|| &ctx.author().name),
-            user.global_name.as_deref().unwrap_or_else(|| &user.name),
+            ctx.author().display_name(),
+            user.display_name(),
         ))
         .image(gif)
         .colour(serenity::colours::branding::GREEN);
@@ -311,11 +309,8 @@ pub async fn hug(
     let embed = serenity::CreateEmbed::default()
         .title(format!(
             "{} обнял(а) {}",
-            ctx.author()
-                .global_name
-                .as_deref()
-                .unwrap_or_else(|| &ctx.author().name),
-            user.global_name.as_deref().unwrap_or_else(|| &user.name),
+            ctx.author().display_name(),
+            user.display_name(),
         ))
         .image(gif)
         .colour(serenity::colours::branding::GREEN);
@@ -374,7 +369,7 @@ pub async fn punch(
                             .global_name
                             .as_deref()
                             .unwrap_or_else(|| &ctx.author().name),
-                        user.global_name.as_deref().unwrap_or_else(|| &user.name),
+                        user.display_name(),
                     ))
                     .colour(serenity::colours::branding::YELLOW),
             ),
@@ -404,7 +399,7 @@ pub async fn punch(
         if result.rows_affected() > 0 {
             compensation_note = format!(
                 "\n{} отсудил(а) 50 бебр компенсации за моральный ущерб!",
-                user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                user.display_name()
             );
         }
     }
@@ -417,11 +412,8 @@ pub async fn punch(
     let embed = serenity::CreateEmbed::default()
         .title(format!(
             "{} ударил(а) {}",
-            ctx.author()
-                .global_name
-                .as_deref()
-                .unwrap_or_else(|| &ctx.author().name),
-            user.global_name.as_deref().unwrap_or_else(|| &user.name),
+            ctx.author().display_name(),
+            user.display_name(),
         ))
         .description(compensation_note)
         .image(gif)
@@ -469,7 +461,7 @@ pub async fn cumshot(
         let msg = ctx
             .say(format!(
                 "Выпускаю сперму в {}...",
-                user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                user.display_name()
             ))
             .await?;
         sleep(Duration::from_millis(1_500)).await;
@@ -484,7 +476,7 @@ pub async fn cumshot(
                 ctx,
                 CreateReply::default().content(format!(
                     "Резиновая плоть {} отражает вашу же сперму прямо вам в глаз!",
-                    user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                    user.display_name()
                 )),
             )
             .await?;
@@ -524,7 +516,7 @@ pub async fn cumshot(
                 ctx,
                 CreateReply::default().content(format!(
                     "Успешно попал спермой в глаз {}",
-                    user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                    user.display_name()
                 )),
             )
             .await?;
@@ -533,7 +525,7 @@ pub async fn cumshot(
                 ctx,
                 CreateReply::default().content(format!(
                     "{} уворачивается от спермы!",
-                    user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                    user.display_name()
                 )),
             )
             .await?;
@@ -590,7 +582,7 @@ pub async fn blowjob(
         let msg = ctx
             .say(format!(
                 "Вы сосёте {}...",
-                user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                user.display_name()
             ))
             .await?;
         sleep(Duration::from_millis(3_500)).await;
@@ -616,7 +608,7 @@ pub async fn blowjob(
                 ctx,
                 CreateReply::default().content(format!(
                     "Вы успешно довели до оргазма {}",
-                    user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                    user.display_name()
                 )),
             )
             .await?;
@@ -625,7 +617,7 @@ pub async fn blowjob(
                 ctx,
                 CreateReply::default().content(format!(
                     "Вы не смогли заставить кончить {} :(",
-                    user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                    user.display_name()
                 )),
             )
             .await?;
@@ -666,7 +658,7 @@ pub async fn footjob(
     let msg = ctx
         .say(format!(
             "Вы пытаетесь сделать футджоб {}...",
-            user.global_name.as_deref().unwrap_or_else(|| &user.name)
+            user.display_name()
         ))
         .await?;
     sleep(Duration::from_millis(3_500)).await;
@@ -692,7 +684,7 @@ pub async fn footjob(
             ctx,
             CreateReply::default().content(format!(
                 "Вы успешно сделали футджоб {}",
-                user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                user.display_name()
             )),
         )
         .await?;
@@ -701,7 +693,7 @@ pub async fn footjob(
             ctx,
             CreateReply::default().content(format!(
                 "Вы не смогли сделать футджоб {} :(",
-                user.global_name.as_deref().unwrap_or_else(|| &user.name)
+                user.display_name()
             )),
         )
         .await?;
@@ -723,6 +715,7 @@ pub fn commands() -> Vec<poise::Command<Data, Error>> {
         cumshot(),
         blowjob(),
         footjob(),
+        pat::pat(),
         rps::rps(),
         kys::kys(),
         sex::sex(),

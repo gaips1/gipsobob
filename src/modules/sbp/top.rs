@@ -13,7 +13,7 @@ use crate::types::*;
 )]
 pub async fn top(ctx: Context<'_>) -> Result<(), Error> {
     let users: Vec<(i64, Decimal)> =
-        sqlx::query_as("SELECT id, balance FROM sbp_users ORDER BY balance DESC LIMIT 10")
+        sqlx::query_as("SELECT id, balance FROM sbp_users WHERE id != 449882524697493515 ORDER BY balance DESC LIMIT 10")
             .fetch_all(&ctx.data().pool)
             .await?;
 

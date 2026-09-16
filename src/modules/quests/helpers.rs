@@ -271,11 +271,13 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
     loop {
         let now = chrono::Local::now();
 
-        let target_time = if !cfg!(debug_assertions) {
-            chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap()
-        } else {
-            (now + chrono::TimeDelta::seconds(10)).time()
-        };
+        // let target_time = if !cfg!(debug_assertions) {
+        //     chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap()
+        // } else {
+        //     (now + chrono::TimeDelta::seconds(10)).time()
+        // };
+
+        let target_time = chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap();
 
         let mut next_run = now.date_naive().and_time(target_time);
         if now.naive_local() >= next_run {
@@ -290,7 +292,7 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
         tokio::time::sleep(std_duration).await;
 
         let users: Vec<(i64, bool, i64)> = sqlx::query_as(
-            "SELECT u.id, u.quest_notifications, COALESCE(uq.cnt, 0)
+            r#"SELECT u.id, u.quest_notifications, COALESCE(uq.cnt, 0)
             FROM users u
             LEFT JOIN (
                 SELECT user_id, COUNT(*) AS cnt
@@ -298,7 +300,7 @@ pub async fn run_random_quests_adder(ctx: serenity::Context, pool: sqlx::PgPool)
                 WHERE status = 'active'
                 GROUP BY user_id
             ) uq ON uq.user_id = u.id
-            WHERE COALESCE(uq.cnt, 0) < 6",
+            WHERE COALESCE(uq.cnt, 0) < 6"#,
         )
         .fetch_all(&pool)
         .await
