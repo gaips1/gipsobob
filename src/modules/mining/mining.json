@@ -3,7 +3,7 @@
     "gtx760": { "name": "GTX 760", "earn_per_second": 0.001, "price": 10, "power": 100 },
     "gtx1050ti": { "name": "GTX 1050 TI", "earn_per_second": 0.004, "price": 50, "power": 75 },
     "gtx1650ti": { "name": "GTX 1650 TI", "earn_per_second": 0.012, "price": 200, "power": 55 },
-    "gtx1660super": { "name": "GTX 1660 SUPER", "earn_per_second": 0.025, "price": 450, "power": 125 },
+    "gtx1660super": { "name": "GTX 1660 SUPER", "earn_per_second": 0.03, "price": 550, "power": 125 },
     "rtx2060": { "name": "RTX 2060", "earn_per_second": 0.045, "price": 900, "power": 160 },
     "rtx2070super": { "name": "RTX 2070 SUPER", "earn_per_second": 0.08, "price": 1800, "power": 215 },
     "rtx3060ti": { "name": "RTX 3060 TI", "earn_per_second": 0.15, "price": 3600, "power": 200 },
@@ -12,18 +12,18 @@
     "rtx4080": { "name": "RTX 4080", "earn_per_second": 0.85, "price": 26000, "power": 320 },
     "rtx4090": { "name": "RTX 4090", "earn_per_second": 1.5, "price": 48000, "power": 450 },
     "rtx4090ti": { "name": "RTX 4090 TI", "earn_per_second": 2.6, "price": 85000, "power": 600 },
-    "teslat4": { "name": "Tesla T4", "earn_per_second": 4.2, "price": 150000, "power": 70 },
+    "teslat4": { "name": "Tesla T4", "earn_per_second": 3.3, "price": 120000, "power": 250 },
     "a100": { "name": "NVIDIA A100", "earn_per_second": 8, "price": 300000, "power": 400 },
-    "h100": { "name": "NVIDIA H100", "earn_per_second": 16, "price": 600000, "power": 700 },
-    "h200": { "name": "NVIDIA H200", "earn_per_second": 32, "price": 1200000, "power": 700 },
-    "b200": { "name": "NVIDIA B200", "earn_per_second": 65, "price": 2500000, "power": 1000 }
+    "h100": { "name": "NVIDIA H100", "earn_per_second": 16, "price": 610000, "power": 700 },
+    "h200": { "name": "NVIDIA H200", "earn_per_second": 32, "price": 1250000, "power": 700 },
+    "b200": { "name": "NVIDIA B200", "earn_per_second": 65, "price": 2650000, "power": 1000 }
   },
   "locations": {
     "apartment": {
       "name": "🏠 Квартира",
       "description": "Стартовая локация. Обычная бытовая проводка, соседи жалуются на гул и духоту.",
       "max_power": 1500,
-      "price_per_kwh": 0.15,
+      "price_per_kwh": 2.5,
       "price": 0,
       "trading_limit": 350
     },
@@ -31,7 +31,7 @@
       "name": "🛠️ Гараж",
       "description": "Отдельная проводка, можно шуметь сколько угодно, но лимит всё ещё бытовой.",
       "max_power": 5000,
-      "price_per_kwh": 0.13,
+      "price_per_kwh": 1.8,
       "price": 5000,
       "trading_limit": 500
     },
@@ -39,7 +39,7 @@
       "name": "🏢 Арендованный офис",
       "description": "Трёхфазное питание, кондиционер, никаких соседей.",
       "max_power": 20000,
-      "price_per_kwh": 0.10,
+      "price_per_kwh": 1.0,
       "price": 100000,
       "trading_limit": 800
     },
@@ -47,7 +47,7 @@
       "name": "🏭 Складской ангар",
       "description": "Промышленный тариф на электричество, полноценное охлаждение.",
       "max_power": 100000,
-      "price_per_kwh": 0.07,
+      "price_per_kwh": 0.4,
       "price": 2000000,
       "trading_limit": 1500
     },
@@ -55,12 +55,12 @@
       "name": "🏬 Дата-центр",
       "description": "Практически неограниченная мощность, промышленный тариф и профессиональное охлаждение.",
       "max_power": 1000000,
-      "price_per_kwh": 0.05,
+      "price_per_kwh": 0.12,
       "price": 20000000,
       "trading_limit": 3000
     }
   },
-  
+
   "dialogues": {
     "mining:first_hi": {
       "content": "Привет. Слышишь этот тихий гул на заднем плане? Это работают мои малышки. Я Влад, в узких кругах — \"Cool'Cold\". Помогаю собирать фермы, которые приносят доход. Вижу, ты тоже хочешь попробовать себя в этой теме?",

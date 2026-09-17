@@ -16,25 +16,21 @@ pub fn get_videocards() -> &'static IndexMap<String, types::Videocard> {
         struct MiningConfig {
             videocards: IndexMap<String, types::Videocard>,
         }
-
-        let path = resolve_data_path("src/modules/mining/mining.json");
-        let data = std::fs::read_to_string(&path)
-            .unwrap_or_else(|e| panic!("failed to read mining.json: {e}"));
-
+        let data =
+            std::fs::read_to_string(resolve_data_path("src/modules/mining/mining.json")).unwrap();
         let config: MiningConfig =
-            serde_json::from_str(&data).expect("failed to parse videocards from mining.json");
-
+            serde_json::from_str(&data).expect("failed to parse mining.json");
         config.videocards
     })
 }
 
-#[derive(serde::Deserialize)]
-struct MiningConfig {
-    locations: IndexMap<String, types::Location>,
-}
 static LOCATIONS: OnceLock<IndexMap<String, types::Location>> = OnceLock::new();
 pub fn get_locations() -> &'static IndexMap<String, types::Location> {
     LOCATIONS.get_or_init(|| {
+        #[derive(serde::Deserialize)]
+        struct MiningConfig {
+            locations: IndexMap<String, types::Location>,
+        }
         let data =
             std::fs::read_to_string(resolve_data_path("src/modules/mining/mining.json")).unwrap();
         let config: MiningConfig =
