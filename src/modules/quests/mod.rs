@@ -9,7 +9,7 @@ pub async fn handle_quests_select(
     ctx: &serenity::Context,
     press: &serenity::ComponentInteraction,
     data: &Data,
-    values: &Vec<String>,
+    values: &[String],
 ) -> Result<(), Error> {
     let status = match values.first().unwrap().as_str() {
         "active" => types::Status::Active,

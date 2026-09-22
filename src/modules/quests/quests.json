@@ -178,5 +178,14 @@
     "max_progress": 15,
     "reward": 300,
     "ends": 24
+  },
+  {
+    "id": "pat-15",
+    "name": "Погладьте меня!",
+    "description": "Погладь 15 разных пользователей `/погладить`",
+    "action": "pat",
+    "max_progress": 15,
+    "reward": 700,
+    "ends": 24
   }
 ]
