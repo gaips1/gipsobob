@@ -1,6 +1,6 @@
 [package]
 name = "gipsobob"
-version = "3.1.0"
+version = "3.1.1"
 edition = "2024"
 
 [dependencies]
@@ -22,3 +22,6 @@ chrono = "0.4.45"
 indexmap = { version = "2.14.0", features = ["serde"] }
 num-format = "0.4"
 reqwest = { version = "0.11.22", default-features = false, features = ["rustls-tls"] }
+
+[profile.dev]
+debug = 1

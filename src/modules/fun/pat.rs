@@ -6,11 +6,15 @@ use image::{
 };
 use std::{io::Cursor, sync::LazyLock};
 
+const CANVAS_SIZE: u32 = 128;
+const AVATAR_SIZE: u32 = 95;
+const AVATAR_X: i64 = 40;
+const AVATAR_Y: i64 = 45;
+
 struct PetFrame {
     hand: RgbaImage,
     delay: image::Delay,
 }
-
 static PETPET_FRAMES: LazyLock<Vec<PetFrame>> = LazyLock::new(|| {
     let bytes = include_bytes!("petpet.gif");
     let decoder = GifDecoder::new(Cursor::new(bytes)).expect("Не удалось прочитать petpet.gif");
@@ -22,13 +26,17 @@ static PETPET_FRAMES: LazyLock<Vec<PetFrame>> = LazyLock::new(|| {
         .into_iter()
         .map(|frame| {
             let delay = frame.delay();
-            let hand = imageops::resize(frame.buffer(), 256, 256, FilterType::Nearest);
+            let hand = imageops::resize(
+                frame.buffer(),
+                CANVAS_SIZE,
+                CANVAS_SIZE,
+                FilterType::Nearest,
+            );
             PetFrame { hand, delay }
         })
         .collect()
 });
 
-/// Погладить пользователя
 #[poise::command(
     slash_command,
     rename = "погладить",
@@ -72,26 +80,26 @@ pub async fn pat(
     )
     .await;
 
-    let response_bytes = reqwest::get(&user.face().replace("?size=1024", "?size=128"))
-        .await?
-        .bytes()
-        .await?;
+    let avatar_url = user.face().replace("?size=1024", "?size=128");
+    let response_bytes = reqwest::get(&avatar_url).await?.bytes().await?;
 
     let photo = image::load_from_memory(&response_bytes)?.to_rgba8();
-    let resized_photo = imageops::resize(&photo, 190, 190, FilterType::Nearest);
+    let resized_photo = imageops::resize(&photo, AVATAR_SIZE, AVATAR_SIZE, FilterType::Nearest);
 
     let gif_bytes = tokio::task::spawn_blocking(move || -> Result<Vec<u8>, Error> {
         let mut new_frames = Vec::with_capacity(PETPET_FRAMES.len());
+        let mut base_canvas = RgbaImage::new(CANVAS_SIZE, CANVAS_SIZE);
+        imageops::overlay(&mut base_canvas, &resized_photo, AVATAR_X, AVATAR_Y);
+
         for pf in PETPET_FRAMES.iter() {
-            let mut canvas = RgbaImage::new(256, 256);
-            imageops::overlay(&mut canvas, &resized_photo, 70, 80);
+            let mut canvas = base_canvas.clone();
             imageops::overlay(&mut canvas, &pf.hand, 0, 0);
             new_frames.push(Frame::from_parts(canvas, 0, 0, pf.delay));
         }
 
-        let mut gif_bytes = Vec::new();
+        let mut gif_bytes = Vec::with_capacity(64 * 1024);
         {
-            let mut encoder = GifEncoder::new_with_speed(Cursor::new(&mut gif_bytes), 20);
+            let mut encoder = GifEncoder::new_with_speed(Cursor::new(&mut gif_bytes), 30);
             encoder.set_repeat(Repeat::Infinite)?;
             encoder.encode_frames(new_frames.into_iter())?;
         }
