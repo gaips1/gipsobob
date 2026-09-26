@@ -1,6 +1,6 @@
-use std::ops::Mul;
-use rust_decimal::{Decimal, prelude::FromPrimitive};
 use crate::{modules::traits::get_user_traits, types::*};
+use rust_decimal::{Decimal, prelude::FromPrimitive};
+use std::ops::Mul;
 
 pub async fn handle_guess_button(
     ctx: &serenity::Context,

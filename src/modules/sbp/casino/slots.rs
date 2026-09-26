@@ -1,7 +1,7 @@
+use crate::{modules::traits::get_user_traits, types::*};
 use rand::seq::IndexedRandom;
 use rust_decimal::{Decimal, prelude::FromPrimitive};
 use tokio::time::sleep;
-use crate::{modules::traits::get_user_traits, types::*};
 
 pub async fn handle_slots_button(
     ctx: &serenity::Context,

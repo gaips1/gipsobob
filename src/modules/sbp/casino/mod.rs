@@ -1,8 +1,9 @@
-use poise::CreateReply;
 use crate::checks::sbp_check;
 use crate::types::*;
+use poise::CreateReply;
 
 mod guess;
+pub mod mines;
 mod slots;
 
 /// Казино "У Снюсоеда"
@@ -21,6 +22,7 @@ pub async fn casino(ctx: Context<'_>) -> Result<(), Error> {
     let buttons = vec![serenity::CreateActionRow::Buttons(vec![
         serenity::CreateButton::new("casino:slots").label("Слоты"),
         serenity::CreateButton::new("casino:guess").label("Угадай число"),
+        serenity::CreateButton::new("casino:mines").label("Сапёр"),
     ])];
 
     ctx.send(
@@ -47,7 +49,11 @@ pub async fn handle_casino_buttons(
             guess::handle_guess_button(ctx, interaction, data).await?;
         }
 
-        _ => {}
+        _ => {
+            if interaction.data.custom_id.starts_with("casino:mines") {
+                mines::handle_mines_buttons(ctx, interaction, data).await?;
+            }
+        }
     }
     Ok(())
 }

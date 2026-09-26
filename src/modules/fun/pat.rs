@@ -37,6 +37,7 @@ static PETPET_FRAMES: LazyLock<Vec<PetFrame>> = LazyLock::new(|| {
         .collect()
 });
 
+/// Погладить пользователя
 #[poise::command(
     slash_command,
     rename = "погладить",

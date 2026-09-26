@@ -25,7 +25,7 @@
       "max_power": 1500,
       "price_per_kwh": 2.5,
       "price": 0,
-      "trading_limit": 350
+      "trading_limit": 150
     },
     "garage": {
       "name": "🛠️ Гараж",
@@ -33,7 +33,7 @@
       "max_power": 5000,
       "price_per_kwh": 1.8,
       "price": 5000,
-      "trading_limit": 500
+      "trading_limit": 400
     },
     "office": {
       "name": "🏢 Арендованный офис",
@@ -41,7 +41,7 @@
       "max_power": 20000,
       "price_per_kwh": 1.0,
       "price": 100000,
-      "trading_limit": 800
+      "trading_limit": 700
     },
     "warehouse": {
       "name": "🏭 Складской ангар",
@@ -49,7 +49,7 @@
       "max_power": 100000,
       "price_per_kwh": 0.4,
       "price": 2000000,
-      "trading_limit": 1500
+      "trading_limit": 1000
     },
     "datacenter": {
       "name": "🏬 Дата-центр",
@@ -57,7 +57,7 @@
       "max_power": 1000000,
       "price_per_kwh": 0.12,
       "price": 20000000,
-      "trading_limit": 3000
+      "trading_limit": 1500
     }
   },
 
